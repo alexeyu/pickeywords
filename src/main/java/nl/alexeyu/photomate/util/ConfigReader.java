@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import nl.alexeyu.photomate.model.PhotoStock;
@@ -19,7 +20,7 @@ public class ConfigReader {
 	
 	private static final String DEFAULT_CONFIG_FILE = "/photomate.properties";
 	
-	private static final Pattern PHOTO_STOCK = Pattern.compile("stock\\.([\\w]+)\\.name");
+	private static final Pattern PHOTO_STOCK_NAME = Pattern.compile("stock\\.([\\w]+)\\.name");
 	
 	private Properties properties = new Properties();
 	
@@ -45,24 +46,30 @@ public class ConfigReader {
 
 	private List<PhotoStock> readPhotoStocks() {
 		List<PhotoStock> photoStocks = new ArrayList<PhotoStock>();
-		for (int i = 1; ; i++) {
-			String prefix = "stock." + i + ".";
-			String name = properties.getProperty(prefix + "name");
-			if (name == null) {
-				break;
+		for (String prop : properties.stringPropertyNames()) {
+			Matcher matcher = PHOTO_STOCK_NAME.matcher(prop);
+			if (matcher.matches()) {
+				photoStocks.add(readPhotoStock(matcher.group(1)));
 			}
-			String icon = properties.getProperty(prefix + "icon");
-			String ftpUrl = properties.getProperty(prefix + "ftp.url");
-			String ftpUsername = properties.getProperty(prefix + "ftp.username");
-			String ftpPassword = properties.getProperty(prefix + "ftp.password");
-			PhotoStock stock = new PhotoStock(name, icon, ftpUrl, ftpUsername, ftpPassword);
-			photoStocks.add(stock);
 		}
 		return photoStocks;
+	}
+
+	private PhotoStock readPhotoStock(String key) {
+		String prefix = "stock." + key + ".";
+		String name = properties.getProperty(prefix + "name");
+		String icon = properties.getProperty(prefix + "icon");
+		String ftpUrl = properties.getProperty(prefix + "ftp.url");
+		String ftpUsername = properties.getProperty(prefix + "ftp.username");
+		String ftpPassword = properties.getProperty(prefix + "ftp.password");
+		return new PhotoStock(name, icon, ftpUrl, ftpUsername, ftpPassword);
 	}
 	
 	public List<PhotoStock> getPhotoStocks() {
 		return photoStocks;
 	}
 	
+	public String getProperty(String property, String defaultValue) {
+		return properties.getProperty(property);
+	}
 }

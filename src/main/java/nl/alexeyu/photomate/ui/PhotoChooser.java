@@ -16,18 +16,18 @@ import nl.alexeyu.photomate.service.UpdateListener;
 
 public class PhotoChooser extends JPanel {
 	
-	public PhotoChooser(final Container parent, final UpdateListener<File> fileListener) {
+	public PhotoChooser(final Container parent, final UpdateListener<File> fileListener, final String defaultFolder) {
 		super(new BorderLayout());
 		final JTextField textField = new JTextField("Select directory...");
 		textField.setEnabled(false);
 
 		final JFileChooser fileChooser = new JFileChooser();
-		fileChooser.setFileFilter(new FolderFilter());
+		fileChooser.setFileFilter(new JpegFilter());
 		fileChooser.addActionListener(new ActionListener() {
 			
-			public void actionPerformed(ActionEvent e) {
-				if (fileChooser.getSelectedFile() != null) {
-					File dir = fileChooser.getSelectedFile();
+			public void actionPerformed(ActionEvent event) {
+				if (JFileChooser.APPROVE_SELECTION.equals(event.getActionCommand())) {
+					File dir = fileChooser.getCurrentDirectory();
 					textField.setText(dir.getAbsolutePath());
 					fileListener.onUpdate(dir);
 				}
@@ -38,7 +38,8 @@ public class PhotoChooser extends JPanel {
 		chooseButton.addActionListener(new ActionListener() {
 			
 			public void actionPerformed(ActionEvent e) {
-				fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+				fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+				fileChooser.setCurrentDirectory(new File(defaultFolder));
 				fileChooser.showOpenDialog(parent);
 			}
 		});
@@ -47,15 +48,15 @@ public class PhotoChooser extends JPanel {
 		this.add(chooseButton, BorderLayout.EAST);
 	}
 
-	private static class FolderFilter extends FileFilter {
+	private static class JpegFilter extends FileFilter {
 		@Override
 		public boolean accept(File file) {
-			return file.isDirectory();
+			return file.isDirectory() || file.getName().endsWith(".jpg") || file.getName().endsWith(".jpeg");
 		}
 
 		@Override
 		public String getDescription() {
-			return "Directories";
+			return "JPEG files";
 		}
 	}
 

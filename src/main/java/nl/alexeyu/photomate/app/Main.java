@@ -55,12 +55,15 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 
 	private UploadTable uploadTable;
 	
+	private ConfigReader configReader;
+	
 	public Main() {
 		frame = new JFrame("Image Keywords");
 		frame.getContentPane().setLayout(new CardLayout());
 		photoList = new PhotoList(new PhotoListModel());
 		keywordsPicker = new KeywordPicker();
-		photoStocks = new ConfigReader().getPhotoStocks();
+		configReader = new ConfigReader();
+		photoStocks = configReader.getPhotoStocks();
 	}
 	
 	public void start() {
@@ -74,7 +77,8 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 		JPanel tagPane = new JPanel(new BorderLayout());
 		tagPane.add(photoList.getComponent(), BorderLayout.WEST);
 		photoList.addListener(this);
-		tagPane.add(new PhotoChooser(frame, this),  BorderLayout.NORTH);
+		tagPane.add(new PhotoChooser(frame, this, configReader.getProperty("defaultFolder", "")), 
+				BorderLayout.NORTH);
 		
 		JPanel centerPanel = new JPanel(new BorderLayout());
 		centerPanel.add(keywordsPicker.getComponent());
