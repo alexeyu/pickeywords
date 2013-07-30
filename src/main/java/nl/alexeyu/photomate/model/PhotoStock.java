@@ -41,5 +41,9 @@ public class PhotoStock {
 		return ftpPassword;
 	}
 
+	@Override
+	public String toString() {
+		return "PhotoStock [name=" + name + "]";
+	}
 	
 }
