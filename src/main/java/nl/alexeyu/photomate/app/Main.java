@@ -6,7 +6,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.AbstractListModel;
 import javax.swing.JButton;
@@ -22,10 +25,12 @@ import javax.swing.event.ListSelectionListener;
 import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.model.PhotoStock;
 import nl.alexeyu.photomate.service.ExecutorServices;
-import nl.alexeyu.photomate.service.FtpUploadTask;
+import nl.alexeyu.photomate.service.FakeUploadTask;
 import nl.alexeyu.photomate.service.KeywordReader;
 import nl.alexeyu.photomate.service.ThumbnailingTask;
 import nl.alexeyu.photomate.service.UpdateListener;
+import nl.alexeyu.photomate.service.UploadPhotoListener;
+import nl.alexeyu.photomate.service.UploadTask;
 import nl.alexeyu.photomate.service.exif.ExifKeywordReader;
 import nl.alexeyu.photomate.ui.Constants;
 import nl.alexeyu.photomate.ui.KeywordPicker;
@@ -33,9 +38,9 @@ import nl.alexeyu.photomate.ui.PhotoChooser;
 import nl.alexeyu.photomate.ui.PhotoList;
 import nl.alexeyu.photomate.ui.UploadTable;
 import nl.alexeyu.photomate.util.ConfigReader;
+import nl.alexeyu.photomate.util.ImageUtils;
 
-
-public class Main implements UpdateListener<File>, ListSelectionListener {
+public class Main implements UpdateListener<File>, ListSelectionListener, UploadPhotoListener {
 	
 	private List<Photo> photos = new ArrayList<>();
 	
@@ -50,12 +55,14 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 	private Photo currentPhoto = Photo.NULL_PHOTO;
 
 	private JButton uploadButton;
-	
+
 	private List<PhotoStock> photoStocks;
 
 	private UploadTable uploadTable;
 	
 	private ConfigReader configReader;
+	
+	private Map<Photo, AtomicInteger> stocksToGo = new HashMap<>();
 	
 	public Main() {
 		frame = new JFrame("Image Keywords");
@@ -129,12 +136,18 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 	}
 	
 	private void uploadPhotos() {
+		stocksToGo.clear();
 		for (Photo photo : photos) {
+			stocksToGo.put(photo, new AtomicInteger(photoStocks.size()));
 			for (PhotoStock photoStock : photoStocks) {
-				FtpUploadTask uploadTask = new FtpUploadTask(photoStock, photo, uploadTable);
-				ExecutorServices.getHeavyTasksExecutor().execute(uploadTask);
+				uploadPhoto(photoStock, photo, 1);
 			}
 		}
+	}
+	
+	private void uploadPhoto(PhotoStock photoStock, Photo photo, int attemptsLeft) {
+		UploadTask uploadTask = new FakeUploadTask(photoStock, photo, attemptsLeft, this, uploadTable);
+		ExecutorServices.getHeavyTasksExecutor().execute(uploadTask);
 	}
 	
 	private boolean validatePhotos() {
@@ -146,14 +159,10 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 		return true;
 	}
 	
-	private static boolean isJpeg(File file) {
-		return file.getAbsolutePath().toLowerCase().endsWith(".jpg");
-	}
-
 	public void onUpdate(File dir) {
 		photos.clear();
 		for (File file : dir.listFiles()) {
-			if (isJpeg(file)) {
+			if (ImageUtils.isJpeg(file)) {
 				Photo photo = new Photo(file);
 				photos.add(photo);
 				keywordReader.readKeywords(photo);
@@ -164,16 +173,33 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 		uploadButton.setEnabled(photos.size() > 0);
 	}
 	
+	
+	@Override
+	public void onProgress(PhotoStock photoStock, Photo photo, long bytesUploaded) {
+		if (photo.getFile().length() == bytesUploaded) {
+			AtomicInteger stocksCount = stocksToGo.get(photo);
+			if (stocksCount.decrementAndGet() == 0) {
+				System.out.println("DONE " + photo);
+			}
+		}
+	}
+
+	@Override
+	public void onError(PhotoStock photoStock, Photo photo, Exception ex, int attemptsLeft) {
+		if (attemptsLeft > 0) {
+			uploadPhoto(photoStock, photo, attemptsLeft - 1);
+		}
+	}
+
 	public void valueChanged(ListSelectionEvent e) {
 		JList<?> list = (JList<?>) e.getSource();
 		currentPhoto = list.getSelectedValue() == null 
 				? Photo.NULL_PHOTO 
 				: (Photo) list.getSelectedValue();
-		if (currentPhoto != null) {
-			keywordsPicker.setPhoto(currentPhoto);
-		}
+		keywordsPicker.setPhoto(currentPhoto);
 	}
 
+	
 	private void scheduleThumbnail(Photo photo) {
 		ExecutorServices.getHeavyTasksExecutor().execute(
 				new ThumbnailingTask(photo, photoList));

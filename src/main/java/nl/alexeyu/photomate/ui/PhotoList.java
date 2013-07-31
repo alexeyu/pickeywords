@@ -49,6 +49,7 @@ public class PhotoList implements UpdateListener<Photo> {
 	}
 
 	public void refresh() {
+		photoList.clearSelection();
 		photoList.revalidate();
 		photoList.repaint();
 	}

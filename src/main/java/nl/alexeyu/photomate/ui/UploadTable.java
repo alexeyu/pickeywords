@@ -15,7 +15,6 @@ import javax.swing.table.DefaultTableCellRenderer;
 
 import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.model.PhotoStock;
-import nl.alexeyu.photomate.service.UploadPhotoEvent;
 import nl.alexeyu.photomate.service.UploadPhotoListener;
 import nl.alexeyu.photomate.util.ImageUtils;
 
@@ -33,12 +32,12 @@ public class UploadTable extends JTable implements UploadPhotoListener {
 	
 	private final List<PhotoStock> photoStocks;
 	
-	private final Map<String, UploadPhotoEvent> statuses;
+	private final Map<String, Object> statuses;
 
 	public UploadTable(List<Photo> photos, List<PhotoStock> photoStocks) {
 		this.photos = photos;
 		this.photoStocks = photoStocks;
-		statuses = new HashMap<String, UploadPhotoEvent>();
+		statuses = new HashMap<String, Object>();
 		setModel(new UploadTableModel());
 		setDefaultRenderer(Object.class, new UploadTableRenderer());
 
@@ -53,10 +52,18 @@ public class UploadTable extends JTable implements UploadPhotoListener {
 	}
 
 	@Override
-	public void statusChanged(UploadPhotoEvent event) {
-		statuses.put(getKey(event.getPhotoStock(), event.getPhoto()), event);
+	public void onProgress(PhotoStock photoStock, Photo photo, long uploadedBytes) {
+		Integer percent = (int) (uploadedBytes * 100 / photo.getFile().length());
+		statuses.put(getKey(photoStock, photo), percent);
 		repaint();
 	}
+
+	@Override
+	public void onError(PhotoStock photoStock, Photo photo, Exception ex, int attemptsLeft) {
+		statuses.put(getKey(photoStock, photo), ex);
+		repaint();
+	}
+
 
 	private class UploadTableModel extends AbstractTableModel {
 
@@ -110,8 +117,21 @@ public class UploadTable extends JTable implements UploadPhotoListener {
 					return new JLabel(photoStock.getName());
 				}
 			}
-			if (value instanceof UploadPhotoEvent) {
-				return getStatusLabel((UploadPhotoEvent) value);
+			if (value instanceof Exception) {
+				JLabel label = new JLabel(ImageUtils.getImage("error.png"));
+				Exception ex = (Exception) value;
+				label.setToolTipText(ex.getMessage());
+				return label;
+			}
+			if (value instanceof Integer) {
+				Integer progress = (Integer) value;
+				if (progress == 0) {
+					return new JLabel(ImageUtils.getImage("queue.png"));	
+				}
+				if (progress < 100) {
+					return new JLabel("   " + progress + "%");
+				}
+				return new JLabel(ImageUtils.getImage("ok.png"));
 			}
 			if (value == null) {
 				return new JLabel(ImageUtils.getImage("queue.png"));
@@ -119,21 +139,6 @@ public class UploadTable extends JTable implements UploadPhotoListener {
 			return new JLabel();
 		}
 		
-		private JLabel getStatusLabel(UploadPhotoEvent event) {
-			switch (event.getStatus()) {
-			case QUEUED:
-				return new JLabel(ImageUtils.getImage("queue.png"));
-			case IN_PROGRESS:
-				return new JLabel("   " + event.getPercentUploaded() + "%");
-			case SUCCSESS:
-				return new JLabel(ImageUtils.getImage("ok.png"));
-			default:
-				JLabel label = new JLabel(ImageUtils.getImage("error.png"));
-				label.setToolTipText(event.getException().getMessage());
-				return label;
-			}
-		}
-
 	}
 	
 }

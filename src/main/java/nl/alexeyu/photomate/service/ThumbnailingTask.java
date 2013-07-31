@@ -1,6 +1,6 @@
 package nl.alexeyu.photomate.service;
 
-import static java.awt.RenderingHints.KEY_INTERPOLATION;
+import static java.awt.RenderingHints.*;
 import static java.awt.RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR;
 
 import java.awt.Graphics2D;
@@ -54,7 +54,7 @@ public class ThumbnailingTask implements Runnable {
 			g2d.drawRenderedImage(source, at);
 			photo.setThumbnail(bi);
 			observer.onUpdate(photo);
-			logger.log(Level.FINE, ">> " + (System.currentTimeMillis() - time));
+			System.out.println(">> " + (System.currentTimeMillis() - time));
 			g2d.dispose();
 			File thumbnailFile = new File(tempDir + "/" + photo.getName());
 			thumbnailFile.deleteOnExit();

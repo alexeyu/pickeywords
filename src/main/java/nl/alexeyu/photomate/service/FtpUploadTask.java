@@ -14,28 +14,21 @@ import nl.alexeyu.photomate.model.PhotoStock;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
-import org.apache.commons.net.io.CopyStreamAdapter;
+import org.apache.commons.net.io.CopyStreamEvent;
+import org.apache.commons.net.io.CopyStreamListener;
 import org.apache.commons.net.io.Util;
 
-public class FtpUploadTask extends CopyStreamAdapter implements Runnable {
+public class FtpUploadTask extends AbstractUploadTask implements CopyStreamListener {
 	
 	private final Logger logger = Logger.getLogger("FtpUploadTask");
 	
 	private final FTPClient client = new FTPClient();
 	
-	private final PhotoStock photoStock;
-	
-	private final Photo photo;
-	
-	private final UploadPhotoListener uploadPhotoListener;
-	
 	private int bufferSize = 1024 * 50;
 	
-	public FtpUploadTask(PhotoStock photoStock, Photo photo, 
-			UploadPhotoListener uploadPhotoListener) {
-		this.photoStock = photoStock;
-		this.photo = photo;
-		this.uploadPhotoListener = uploadPhotoListener;
+	public FtpUploadTask(PhotoStock photoStock, Photo photo, int attemptsLeft, 
+			UploadPhotoListener... uploadPhotoListeners) {
+		super(photoStock, photo, attemptsLeft, uploadPhotoListeners);
 		client.setCopyStreamListener(this);
 		client.setControlKeepAliveTimeout(120);
 	}
@@ -57,15 +50,15 @@ public class FtpUploadTask extends CopyStreamAdapter implements Runnable {
 	}
 	
 	@Override
-	public void bytesTransferred(long totalBytesTransferred,
-			int bytesTransferred, long streamSize) {
-		UploadPhotoEvent event = new UploadPhotoEvent(photo, photoStock, totalBytesTransferred);
-		uploadPhotoListener.statusChanged(event);
+	public void bytesTransferred(long totalBytesTransferred, int bytesTransferred, long streamSize) {
+		notifyProgress(totalBytesTransferred);
 	}
 
+	@Override
+	public void bytesTransferred(CopyStreamEvent e) {}
+
 	public void run() {
-		uploadPhotoListener.statusChanged(new UploadPhotoEvent(photo, photoStock, 0));
-		
+		notifyProgress(0);
 		if (StringUtils.isEmpty(photoStock.getFtpUrl())) {
 			return;
 		}
@@ -82,29 +75,10 @@ public class FtpUploadTask extends CopyStreamAdapter implements Runnable {
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
-			uploadPhotoListener.statusChanged(
-					new UploadPhotoEvent(photo, photoStock, ex));
+			notifyError(ex);
 		} finally {
 			destroy();
 		}
 	}
-	
-//	public static void main(String[] args) {
-//		PhotoStock ps = new PhotoStock("Canstock", "", "ftp.canstockphoto.com", "Tetyana", "ilya1601max");
-//		PhotoStock ps = new PhotoStock("Canstock", "", "ftp.shutterstock.com", "7colors@gmail.com", "tan1611lesha");
-//		FtpUploader uploader = new FtpUploader(ps, 
-//				new UploadPhotoListener() {
-//					
-//					@Override
-//					public void statusChanged(UploadPhotoEvent event) {
-//						System.out.println(">> " + event.getStatus() + "   " + event.getPercentUploaded());
-//						if (event.getException() != null) {
-//							event.getException().printStackTrace();
-//						}
-//					}
-//				});
-//		Photo photo = new Photo(new File("/home/lesha/_MG_0070.jpg"));
-//		System.out.println("Uploading " + photo.getName() + " to " + ps.getName());
-//		uploader.uploadPhoto(photo);
-//	}
+
 }

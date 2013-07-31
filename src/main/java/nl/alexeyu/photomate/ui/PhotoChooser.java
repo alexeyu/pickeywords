@@ -13,6 +13,7 @@ import javax.swing.JTextField;
 import javax.swing.filechooser.FileFilter;
 
 import nl.alexeyu.photomate.service.UpdateListener;
+import nl.alexeyu.photomate.util.ImageUtils;
 
 public class PhotoChooser extends JPanel {
 	
@@ -27,7 +28,10 @@ public class PhotoChooser extends JPanel {
 			
 			public void actionPerformed(ActionEvent event) {
 				if (JFileChooser.APPROVE_SELECTION.equals(event.getActionCommand())) {
-					File dir = fileChooser.getCurrentDirectory();
+					File dir = fileChooser.getSelectedFile();
+					if (!dir.isDirectory()) {
+						dir = dir.getParentFile();
+					}
 					textField.setText(dir.getAbsolutePath());
 					fileListener.onUpdate(dir);
 				}
@@ -51,12 +55,12 @@ public class PhotoChooser extends JPanel {
 	private static class JpegFilter extends FileFilter {
 		@Override
 		public boolean accept(File file) {
-			return file.isDirectory() || file.getName().endsWith(".jpg") || file.getName().endsWith(".jpeg");
+			return file.isDirectory() || ImageUtils.isJpeg(file);
 		}
 
 		@Override
 		public String getDescription() {
-			return "JPEG files";
+			return "Photos";
 		}
 	}
 
