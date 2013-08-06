@@ -1,7 +1,6 @@
 package nl.alexeyu.photomate.service;
 
 import static java.awt.RenderingHints.*;
-import static java.awt.RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR;
 
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
@@ -17,6 +16,7 @@ import javax.imageio.ImageIO;
 
 import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.ui.Constants;
+import nl.alexeyu.photomate.util.ImageUtils;
 
 public class ThumbnailingTask implements Runnable {
 	
@@ -31,12 +31,9 @@ public class ThumbnailingTask implements Runnable {
 	
 	private final UpdateListener<Photo> observer;
 	
-	private final String tempDir;
-	
 	public ThumbnailingTask(Photo photo, UpdateListener<Photo> observer) {
 		this.photo = photo;
 		this.observer = observer;
-		this.tempDir = System.getProperty("java.io.tmpdir");
 	}
 
 	public void run() {
@@ -45,20 +42,20 @@ public class ThumbnailingTask implements Runnable {
 			BufferedImage source = ImageIO.read(photo.getFile());
 			int w = Constants.THUMBNAIL_SIZE.width;
 			int h = Constants.THUMBNAIL_SIZE.height;
-			BufferedImage bi = GCONFIG.createCompatibleImage(w, h);
-			Graphics2D g2d = bi.createGraphics();
+			BufferedImage image = GCONFIG.createCompatibleImage(w, h);
+			Graphics2D g2d = image.createGraphics();
 			double xScale = (double) w / source.getWidth();
 			double yScale = (double) h / source.getHeight();
 			AffineTransform at = AffineTransform.getScaleInstance(xScale, yScale);
 			g2d.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
 			g2d.drawRenderedImage(source, at);
-			photo.setThumbnail(bi);
+			photo.setThumbnail(image);
 			observer.onUpdate(photo);
 			System.out.println(">> " + (System.currentTimeMillis() - time));
 			g2d.dispose();
-			File thumbnailFile = new File(tempDir + "/" + photo.getName());
+			File thumbnailFile = ImageUtils.getThumbnailFile(photo);
 			thumbnailFile.deleteOnExit();
-			ImageIO.write(bi, "jpg", thumbnailFile);
+			ImageIO.write(image, "jpg", thumbnailFile);
 		} catch (IOException ex) {
 			logger.log(Level.SEVERE, "Cannot make thumbnail", ex);
 		}

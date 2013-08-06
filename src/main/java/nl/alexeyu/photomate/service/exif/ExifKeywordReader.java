@@ -11,36 +11,40 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import nl.alexeyu.photomate.model.Photo;
-import nl.alexeyu.photomate.service.ExecutorServices;
 import nl.alexeyu.photomate.service.KeywordReader;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 public class ExifKeywordReader implements KeywordReader {
 	
 	private final Logger logger = Logger.getLogger("ExifKeywordReader");
 	
+	private ExecutorService executor;
+	
 	public void readKeywords(Photo photo) {
-		getExecutor().execute(new ReadKeywordsTask(this, photo));
+		executor.execute(new ReadKeywordsTask(this, photo));
 	}
 
 	public void addKeyword(Photo photo, String keyword) {
 		if (photo != Photo.NULL_PHOTO) {
 			photo.addKeyword(keyword);
-			getExecutor().execute(new AddKeywordTask(this, photo, keyword));
+			executor.execute(new AddKeywordTask(this, photo, keyword));
 		}
 	}
 
 	public void removeKeyword(Photo photo, String keyword) {
 		if (photo != Photo.NULL_PHOTO) {
 			photo.removeKeyword(keyword);
-			getExecutor().execute(new RemoveKeywordTask(this, photo, keyword));
+			executor.execute(new RemoveKeywordTask(this, photo, keyword));
 		}
 	}
 	
-	private ExecutorService getExecutor() {
-		return ExecutorServices.getLightTasksExecutor();
+	@Autowired
+	public void setExecutor(@Qualifier("lightTaskExecutor") ExecutorService executor) {
+		this.executor = executor;
 	}
 
 	private String execExif(String args, File file) {

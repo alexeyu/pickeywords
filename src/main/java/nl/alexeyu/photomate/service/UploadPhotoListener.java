@@ -9,4 +9,6 @@ public interface UploadPhotoListener {
 
 	void onError(PhotoStock photoStock, Photo photo, Exception ex, int attemptsLeft);
 
+	void onSuccess(PhotoStock photoStock, Photo photo);
+	
 }

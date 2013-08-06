@@ -11,9 +11,9 @@ import java.util.logging.Logger;
 import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.model.PhotoStock;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.io.CopyStreamEvent;
 import org.apache.commons.net.io.CopyStreamListener;
 import org.apache.commons.net.io.Util;
@@ -59,25 +59,35 @@ public class FtpUploadTask extends AbstractUploadTask implements CopyStreamListe
 
 	public void run() {
 		notifyProgress(0);
-		if (StringUtils.isEmpty(photoStock.getFtpUrl())) {
-			return;
-		}
-
 		File file = photo.getFile();
 		try (InputStream is = new FileInputStream(file)) {
 			init();
-			client.setFileType(FTP.BINARY_FILE_TYPE);				
-			try (OutputStream os = client.storeFileStream(file.getName())) {
+			client.setFileType(FTP.BINARY_FILE_TYPE);			
+			long fileSize = file.length();
+			try (OutputStream os = client.storeFileStream(photo.getName())) {
 				if (os == null) {
 					throw new IllegalStateException("Could not create file on a remote server");
 				}
-				Util.copyStream(is, os, bufferSize, file.length(), this, true);
+				Util.copyStream(is, os, bufferSize, fileSize, this, true);
 			}
+			checkFtpFile(fileSize);
+			notifySuccess();
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			notifyError(ex);
 		} finally {
 			destroy();
+		}
+	}
+
+	private void checkFtpFile(long expectedSize) throws IOException {
+		FTPFile[] ftpFiles = client.listFiles(photo.getName());
+		if (ftpFiles.length == 0) {
+			throw new IllegalStateException("The file wasn't saved");
+		}
+		if (ftpFiles[0].getSize() != expectedSize) {
+			throw new IllegalStateException("File size of " + photo + " on " 
+					+ photoStock + " is " + ftpFiles[0].getSize() + ", " + expectedSize + " is expected");
 		}
 	}
 

@@ -18,16 +18,23 @@ public abstract class AbstractUploadTask implements UploadTask {
 		this.uploadPhotoListeners = uploadPhotoListeners;
 	}
 
-	protected void notifyProgress(long bytes) {
+	protected final void notifyProgress(long bytes) {
 		for (UploadPhotoListener l : uploadPhotoListeners) {
 			l.onProgress(photoStock, photo, bytes);
 		}
 	}
 
-	protected void notifyError(Exception ex) {
+	protected final void notifyError(Exception ex) {
 		for (UploadPhotoListener l : uploadPhotoListeners) {
 			l.onError(photoStock, photo, ex, attemptsLeft);
 		}
 	}
+	
+	protected final void notifySuccess() {
+		for (UploadPhotoListener l : uploadPhotoListeners) {
+			l.onSuccess(photoStock, photo);
+		}
+	}
+
 
 }

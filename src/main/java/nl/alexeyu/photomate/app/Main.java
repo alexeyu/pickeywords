@@ -6,10 +6,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.ExecutorService;
 
 import javax.swing.AbstractListModel;
 import javax.swing.JButton;
@@ -24,27 +22,29 @@ import javax.swing.event.ListSelectionListener;
 
 import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.model.PhotoStock;
-import nl.alexeyu.photomate.service.ExecutorServices;
-import nl.alexeyu.photomate.service.FakeUploadTask;
 import nl.alexeyu.photomate.service.KeywordReader;
+import nl.alexeyu.photomate.service.PhotoUploader;
 import nl.alexeyu.photomate.service.ThumbnailingTask;
 import nl.alexeyu.photomate.service.UpdateListener;
-import nl.alexeyu.photomate.service.UploadPhotoListener;
-import nl.alexeyu.photomate.service.UploadTask;
-import nl.alexeyu.photomate.service.exif.ExifKeywordReader;
 import nl.alexeyu.photomate.ui.Constants;
 import nl.alexeyu.photomate.ui.KeywordPicker;
 import nl.alexeyu.photomate.ui.PhotoChooser;
 import nl.alexeyu.photomate.ui.PhotoList;
 import nl.alexeyu.photomate.ui.UploadTable;
+import nl.alexeyu.photomate.ui.UploadTableModel;
 import nl.alexeyu.photomate.util.ConfigReader;
 import nl.alexeyu.photomate.util.ImageUtils;
 
-public class Main implements UpdateListener<File>, ListSelectionListener, UploadPhotoListener {
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
+public class Main implements UpdateListener<File>, ListSelectionListener {
 	
 	private List<Photo> photos = new ArrayList<>();
 	
-	private KeywordReader keywordReader = new ExifKeywordReader();
+	private KeywordReader keywordReader;
 	
 	private JFrame frame;
 	
@@ -56,21 +56,19 @@ public class Main implements UpdateListener<File>, ListSelectionListener, Upload
 
 	private JButton uploadButton;
 
-	private List<PhotoStock> photoStocks;
-
 	private UploadTable uploadTable;
 	
 	private ConfigReader configReader;
 	
-	private Map<Photo, AtomicInteger> stocksToGo = new HashMap<>();
+	private ExecutorService executor;
+	
+	private PhotoUploader photoUploader;
 	
 	public Main() {
 		frame = new JFrame("Image Keywords");
 		frame.getContentPane().setLayout(new CardLayout());
 		photoList = new PhotoList(new PhotoListModel());
 		keywordsPicker = new KeywordPicker();
-		configReader = new ConfigReader();
-		photoStocks = configReader.getPhotoStocks();
 	}
 	
 	public void start() {
@@ -115,12 +113,14 @@ public class Main implements UpdateListener<File>, ListSelectionListener, Upload
 			public void actionPerformed(ActionEvent e) {
 				if (photos.size() > 0 && validatePhotos()) {
 					JPanel uploadPane = new JPanel(new BorderLayout());
-					uploadTable = new UploadTable(photos, photoStocks);
+					List<PhotoStock> photoStocks = configReader.getPhotoStocks();
+					UploadTableModel tableModel = new UploadTableModel(photos, photoStocks);
+					uploadTable.setModel(tableModel);
 					uploadPane.add(new JScrollPane(uploadTable));
 					frame.getContentPane().add(uploadPane, "UPLOAD");
 					CardLayout cardLayout = (CardLayout) frame.getContentPane().getLayout();
 					cardLayout.next(frame.getContentPane());
-					uploadPhotos();
+					photoUploader.uploadPhotos(photoStocks, photos);
 				} else {
 					JOptionPane.showMessageDialog(frame, "Cannot upload: there're photos without tags.");
 				}
@@ -133,21 +133,6 @@ public class Main implements UpdateListener<File>, ListSelectionListener, Upload
 		tagPane.add(centerPanel);
 		
 		frame.getContentPane().add(tagPane, "TAG");
-	}
-	
-	private void uploadPhotos() {
-		stocksToGo.clear();
-		for (Photo photo : photos) {
-			stocksToGo.put(photo, new AtomicInteger(photoStocks.size()));
-			for (PhotoStock photoStock : photoStocks) {
-				uploadPhoto(photoStock, photo, 1);
-			}
-		}
-	}
-	
-	private void uploadPhoto(PhotoStock photoStock, Photo photo, int attemptsLeft) {
-		UploadTask uploadTask = new FakeUploadTask(photoStock, photo, attemptsLeft, this, uploadTable);
-		ExecutorServices.getHeavyTasksExecutor().execute(uploadTask);
 	}
 	
 	private boolean validatePhotos() {
@@ -174,23 +159,6 @@ public class Main implements UpdateListener<File>, ListSelectionListener, Upload
 	}
 	
 	
-	@Override
-	public void onProgress(PhotoStock photoStock, Photo photo, long bytesUploaded) {
-		if (photo.getFile().length() == bytesUploaded) {
-			AtomicInteger stocksCount = stocksToGo.get(photo);
-			if (stocksCount.decrementAndGet() == 0) {
-				System.out.println("DONE " + photo);
-			}
-		}
-	}
-
-	@Override
-	public void onError(PhotoStock photoStock, Photo photo, Exception ex, int attemptsLeft) {
-		if (attemptsLeft > 0) {
-			uploadPhoto(photoStock, photo, attemptsLeft - 1);
-		}
-	}
-
 	public void valueChanged(ListSelectionEvent e) {
 		JList<?> list = (JList<?>) e.getSource();
 		currentPhoto = list.getSelectedValue() == null 
@@ -199,10 +167,33 @@ public class Main implements UpdateListener<File>, ListSelectionListener, Upload
 		keywordsPicker.setPhoto(currentPhoto);
 	}
 
-	
+	@Autowired
+	public void setConfigReader(ConfigReader configReader) {
+		this.configReader = configReader;
+	}
+
+	@Autowired
+	public void setTaskExecutor(@Qualifier("heavyTaskExecutor") ExecutorService taskExecutor) {
+		this.executor = taskExecutor;
+	}
+
+	@Autowired
+	public void setKeywordReader(KeywordReader keywordReader) {
+		this.keywordReader = keywordReader;
+	}
+
+	@Autowired
+	public void setUploadTable(UploadTable uploadTable) {
+		this.uploadTable = uploadTable;
+	}
+
+	@Autowired
+	public void setPhotoUploader(PhotoUploader photoUploader) {
+		this.photoUploader = photoUploader;
+	}
+
 	private void scheduleThumbnail(Photo photo) {
-		ExecutorServices.getHeavyTasksExecutor().execute(
-				new ThumbnailingTask(photo, photoList));
+		executor.execute(new ThumbnailingTask(photo, photoList));
 	}
 
 	private class PhotoListModel extends AbstractListModel<Photo> {
@@ -218,7 +209,8 @@ public class Main implements UpdateListener<File>, ListSelectionListener, Upload
 	}
 	
 	public static void main(String[] args) throws Exception {
-		new Main().start();
+		ApplicationContext ctx = new AnnotationConfigApplicationContext(AppConfig.class);
+		ctx.getBean(Main.class).start();
 	}
 
 }

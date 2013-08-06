@@ -21,11 +21,11 @@ public class FakeUploadTask extends AbstractUploadTask {
 			pause(1000);
 			notifyError(new Exception());
 		} else {
-			for (int i = 1; i < 10; i++) {
+			for (int i = 1; i <= 10; i++) {
 				notifyProgress(photo.getFile().length() / 10 * i);
 				pause(100);
 			}
-			notifyProgress(photo.getFile().length());
+			notifySuccess();
 		}
 	}
 
