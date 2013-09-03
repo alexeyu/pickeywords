@@ -3,9 +3,9 @@ package nl.alexeyu.photomate.app;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import nl.alexeyu.photomate.service.KeywordReader;
 import nl.alexeyu.photomate.service.PhotoUploader;
-import nl.alexeyu.photomate.service.exif.ExifKeywordReader;
+import nl.alexeyu.photomate.service.keyword.ExifKeywordReader;
+import nl.alexeyu.photomate.service.keyword.KeywordReader;
 import nl.alexeyu.photomate.ui.UploadTable;
 import nl.alexeyu.photomate.util.ConfigReader;
 
@@ -24,14 +24,14 @@ public class AppConfig {
 	}
 
 	public @Bean ExecutorService heavyTaskExecutor() {
-		return Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+		return Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() / 2);
 	}
 
 	public @Bean ExecutorService lightTaskExecutor() {
 		return Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 	}
 
-	public @Bean KeywordReader keywordReader() {
+	public @Bean ExifKeywordReader keywordReader() {
 		return new ExifKeywordReader();
 	}
 	

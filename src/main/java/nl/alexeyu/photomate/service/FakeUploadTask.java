@@ -1,5 +1,6 @@
 package nl.alexeyu.photomate.service;
 
+import java.util.Collection;
 import java.util.Random;
 
 import nl.alexeyu.photomate.model.Photo;
@@ -10,7 +11,7 @@ public class FakeUploadTask extends AbstractUploadTask {
 	private static final double ERROR_PROBABILITY = 0.5;
 
 	public FakeUploadTask(PhotoStock photoStock, Photo photo, int attemptsLeft,
-			UploadPhotoListener... uploadPhotoListeners) {
+			Collection<UploadPhotoListener> uploadPhotoListeners) {
 		super(photoStock, photo, attemptsLeft, uploadPhotoListeners);
 	}
 

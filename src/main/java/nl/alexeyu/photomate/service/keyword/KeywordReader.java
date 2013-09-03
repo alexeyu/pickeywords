@@ -1,4 +1,4 @@
-package nl.alexeyu.photomate.service;
+package nl.alexeyu.photomate.service.keyword;
 
 import nl.alexeyu.photomate.model.Photo;
 

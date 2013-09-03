@@ -1,6 +1,7 @@
 package nl.alexeyu.photomate.ui;
 
 import java.awt.Component;
+import java.awt.Image;
 import java.net.URL;
 
 import javax.swing.ImageIcon;
@@ -18,11 +19,11 @@ import org.apache.commons.lang3.StringUtils;
 
 public class UploadTable extends JTable implements UploadPhotoListener {
 	
-	private static final int ROW_HEIGHT = 32;
+	private static final int ROW_HEIGHT = 125;
 
 	private static final int PHOTO_STOCK_ROW_HEIGHT = 40;
 
-	private static final int PHOTO_COLUMN_WIDTH = 150;
+	private static final int PHOTO_COLUMN_WIDTH = 120;
 
 	private UploadTableModel uploadModel;
 
@@ -75,11 +76,10 @@ public class UploadTable extends JTable implements UploadPhotoListener {
 		private Component getComponentImpl(Object value) {
 			if (value instanceof Photo) {
 				Photo photo = (Photo) value;
-				JLabel c = new JLabel(photo.getName());
-				String filePath = ImageUtils.getThumbnailFile(photo).getAbsolutePath();
-				String html = String.format("<html><img src=\"file:%s\"></html>", filePath);
-				c.setToolTipText(html);
-				return c;
+				Image thumbnail = photo.getThumbnail();
+				JLabel label = new JLabel();
+				label.setIcon(new ImageIcon(thumbnail));
+				return label;
 			}
 			if (value instanceof PhotoStock) {
 				PhotoStock photoStock = (PhotoStock) value;

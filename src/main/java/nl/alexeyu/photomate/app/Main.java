@@ -21,11 +21,11 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import nl.alexeyu.photomate.model.Photo;
-import nl.alexeyu.photomate.model.PhotoStock;
-import nl.alexeyu.photomate.service.KeywordReader;
 import nl.alexeyu.photomate.service.PhotoUploader;
-import nl.alexeyu.photomate.service.ThumbnailingTask;
 import nl.alexeyu.photomate.service.UpdateListener;
+import nl.alexeyu.photomate.service.keyword.ExifKeywordReader;
+import nl.alexeyu.photomate.service.keyword.KeywordReader;
+import nl.alexeyu.photomate.service.thumbnail.Im4jThumbnailingTask;
 import nl.alexeyu.photomate.ui.Constants;
 import nl.alexeyu.photomate.ui.KeywordPicker;
 import nl.alexeyu.photomate.ui.PhotoChooser;
@@ -44,7 +44,7 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 	
 	private List<Photo> photos = new ArrayList<>();
 	
-	private KeywordReader keywordReader;
+	private ExifKeywordReader keywordReader;
 	
 	private JFrame frame;
 	
@@ -113,14 +113,13 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 			public void actionPerformed(ActionEvent e) {
 				if (photos.size() > 0 && validatePhotos()) {
 					JPanel uploadPane = new JPanel(new BorderLayout());
-					List<PhotoStock> photoStocks = configReader.getPhotoStocks();
-					UploadTableModel tableModel = new UploadTableModel(photos, photoStocks);
+					UploadTableModel tableModel = new UploadTableModel(photos, configReader.getPhotoStocks());
 					uploadTable.setModel(tableModel);
 					uploadPane.add(new JScrollPane(uploadTable));
 					frame.getContentPane().add(uploadPane, "UPLOAD");
 					CardLayout cardLayout = (CardLayout) frame.getContentPane().getLayout();
 					cardLayout.next(frame.getContentPane());
-					photoUploader.uploadPhotos(photoStocks, photos);
+					photoUploader.uploadPhotos(photos);
 				} else {
 					JOptionPane.showMessageDialog(frame, "Cannot upload: there're photos without tags.");
 				}
@@ -178,8 +177,9 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 	}
 
 	@Autowired
-	public void setKeywordReader(KeywordReader keywordReader) {
+	public void setKeywordReader(ExifKeywordReader keywordReader) {
 		this.keywordReader = keywordReader;
+		this.keywordReader.setListener(photoList);
 	}
 
 	@Autowired
@@ -193,7 +193,7 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 	}
 
 	private void scheduleThumbnail(Photo photo) {
-		executor.execute(new ThumbnailingTask(photo, photoList));
+		executor.execute(new Im4jThumbnailingTask(photo, photoList));
 	}
 
 	private class PhotoListModel extends AbstractListModel<Photo> {

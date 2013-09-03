@@ -70,11 +70,7 @@ public class PhotoList implements UpdateListener<Photo> {
 				label.setIcon(new ImageIcon(thumbnail));
 			}
 			JPanel panel = new JPanel(new BorderLayout());
-			if (isSelected) {
-				panel.setBorder(LINE_BORDER);
-			} else {
-				panel.setBorder(EMPTY_BORDER);
-			}
+			panel.setBorder(isSelected ? LINE_BORDER : EMPTY_BORDER);
 			JLabel nameLabel = new JLabel(photo.getName() + " [" + photo.getKeywords().size() + "]"); 
 			panel.add(nameLabel, BorderLayout.NORTH);
 			nameLabel.setForeground(Color.GRAY);

@@ -1,5 +1,7 @@
 package nl.alexeyu.photomate.service;
 
+import java.util.Collection;
+
 import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.model.PhotoStock;
 
@@ -8,10 +10,10 @@ public abstract class AbstractUploadTask implements UploadTask {
 	protected final PhotoStock photoStock;
 	protected final Photo photo;
 	protected final int attemptsLeft;
-	protected final UploadPhotoListener[] uploadPhotoListeners;
+	protected final Collection<UploadPhotoListener> uploadPhotoListeners;
 
 	public AbstractUploadTask(PhotoStock photoStock, Photo photo, int attemptsLeft, 
-			UploadPhotoListener... uploadPhotoListeners) {
+			Collection<UploadPhotoListener> uploadPhotoListeners) {
 		this.photoStock = photoStock;
 		this.photo = photo;
 		this.attemptsLeft = attemptsLeft;
@@ -35,6 +37,5 @@ public abstract class AbstractUploadTask implements UploadTask {
 			l.onSuccess(photoStock, photo);
 		}
 	}
-
 
 }

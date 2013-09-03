@@ -5,6 +5,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,7 +29,7 @@ public class FtpUploadTask extends AbstractUploadTask implements CopyStreamListe
 	private int bufferSize = 1024 * 50;
 	
 	public FtpUploadTask(PhotoStock photoStock, Photo photo, int attemptsLeft, 
-			UploadPhotoListener... uploadPhotoListeners) {
+			Collection<UploadPhotoListener> uploadPhotoListeners) {
 		super(photoStock, photo, attemptsLeft, uploadPhotoListeners);
 		client.setCopyStreamListener(this);
 		client.setControlKeepAliveTimeout(120);
@@ -35,7 +37,9 @@ public class FtpUploadTask extends AbstractUploadTask implements CopyStreamListe
 
 	public void init() throws IOException {
 		client.connect(photoStock.getFtpUrl());
-		client.login(photoStock.getFtpUsername(), photoStock.getFtpPassword());
+		if (!client.login(photoStock.getFtpUsername(), photoStock.getFtpPassword())) {
+			throw new IllegalStateException("Could not connect to " + photoStock);
+		}
 	}
 	
 	public void destroy() {
@@ -62,32 +66,23 @@ public class FtpUploadTask extends AbstractUploadTask implements CopyStreamListe
 		File file = photo.getFile();
 		try (InputStream is = new FileInputStream(file)) {
 			init();
-			client.setFileType(FTP.BINARY_FILE_TYPE);			
+			client.setFileType(FTP.BINARY_FILE_TYPE);
 			long fileSize = file.length();
 			try (OutputStream os = client.storeFileStream(photo.getName())) {
 				if (os == null) {
 					throw new IllegalStateException("Could not create file on a remote server");
 				}
-				Util.copyStream(is, os, bufferSize, fileSize, this, true);
+				long uploadedBytes = Util.copyStream(is, os, bufferSize, fileSize, this, true);
+				if (fileSize != uploadedBytes) {
+					throw new IllegalStateException("Expected " + fileSize + ", uploaded " + uploadedBytes);
+				}
 			}
-			checkFtpFile(fileSize);
 			notifySuccess();
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			notifyError(ex);
 		} finally {
 			destroy();
-		}
-	}
-
-	private void checkFtpFile(long expectedSize) throws IOException {
-		FTPFile[] ftpFiles = client.listFiles(photo.getName());
-		if (ftpFiles.length == 0) {
-			throw new IllegalStateException("The file wasn't saved");
-		}
-		if (ftpFiles[0].getSize() != expectedSize) {
-			throw new IllegalStateException("File size of " + photo + " on " 
-					+ photoStock + " is " + ftpFiles[0].getSize() + ", " + expectedSize + " is expected");
 		}
 	}
 

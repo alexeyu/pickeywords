@@ -48,7 +48,7 @@ public class ConfigReader {
 		List<PhotoStock> photoStocks = new ArrayList<PhotoStock>();
 		for (String prop : properties.stringPropertyNames()) {
 			Matcher matcher = PHOTO_STOCK_NAME.matcher(prop);
-			if (matcher.matches()) {
+			if (matcher.matches() && !prop.startsWith("#")) {
 				photoStocks.add(readPhotoStock(matcher.group(1)));
 			}
 		}

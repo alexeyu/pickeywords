@@ -15,6 +15,6 @@ public interface Constants {
 	
 	Border LINE_BORDER = new LineBorder(Color.GRAY, BORDER_WIDTH );
 	
-	Dimension THUMBNAIL_SIZE = new Dimension(250, 200);
+	Dimension THUMBNAIL_SIZE = new Dimension(200, 160);
 	
 }
