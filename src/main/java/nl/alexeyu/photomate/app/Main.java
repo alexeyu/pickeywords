@@ -24,8 +24,7 @@ import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.service.PhotoUploader;
 import nl.alexeyu.photomate.service.UpdateListener;
 import nl.alexeyu.photomate.service.keyword.ExifKeywordReader;
-import nl.alexeyu.photomate.service.keyword.KeywordReader;
-import nl.alexeyu.photomate.service.thumbnail.Im4jThumbnailingTask;
+import nl.alexeyu.photomate.service.thumbnail.ImgscalrThumbnailingTask;
 import nl.alexeyu.photomate.ui.Constants;
 import nl.alexeyu.photomate.ui.KeywordPicker;
 import nl.alexeyu.photomate.ui.PhotoChooser;
@@ -36,7 +35,6 @@ import nl.alexeyu.photomate.util.ConfigReader;
 import nl.alexeyu.photomate.util.ImageUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
@@ -50,11 +48,11 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 	
 	private PhotoList photoList;
 	
-	private KeywordPicker keywordsPicker;
+	private KeywordPicker keywordsPicker = new KeywordPicker();
 	
 	private Photo currentPhoto = Photo.NULL_PHOTO;
 
-	private JButton uploadButton;
+	private JButton uploadButton = new JButton();
 
 	private UploadTable uploadTable;
 	
@@ -65,10 +63,9 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 	private PhotoUploader photoUploader;
 	
 	public Main() {
-		frame = new JFrame("Image Keywords");
+		frame = new JFrame("Your Photo Mate");
 		frame.getContentPane().setLayout(new CardLayout());
 		photoList = new PhotoList(new PhotoListModel());
-		keywordsPicker = new KeywordPicker();
 	}
 	
 	public void start() {
@@ -86,7 +83,7 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 				BorderLayout.NORTH);
 		
 		JPanel centerPanel = new JPanel(new BorderLayout());
-		centerPanel.add(keywordsPicker.getComponent());
+		centerPanel.add(keywordsPicker.getComponent(), BorderLayout.WEST);
 		keywordsPicker.setAddKeywordListener(new UpdateListener<String>() {
 
 			public void onUpdate(String keyword) {
@@ -106,12 +103,10 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 		});
 		
 		JPanel buttonPanel = new JPanel();
-		uploadButton = new JButton("Upload >>");
-		uploadButton.setEnabled(false);
 		uploadButton.addActionListener(new ActionListener() {
 			
 			public void actionPerformed(ActionEvent e) {
-				if (photos.size() > 0 && validatePhotos()) {
+				if (validatePhotos()) {
 					JPanel uploadPane = new JPanel(new BorderLayout());
 					UploadTableModel tableModel = new UploadTableModel(photos, configReader.getPhotoStocks());
 					uploadTable.setModel(tableModel);
@@ -121,10 +116,11 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 					cardLayout.next(frame.getContentPane());
 					photoUploader.uploadPhotos(photos);
 				} else {
-					JOptionPane.showMessageDialog(frame, "Cannot upload: there're photos without tags.");
+					JOptionPane.showMessageDialog(frame, "Cannot upload: there're unloaded photos or photos without tags.");
 				}
 			}
 		});
+		refreshUploadButton();
 		buttonPanel.add(uploadButton);
 		centerPanel.add(buttonPanel, BorderLayout.SOUTH);
 		
@@ -135,8 +131,11 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 	}
 	
 	private boolean validatePhotos() {
+		if (photos.size() == 0) {
+			return false;
+		}
 		for (Photo photo : photos) {
-			if (photo.getKeywords().size() == 0) {
+			if (!photo.isReadyToUpload()) {
 				return false;
 			}
 		}
@@ -154,9 +153,18 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 			}
 		}
 		photoList.refresh();
-		uploadButton.setEnabled(photos.size() > 0);
+		refreshUploadButton();
 	}
 	
+	private void refreshUploadButton() {
+		if (photos.size() > 0) {
+			uploadButton.setText("Upload " + photos.size() + " photos");
+			uploadButton.setEnabled(true);
+		} else {
+			uploadButton.setText("The photos are not ready yet");
+			uploadButton.setEnabled(false);
+		}
+	}
 	
 	public void valueChanged(ListSelectionEvent e) {
 		JList<?> list = (JList<?>) e.getSource();
@@ -172,7 +180,7 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 	}
 
 	@Autowired
-	public void setTaskExecutor(@Qualifier("heavyTaskExecutor") ExecutorService taskExecutor) {
+	public void setTaskExecutor(ExecutorService taskExecutor) {
 		this.executor = taskExecutor;
 	}
 
@@ -193,7 +201,7 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 	}
 
 	private void scheduleThumbnail(Photo photo) {
-		executor.execute(new Im4jThumbnailingTask(photo, photoList));
+		executor.execute(new ImgscalrThumbnailingTask(photo, photoList));
 	}
 
 	private class PhotoListModel extends AbstractListModel<Photo> {

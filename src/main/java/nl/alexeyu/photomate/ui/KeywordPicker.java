@@ -8,7 +8,6 @@ import java.awt.event.ActionListener;
 import javax.swing.AbstractListModel;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -18,6 +17,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ListModel;
 
+import org.apache.commons.lang3.StringUtils;
+
 import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.service.UpdateListener;
 
@@ -26,8 +27,6 @@ public class KeywordPicker {
 	private JPanel panel;
 	
 	private JTextField keywordText;
-	
-	private JList<String> recommendedKeywordList = new JList<>();
 	
 	private JList<String> actualKeywordList  = new JList<>();
 	
@@ -53,27 +52,17 @@ public class KeywordPicker {
 		textPane.add(Box.createRigidArea(new Dimension(5,0)));
 		keywordText = new JTextField();
 		textPane.add(keywordText);
-		
-		JPanel listPane = new JPanel();
-		listPane.setLayout(new BoxLayout(listPane, BoxLayout.X_AXIS));
-		
-		JPanel buttonPane = new JPanel();
-		buttonPane.setLayout(new BoxLayout(buttonPane, BoxLayout.Y_AXIS));
-		buttonPane.setBorder(Constants.EMPTY_BORDER);
-		addKeywordButton = new JButton(new ImageIcon(getClass().getResource("/img/plus.png")));
+		textPane.add(Box.createRigidArea(new Dimension(5,0)));
+		addKeywordButton = new JButton("+");
 		addKeywordButton.addActionListener(new AddKeywordTask());
-		removeKeywordButton = new JButton(new ImageIcon(getClass().getResource("/img/minus.png"))); 
+		textPane.add(addKeywordButton);
+		textPane.add(Box.createRigidArea(new Dimension(5,0)));
+		removeKeywordButton = new JButton("-"); 
 		removeKeywordButton.addActionListener(new RemoveKeywordTask());
-		buttonPane.add(addKeywordButton);
-		buttonPane.add(Box.createRigidArea(new Dimension(0,5)));
-		buttonPane.add(removeKeywordButton);
-		
-		listPane.add(new JScrollPane(recommendedKeywordList), BorderLayout.WEST);
-		listPane.add(buttonPane, BorderLayout.CENTER);
-		listPane.add(new JScrollPane(actualKeywordList), BorderLayout.EAST);
+		textPane.add(removeKeywordButton);
 		
 		panel.add(textPane, BorderLayout.NORTH);
-		panel.add(listPane);
+		panel.add(new JScrollPane(actualKeywordList), BorderLayout.CENTER);
 	}
 	
 	public void setPhoto(Photo photo) {
@@ -129,11 +118,8 @@ public class KeywordPicker {
 	private class AddKeywordTask implements ActionListener {
 
 		public void actionPerformed(ActionEvent e) {
-			String keyword = (String) recommendedKeywordList.getSelectedValue();
-			if (keyword == null) {
-				keyword = keywordText.getText();
-			}
-			if (keyword != null) {
+			String keyword = keywordText.getText();
+			if (StringUtils.isNotBlank(keyword)) {
 				ListModel<String> model = actualKeywordList.getModel();
 				for (int i = 0; i < model.getSize(); i++) {
 					if (keyword.equalsIgnoreCase(model.getElementAt(i).toString())) {

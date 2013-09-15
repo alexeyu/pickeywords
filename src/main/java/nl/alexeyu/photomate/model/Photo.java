@@ -12,7 +12,7 @@ public class Photo {
 
 	private final File file;
 	
-	private List<String> keywords = new ArrayList<>();
+	private AtomicReference<List<String>> keywords = new AtomicReference<List<String>>(new ArrayList<String>());
 	
 	private AtomicReference<Image> thumbnail = new AtomicReference<>();
 
@@ -37,21 +37,25 @@ public class Photo {
 	}
 
 	public List<String> getKeywords() {
-		return keywords;
+		return keywords.get();
 	}
 
 	public void setKeywords(List<String> keywords) {
-		this.keywords = keywords;
+		this.keywords.set(keywords);
 	}
 
 	public void addKeyword(String keyword) {
-		this.keywords.add(keyword);
+		this.keywords.get().add(keyword);
 	}
 	
 	public void removeKeyword(String keyword) {
-		this.keywords.remove(keyword);
+		this.keywords.get().remove(keyword);
 	}
 
+	public boolean isReadyToUpload() {
+		return this.keywords.get().size() > 0 && thumbnail.get() != null;
+	}
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;

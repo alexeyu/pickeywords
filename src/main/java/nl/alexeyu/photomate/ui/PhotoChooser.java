@@ -43,6 +43,7 @@ public class PhotoChooser extends JPanel {
 			
 			public void actionPerformed(ActionEvent e) {
 				fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+				System.out.println("Dir: " + defaultFolder);
 				fileChooser.setCurrentDirectory(new File(defaultFolder));
 				fileChooser.showOpenDialog(parent);
 			}

@@ -68,7 +68,7 @@ public class UploadTable extends JTable implements UploadPhotoListener {
 		public Component getTableCellRendererComponent(JTable table, Object value, 
 				boolean isSelected, boolean hasFocus, int row, int column) {
 			if (row == 0 && column == 0) {
-				return null;
+				return new JLabel("Uploading " + (table.getRowCount() - 1) + " photos...");
 			}
 			return getComponentImpl(value);
 		}

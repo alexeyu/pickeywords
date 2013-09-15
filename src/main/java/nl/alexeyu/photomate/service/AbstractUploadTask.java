@@ -5,7 +5,7 @@ import java.util.Collection;
 import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.model.PhotoStock;
 
-public abstract class AbstractUploadTask implements UploadTask {
+public abstract class AbstractUploadTask implements PrioritizedTask {
 
 	protected final PhotoStock photoStock;
 	protected final Photo photo;
@@ -18,6 +18,11 @@ public abstract class AbstractUploadTask implements UploadTask {
 		this.photo = photo;
 		this.attemptsLeft = attemptsLeft;
 		this.uploadPhotoListeners = uploadPhotoListeners;
+	}
+
+	@Override
+	public int getPriority() {
+		return 10;
 	}
 
 	protected final void notifyProgress(long bytes) {

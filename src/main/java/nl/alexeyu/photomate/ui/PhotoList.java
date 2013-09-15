@@ -21,6 +21,7 @@ import javax.swing.event.ListSelectionListener;
 
 import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.service.UpdateListener;
+import nl.alexeyu.photomate.util.ImageUtils;
 
 public class PhotoList implements UpdateListener<Photo> {
 	
@@ -71,7 +72,10 @@ public class PhotoList implements UpdateListener<Photo> {
 			}
 			JPanel panel = new JPanel(new BorderLayout());
 			panel.setBorder(isSelected ? LINE_BORDER : EMPTY_BORDER);
-			JLabel nameLabel = new JLabel(photo.getName() + " [" + photo.getKeywords().size() + "]"); 
+			JLabel nameLabel = new JLabel(photo.getName() + " [" + photo.getKeywords().size() + "]");
+			if (!photo.isReadyToUpload()) {
+				nameLabel.setIcon(ImageUtils.getImage("error.png"));
+			}
 			panel.add(nameLabel, BorderLayout.NORTH);
 			nameLabel.setForeground(Color.GRAY);
 			panel.add(label, BorderLayout.CENTER);

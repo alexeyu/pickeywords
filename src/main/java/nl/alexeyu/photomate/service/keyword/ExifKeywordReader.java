@@ -1,6 +1,5 @@
 package nl.alexeyu.photomate.service.keyword;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -10,12 +9,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import nl.alexeyu.photomate.model.Photo;
+import nl.alexeyu.photomate.service.PrioritizedTask;
 import nl.alexeyu.photomate.service.UpdateListener;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 
 public class ExifKeywordReader implements KeywordReader {
 	
@@ -44,13 +43,15 @@ public class ExifKeywordReader implements KeywordReader {
 	}
 
 	@Autowired
-	public void setExecutor(@Qualifier("lightTaskExecutor") ExecutorService executor) {
+	public void setExecutor(ExecutorService executor) {
 		this.executor = executor;
 	}
 
 	private String execExif(String args, Photo photo) {
 		try {
-			Process p = Runtime.getRuntime().exec("exiftool " + args + " " + photo.getFile().getAbsolutePath());
+			String filePath = photo.getFile().getAbsolutePath();
+			String[] execArgs = new String[] {"exiftool", args, filePath};
+			Process p = Runtime.getRuntime().exec(execArgs);
 			try (InputStream is = p.getInputStream()) {
 				if (listener != null) {
 					listener.onUpdate(photo);
@@ -63,17 +64,22 @@ public class ExifKeywordReader implements KeywordReader {
 		}
 	}
 	
-	private abstract class AbstractTask implements Runnable {
+	private abstract class AbstractKeywordTask implements PrioritizedTask {
 
 		protected final Photo photo;
 		
-		public AbstractTask(Photo photo) {
+		public AbstractKeywordTask(Photo photo) {
 			this.photo = photo;
+		}
+
+		@Override
+		public int getPriority() {
+			return 0;
 		}
 		
 	}
 
-	private class ReadKeywordsTask extends AbstractTask {
+	private class ReadKeywordsTask extends AbstractKeywordTask {
 		
 		public ReadKeywordsTask(Photo photo) {
 			super(photo);
@@ -99,7 +105,7 @@ public class ExifKeywordReader implements KeywordReader {
 
 	}
 
-	private class AddKeywordTask extends AbstractTask {
+	private class AddKeywordTask extends AbstractKeywordTask {
 		
 		private final String keyword;
 
@@ -114,7 +120,7 @@ public class ExifKeywordReader implements KeywordReader {
 
 	}
 	
-	private class RemoveKeywordTask extends AbstractTask {
+	private class RemoveKeywordTask extends AbstractKeywordTask {
 		
 		private final String keyword;
 

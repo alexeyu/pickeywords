@@ -13,7 +13,6 @@ import nl.alexeyu.photomate.util.ConfigReader;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
@@ -25,9 +24,7 @@ public class PhotoUploader implements UploadPhotoListener, ApplicationContextAwa
 	
 	private ConfigReader configReader;
 	
-	private ExecutorService heavyTaskExecutor;
-	
-	private ExecutorService lightTaskExecutor;
+	private ExecutorService taskExecutor;
 	
 	private ApplicationContext ctx;
 	
@@ -43,8 +40,8 @@ public class PhotoUploader implements UploadPhotoListener, ApplicationContextAwa
 
 	private void uploadPhoto(PhotoStock photoStock, Photo photo, int attemptsLeft) {
 		Map<String, UploadPhotoListener> listeners = ctx.getBeansOfType(UploadPhotoListener.class);
-		UploadTask uploadTask = new FakeUploadTask(photoStock, photo, attemptsLeft, listeners.values());
-		heavyTaskExecutor.execute(uploadTask);
+		Runnable uploadTask = new FtpUploadTask(photoStock, photo, attemptsLeft, listeners.values());
+		taskExecutor.execute(uploadTask);
 	}
 
 	@Override
@@ -57,7 +54,7 @@ public class PhotoUploader implements UploadPhotoListener, ApplicationContextAwa
 		if (stocksCount.decrementAndGet() == 0) {
 			String doneDir = configReader.getProperty("doneFolder", System.getProperty("java.io.tmpdir"));
 			Runnable movePhotoTask = new MovePhotoTask(photo, new File(doneDir));
-			lightTaskExecutor.execute(movePhotoTask);
+			taskExecutor.execute(movePhotoTask);
 		}
 	}
 
@@ -74,13 +71,8 @@ public class PhotoUploader implements UploadPhotoListener, ApplicationContextAwa
 	}
 
 	@Autowired
-	public void setHeavyTaskExecutor(@Qualifier("heavyTaskExecutor") ExecutorService heavyTaskExecutor) {
-		this.heavyTaskExecutor = heavyTaskExecutor;
-	}
-
-	@Autowired
-	public void setLightTaskExecutor(@Qualifier("lightTaskExecutor") ExecutorService lightTaskExecutor) {
-		this.lightTaskExecutor = lightTaskExecutor;
+	public void setHeavyTaskExecutor(ExecutorService heavyTaskExecutor) {
+		this.taskExecutor = heavyTaskExecutor;
 	}
 
 	@Override
