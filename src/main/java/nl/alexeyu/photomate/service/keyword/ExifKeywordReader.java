@@ -4,9 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 import java.util.concurrent.ExecutorService;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -17,12 +16,13 @@ import nl.alexeyu.photomate.service.TaskWeight;
 import nl.alexeyu.photomate.service.UpdateListener;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Singleton
 public class ExifKeywordReader implements KeywordReader {
 	
-	private final Logger logger = Logger.getLogger("ExifKeywordReader");
+	private final Logger logger = LoggerFactory.getLogger("ExifKeywordReader");
 	
 	private ExecutorService executor;
 	
@@ -63,7 +63,7 @@ public class ExifKeywordReader implements KeywordReader {
 				return IOUtils.toString(is);
 			}
 		} catch (IOException ex) {
-			logger.log(Level.SEVERE, "Could not run exif", ex);
+			logger.error("Could not run exif", ex);
 			return "";
 		}
 	}
@@ -99,9 +99,9 @@ public class ExifKeywordReader implements KeywordReader {
 			int columnPos = result.indexOf(":");
 			if (columnPos > 0) {
 				String keywordsLine = result.substring(columnPos + 1);
-				String[] keywordsArray = StringUtils.split(keywordsLine, ",");
-				for (String kw : keywordsArray) {
-					keywords.add(kw.trim());
+				StringTokenizer tokenizer = new StringTokenizer(keywordsLine, ",");
+				while (tokenizer.hasMoreTokens()) {
+					keywords.add(tokenizer.nextToken());
 				}
 			}
 			return keywords;

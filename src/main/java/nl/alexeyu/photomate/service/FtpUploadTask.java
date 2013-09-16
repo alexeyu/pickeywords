@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collection;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.model.PhotoStock;
@@ -17,6 +15,8 @@ import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.io.CopyStreamEvent;
 import org.apache.commons.net.io.CopyStreamListener;
 import org.apache.commons.net.io.Util;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FtpUploadTask extends AbstractUploadTask implements CopyStreamListener {
 	
@@ -24,7 +24,7 @@ public class FtpUploadTask extends AbstractUploadTask implements CopyStreamListe
 
 	private int BUFFER_SIZE = 1024 * 50;
 
-	private final Logger logger = Logger.getLogger("FtpUploadTask");
+	private final Logger logger = LoggerFactory.getLogger("UploadTask");
 	
 	private final FTPClient client = new FTPClient();
 	
@@ -49,7 +49,7 @@ public class FtpUploadTask extends AbstractUploadTask implements CopyStreamListe
 				client.disconnect();
 			}
 		} catch (IOException ex) {
-			logger.log(Level.WARNING, "Could not disconnect", ex);
+			logger.error("Could not disconnect", ex);
 		}
 	}
 	
@@ -78,10 +78,10 @@ public class FtpUploadTask extends AbstractUploadTask implements CopyStreamListe
 				}
 			}
 			Thread.sleep(500);
-			System.out.println(photo.getName() + "\t" + fileSize + "\t" + photoStock.getName());
+			logger.info(photo.getName() + "\t" + fileSize + "\t" + photoStock.getName());
 			notifySuccess();
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			logger.error("", ex);
 			notifyError(ex);
 		} finally {
 			destroy();

@@ -1,8 +1,9 @@
 package nl.alexeyu.photomate.service.thumbnail;
 
 import java.awt.Image;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.service.WeighedTask;
@@ -11,7 +12,7 @@ import nl.alexeyu.photomate.service.UpdateListener;
 
 public abstract class AbstractThumbnailingTask implements WeighedTask {
 	
-	private final Logger logger = Logger.getLogger("photomate.ThumbnailingTask");
+	private final Logger logger = LoggerFactory.getLogger("ThumbnailingTask");
 
 	protected final Photo photo;
 	
@@ -29,9 +30,9 @@ public abstract class AbstractThumbnailingTask implements WeighedTask {
 			Image image = scale();
 			photo.setThumbnail(image);
 			observer.onUpdate(photo);
-			System.out.println(">> " + (System.currentTimeMillis() - time));
+			logger.info("" + (System.currentTimeMillis() - time));
 		} catch (Exception ex) {
-			logger.log(Level.SEVERE, "Cannot make thumbnail", ex);
+			logger.error("Cannot make thumbnail", ex);
 		}
 	}
 
