@@ -17,8 +17,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ListModel;
 
-import org.apache.commons.lang3.StringUtils;
-
 import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.service.UpdateListener;
 
@@ -119,7 +117,7 @@ public class KeywordPicker {
 
 		public void actionPerformed(ActionEvent e) {
 			String keyword = keywordText.getText();
-			if (StringUtils.isNotBlank(keyword)) {
+			if (!keyword.trim().isEmpty()) {
 				ListModel<String> model = actualKeywordList.getModel();
 				for (int i = 0; i < model.getSize(); i++) {
 					if (keyword.equalsIgnoreCase(model.getElementAt(i).toString())) {

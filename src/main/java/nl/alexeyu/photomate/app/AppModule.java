@@ -6,12 +6,11 @@ import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import nl.alexeyu.photomate.service.WeighedTask;
 import nl.alexeyu.photomate.service.UploadPhotoListener;
+import nl.alexeyu.photomate.service.WeighedTask;
 import nl.alexeyu.photomate.service.keyword.ExifKeywordReader;
 import nl.alexeyu.photomate.service.keyword.KeywordReader;
 import nl.alexeyu.photomate.ui.UploadTable;
-import nl.alexeyu.photomate.util.ConfigReader;
 
 import com.google.inject.AbstractModule;
 
@@ -21,16 +20,15 @@ public class AppModule extends AbstractModule {
 	protected void configure() {
 		bind(ExecutorService.class).to(PhotoExecutorService.class);
 		bind(KeywordReader.class).to(ExifKeywordReader.class);
-		bind(ConfigReader.class);
-		bind(Main.class);
 		bind(UploadPhotoListener.class).to(UploadTable.class);
 	}
 
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	private static class PhotoExecutorService extends ThreadPoolExecutor {
 		
 		private static final int THREAD_COUNT = Runtime.getRuntime().availableProcessors();
 		
-		private static final Comparator COMPARATOR = new PrioritizedClassComparator();
+		private static final Comparator COMPARATOR = new WeighedTaskComparator();
 		
 		public PhotoExecutorService() {
 			super(THREAD_COUNT, THREAD_COUNT,
@@ -40,7 +38,7 @@ public class AppModule extends AbstractModule {
 
 	}
 
-	public static class PrioritizedClassComparator implements Comparator<WeighedTask> {
+	public static class WeighedTaskComparator implements Comparator<WeighedTask> {
 
 		@Override
 		public int compare(WeighedTask t1, WeighedTask t2) {

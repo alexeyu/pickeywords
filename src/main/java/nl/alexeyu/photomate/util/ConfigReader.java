@@ -60,11 +60,11 @@ public class ConfigReader {
 
 	private PhotoStock readPhotoStock(String key) {
 		String prefix = "stock." + key + ".";
-		String name = properties.getProperty(prefix + "name");
-		String icon = properties.getProperty(prefix + "icon");
-		String ftpUrl = properties.getProperty(prefix + "ftp.url");
-		String ftpUsername = properties.getProperty(prefix + "ftp.username");
-		String ftpPassword = properties.getProperty(prefix + "ftp.password");
+		String name = properties.getProperty(prefix + "name", "");
+		String icon = properties.getProperty(prefix + "icon", "");
+		String ftpUrl = properties.getProperty(prefix + "ftp.url", "");
+		String ftpUsername = properties.getProperty(prefix + "ftp.username", "");
+		String ftpPassword = properties.getProperty(prefix + "ftp.password", "");
 		return new PhotoStock(name, icon, ftpUrl, ftpUsername, ftpPassword);
 	}
 	

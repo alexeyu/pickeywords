@@ -1,7 +1,5 @@
 package nl.alexeyu.photomate.service;
 
-import static nl.alexeyu.photomate.service.TaskWeight.LIGHT;
-
 import java.util.Collection;
 
 import nl.alexeyu.photomate.model.Photo;

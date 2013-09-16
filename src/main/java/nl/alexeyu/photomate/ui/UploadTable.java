@@ -16,8 +16,6 @@ import nl.alexeyu.photomate.model.PhotoStock;
 import nl.alexeyu.photomate.service.UploadPhotoListener;
 import nl.alexeyu.photomate.util.ImageUtils;
 
-import org.apache.commons.lang3.StringUtils;
-
 @Singleton
 public class UploadTable extends JTable implements UploadPhotoListener {
 	
@@ -54,7 +52,7 @@ public class UploadTable extends JTable implements UploadPhotoListener {
 
 	@Override
 	public void onSuccess(PhotoStock photoStock, Photo photo) {
-		uploadModel.setStatus(photoStock, photo, StringUtils.EMPTY);
+		uploadModel.setStatus(photoStock, photo, "");
 		repaint();
 	}
 
@@ -85,11 +83,11 @@ public class UploadTable extends JTable implements UploadPhotoListener {
 			}
 			if (value instanceof PhotoStock) {
 				PhotoStock photoStock = (PhotoStock) value;
-				if (StringUtils.isNotBlank(photoStock.getIconUrl())) {
+				if (photoStock.getIconUrl().isEmpty()) {
+					return new JLabel(photoStock.getName());
+				} else {
 					URL url = getClass().getResource(photoStock.getIconUrl());
 					return new JLabel(new ImageIcon(url));
-				} else {
-					return new JLabel(photoStock.getName());
 				}
 			}
 			if (value instanceof Exception) {
