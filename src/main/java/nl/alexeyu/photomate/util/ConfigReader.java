@@ -10,10 +10,13 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.inject.Singleton;
+
 import nl.alexeyu.photomate.model.PhotoStock;
 
 import org.apache.commons.io.IOUtils;
 
+@Singleton
 public class ConfigReader {
 	
 	private static final String CONFIG_LOCATION_SYS_PROP = "configfile";

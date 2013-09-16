@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
+import javax.inject.Inject;
 import javax.swing.AbstractListModel;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -34,15 +35,12 @@ import nl.alexeyu.photomate.ui.UploadTableModel;
 import nl.alexeyu.photomate.util.ConfigReader;
 import nl.alexeyu.photomate.util.ImageUtils;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 public class Main implements UpdateListener<File>, ListSelectionListener {
 	
 	private List<Photo> photos = new ArrayList<>();
-	
-	private ExifKeywordReader keywordReader;
 	
 	private JFrame frame;
 	
@@ -54,14 +52,21 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 
 	private JButton uploadButton = new JButton();
 
+	@Inject
+	private ExifKeywordReader keywordReader;
+
+	@Inject
 	private UploadTable uploadTable;
 	
+	@Inject
 	private ConfigReader configReader;
 	
+	@Inject
 	private ExecutorService executor;
 	
+	@Inject
 	private PhotoUploader photoUploader;
-	
+
 	public Main() {
 		frame = new JFrame("Your Photo Mate");
 		frame.getContentPane().setLayout(new CardLayout());
@@ -174,30 +179,10 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 		keywordsPicker.setPhoto(currentPhoto);
 	}
 
-	@Autowired
-	public void setConfigReader(ConfigReader configReader) {
-		this.configReader = configReader;
-	}
-
-	@Autowired
-	public void setTaskExecutor(ExecutorService taskExecutor) {
-		this.executor = taskExecutor;
-	}
-
-	@Autowired
+	@Inject
 	public void setKeywordReader(ExifKeywordReader keywordReader) {
 		this.keywordReader = keywordReader;
 		this.keywordReader.setListener(photoList);
-	}
-
-	@Autowired
-	public void setUploadTable(UploadTable uploadTable) {
-		this.uploadTable = uploadTable;
-	}
-
-	@Autowired
-	public void setPhotoUploader(PhotoUploader photoUploader) {
-		this.photoUploader = photoUploader;
 	}
 
 	private void scheduleThumbnail(Photo photo) {
@@ -217,8 +202,8 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		ApplicationContext ctx = new AnnotationConfigApplicationContext(AppConfig.class);
-		ctx.getBean(Main.class).start();
+		 Injector injector = Guice.createInjector(new AppModule());
+		 injector.getInstance(Main.class).start();
 	}
 
 }

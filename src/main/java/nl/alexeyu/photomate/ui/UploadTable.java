@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.awt.Image;
 import java.net.URL;
 
+import javax.inject.Singleton;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JTable;
@@ -17,6 +18,7 @@ import nl.alexeyu.photomate.util.ImageUtils;
 
 import org.apache.commons.lang3.StringUtils;
 
+@Singleton
 public class UploadTable extends JTable implements UploadPhotoListener {
 	
 	private static final int ROW_HEIGHT = 125;

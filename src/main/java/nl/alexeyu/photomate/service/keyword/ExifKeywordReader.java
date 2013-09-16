@@ -8,14 +8,18 @@ import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
 import nl.alexeyu.photomate.model.Photo;
-import nl.alexeyu.photomate.service.PrioritizedTask;
+import nl.alexeyu.photomate.service.WeighedTask;
+import nl.alexeyu.photomate.service.TaskWeight;
 import nl.alexeyu.photomate.service.UpdateListener;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 
+@Singleton
 public class ExifKeywordReader implements KeywordReader {
 	
 	private final Logger logger = Logger.getLogger("ExifKeywordReader");
@@ -42,7 +46,7 @@ public class ExifKeywordReader implements KeywordReader {
 		this.listener = listener;
 	}
 
-	@Autowired
+	@Inject
 	public void setExecutor(ExecutorService executor) {
 		this.executor = executor;
 	}
@@ -64,7 +68,7 @@ public class ExifKeywordReader implements KeywordReader {
 		}
 	}
 	
-	private abstract class AbstractKeywordTask implements PrioritizedTask {
+	private abstract class AbstractKeywordTask implements WeighedTask {
 
 		protected final Photo photo;
 		
@@ -73,8 +77,8 @@ public class ExifKeywordReader implements KeywordReader {
 		}
 
 		@Override
-		public int getPriority() {
-			return 0;
+		public TaskWeight getWeight() {
+			return TaskWeight.LIGHT;
 		}
 		
 	}

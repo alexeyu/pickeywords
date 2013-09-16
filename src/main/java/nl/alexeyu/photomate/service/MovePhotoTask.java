@@ -9,7 +9,7 @@ import nl.alexeyu.photomate.model.Photo;
 
 import org.apache.commons.io.FileUtils;
 
-public class MovePhotoTask implements PrioritizedTask {
+public class MovePhotoTask implements WeighedTask {
 	
 	private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyy-MM-dd");
 	
@@ -37,8 +37,8 @@ public class MovePhotoTask implements PrioritizedTask {
 	}
 
 	@Override
-	public int getPriority() {
-		return 10;
+	public TaskWeight getWeight() {
+		return TaskWeight.LIGHT;
 	}
 
 }

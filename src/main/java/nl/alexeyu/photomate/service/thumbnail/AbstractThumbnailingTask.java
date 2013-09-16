@@ -5,10 +5,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import nl.alexeyu.photomate.model.Photo;
-import nl.alexeyu.photomate.service.PrioritizedTask;
+import nl.alexeyu.photomate.service.WeighedTask;
+import nl.alexeyu.photomate.service.TaskWeight;
 import nl.alexeyu.photomate.service.UpdateListener;
 
-public abstract class AbstractThumbnailingTask implements PrioritizedTask {
+public abstract class AbstractThumbnailingTask implements WeighedTask {
 	
 	private final Logger logger = Logger.getLogger("photomate.ThumbnailingTask");
 
@@ -35,8 +36,8 @@ public abstract class AbstractThumbnailingTask implements PrioritizedTask {
 	}
 
 	@Override
-	public int getPriority() {
-		return 20;
+	public TaskWeight getWeight() {
+		return TaskWeight.HEAVY;
 	}
 
 	protected abstract Image scale() throws Exception;

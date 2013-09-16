@@ -8,11 +8,6 @@
 
 	<repositories>
 		<repository>
-			<id>springsource-repo</id>
-			<name>SpringSource Repository</name>
-			<url>http://repo.springsource.org/release</url>
-		</repository>
-		<repository>
 			<id>cedarsoft-thirdparty</id>
 			<url>http://maven.cedarsoft.com/content/repositories/thirdparty/</url>
 		</repository>
@@ -35,14 +30,10 @@
 			<version>3.2</version>
 		</dependency>
 		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-core</artifactId>
-			<version>3.2.3.RELEASE</version>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-context</artifactId>
-			<version>3.2.3.RELEASE</version>
+			<groupId>com.google.inject</groupId>
+			<artifactId>guice</artifactId>
+			<version>3.0</version>
+			<classifier>no_aop</classifier>
 		</dependency>
 		<dependency>
 			<groupId>org.imgscalr</groupId>

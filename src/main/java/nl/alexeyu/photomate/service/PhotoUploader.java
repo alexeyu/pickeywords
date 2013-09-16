@@ -1,34 +1,36 @@
 package nl.alexeyu.photomate.service;
 
 import java.io.File;
-import java.util.HashMap;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.inject.Inject;
 
 import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.model.PhotoStock;
 import nl.alexeyu.photomate.util.ConfigReader;
 
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-
-public class PhotoUploader implements UploadPhotoListener, ApplicationContextAware {
+public class PhotoUploader implements UploadPhotoListener {
 	
 	private static final int ATTEMPTS = 2;
 	
-	private final Map<Photo, AtomicInteger> stocksToGo = new HashMap<>();
+	private Map<Photo, AtomicInteger> stocksToGo;
 	
+	@Inject
 	private ConfigReader configReader;
 	
+	@Inject
 	private ExecutorService taskExecutor;
 	
-	private ApplicationContext ctx;
+	private Collection<UploadPhotoListener> listeners; 
 	
 	public void uploadPhotos(List<Photo> photos) {
+		stocksToGo = new ConcurrentHashMap<>();
 		List<PhotoStock> photoStocks = configReader.getPhotoStocks();
 		for (Photo photo : photos) {
 			stocksToGo.put(photo, new AtomicInteger(photoStocks.size()));
@@ -39,8 +41,7 @@ public class PhotoUploader implements UploadPhotoListener, ApplicationContextAwa
 	}
 
 	private void uploadPhoto(PhotoStock photoStock, Photo photo, int attemptsLeft) {
-		Map<String, UploadPhotoListener> listeners = ctx.getBeansOfType(UploadPhotoListener.class);
-		Runnable uploadTask = new FtpUploadTask(photoStock, photo, attemptsLeft, listeners.values());
+		Runnable uploadTask = new FakeUploadTask(photoStock, photo, attemptsLeft, listeners);
 		taskExecutor.execute(uploadTask);
 	}
 
@@ -65,19 +66,9 @@ public class PhotoUploader implements UploadPhotoListener, ApplicationContextAwa
 		}
 	}
 
-	@Autowired
-	public void setConfigReader(ConfigReader configReader) {
-		this.configReader = configReader;
-	}
-
-	@Autowired
-	public void setHeavyTaskExecutor(ExecutorService heavyTaskExecutor) {
-		this.taskExecutor = heavyTaskExecutor;
-	}
-
-	@Override
-	public void setApplicationContext(ApplicationContext ctx) throws BeansException {
-		this.ctx = ctx;
+	@Inject
+	public void setUploadPhotoListener(UploadPhotoListener listener) {
+		listeners = Arrays.asList(listener, this);
 	}
 
 }

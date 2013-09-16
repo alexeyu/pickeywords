@@ -1,11 +1,13 @@
 package nl.alexeyu.photomate.service;
 
+import static nl.alexeyu.photomate.service.TaskWeight.LIGHT;
+
 import java.util.Collection;
 
 import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.model.PhotoStock;
 
-public abstract class AbstractUploadTask implements PrioritizedTask {
+public abstract class AbstractUploadTask implements WeighedTask {
 
 	protected final PhotoStock photoStock;
 	protected final Photo photo;
@@ -21,8 +23,8 @@ public abstract class AbstractUploadTask implements PrioritizedTask {
 	}
 
 	@Override
-	public int getPriority() {
-		return 10;
+	public TaskWeight getWeight() {
+		return TaskWeight.HEAVY;
 	}
 
 	protected final void notifyProgress(long bytes) {
