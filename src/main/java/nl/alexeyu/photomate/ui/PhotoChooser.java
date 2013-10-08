@@ -6,6 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 
+import javax.inject.Inject;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
@@ -13,16 +14,26 @@ import javax.swing.JTextField;
 import javax.swing.filechooser.FileFilter;
 
 import nl.alexeyu.photomate.service.UpdateListener;
+import nl.alexeyu.photomate.util.ConfigReader;
 import nl.alexeyu.photomate.util.ImageUtils;
 
 public class PhotoChooser extends JPanel {
 	
-	public PhotoChooser(final Container parent, final UpdateListener<File> fileListener, final String defaultFolder) {
+	private String defaultFolder;
+	
+	private final UpdateListener<File> fileListener;
+	
+	private final Container parent;
+	
+	private JFileChooser fileChooser = new JFileChooser();
+	
+	private JTextField textField = new JTextField("Select directory...");
+	
+	public PhotoChooser(final Container parent, final UpdateListener<File> fileListener) {
 		super(new BorderLayout());
-		final JTextField textField = new JTextField("Select directory...");
+		this.fileListener = fileListener;
+		this.parent = parent;
 		textField.setEnabled(false);
-
-		final JFileChooser fileChooser = new JFileChooser();
 		fileChooser.setFileFilter(new JpegFilter());
 		fileChooser.addActionListener(new ActionListener() {
 			
@@ -32,12 +43,17 @@ public class PhotoChooser extends JPanel {
 					if (!dir.isDirectory()) {
 						dir = dir.getParentFile();
 					}
-					textField.setText(dir.getAbsolutePath());
-					fileListener.onUpdate(dir);
+					selectDir(dir);
 				}
 			}
 		});
 		
+
+		this.add(textField, BorderLayout.CENTER);
+		this.add(createFileChooseButton(), BorderLayout.EAST);
+	}
+
+	private JButton createFileChooseButton() {
 		JButton chooseButton = new JButton("...");
 		chooseButton.addActionListener(new ActionListener() {
 			
@@ -47,9 +63,17 @@ public class PhotoChooser extends JPanel {
 				fileChooser.showOpenDialog(parent);
 			}
 		});
-
-		this.add(textField, BorderLayout.CENTER);
-		this.add(chooseButton, BorderLayout.EAST);
+		return chooseButton;
+	}
+	
+	public void selectDir(File dir) {
+		textField.setText(dir.getAbsolutePath());
+		fileListener.onUpdate(dir);
+	}
+	
+	@Inject
+	public void setConfigReader(ConfigReader configReader) {
+		this.defaultFolder = configReader.getProperty("defaultFolder", "");
 	}
 
 	private static class JpegFilter extends FileFilter {
@@ -63,5 +87,6 @@ public class PhotoChooser extends JPanel {
 			return "Photos";
 		}
 	}
+	
 
 }

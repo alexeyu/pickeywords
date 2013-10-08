@@ -84,8 +84,7 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 		JPanel tagPane = new JPanel(new BorderLayout());
 		tagPane.add(photoList.getComponent(), BorderLayout.WEST);
 		photoList.addListener(this);
-		tagPane.add(new PhotoChooser(frame, this, configReader.getProperty("defaultFolder", "")), 
-				BorderLayout.NORTH);
+		tagPane.add(new PhotoChooser(frame, this), BorderLayout.NORTH);
 		
 		JPanel centerPanel = new JPanel(new BorderLayout());
 		centerPanel.add(keywordsPicker.getComponent(), BorderLayout.WEST);
