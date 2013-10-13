@@ -6,6 +6,8 @@ import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import nl.alexeyu.photomate.api.PhotoStockApi;
+import nl.alexeyu.photomate.api.ShutterPhotoStockApi;
 import nl.alexeyu.photomate.service.UploadPhotoListener;
 import nl.alexeyu.photomate.service.WeighedTask;
 import nl.alexeyu.photomate.service.keyword.ExifKeywordReader;
@@ -21,6 +23,7 @@ public class AppModule extends AbstractModule {
 		bind(ExecutorService.class).to(PhotoExecutorService.class);
 		bind(KeywordReader.class).to(ExifKeywordReader.class);
 		bind(UploadPhotoListener.class).to(UploadTable.class);
+		bind(PhotoStockApi.class).to(ShutterPhotoStockApi.class);
 	}
 
 	@SuppressWarnings({"unchecked", "rawtypes"})

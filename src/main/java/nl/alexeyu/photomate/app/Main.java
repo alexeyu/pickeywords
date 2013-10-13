@@ -21,7 +21,9 @@ import javax.swing.WindowConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import nl.alexeyu.photomate.api.ShutterPhotoStockApi;
 import nl.alexeyu.photomate.model.Photo;
+import nl.alexeyu.photomate.model.StockPhotoDescription;
 import nl.alexeyu.photomate.service.PhotoUploader;
 import nl.alexeyu.photomate.service.UpdateListener;
 import nl.alexeyu.photomate.service.keyword.ExifKeywordReader;
@@ -30,6 +32,7 @@ import nl.alexeyu.photomate.ui.Constants;
 import nl.alexeyu.photomate.ui.KeywordPicker;
 import nl.alexeyu.photomate.ui.PhotoChooser;
 import nl.alexeyu.photomate.ui.PhotoList;
+import nl.alexeyu.photomate.ui.PhotoStockPanel;
 import nl.alexeyu.photomate.ui.UploadTable;
 import nl.alexeyu.photomate.ui.UploadTableModel;
 import nl.alexeyu.photomate.util.ConfigReader;
@@ -51,6 +54,9 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 	private Photo currentPhoto = Photo.NULL_PHOTO;
 
 	private JButton uploadButton = new JButton();
+	
+	@Inject
+	private PhotoStockPanel photoStockPanel;
 
 	@Inject
 	private ExifKeywordReader keywordReader;
@@ -86,7 +92,7 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 		photoList.addListener(this);
 		tagPane.add(new PhotoChooser(frame, this), BorderLayout.NORTH);
 		
-		JPanel centerPanel = new JPanel(new BorderLayout());
+		JPanel centerPanel = new JPanel(new BorderLayout(5, 5));
 		centerPanel.add(keywordsPicker.getComponent(), BorderLayout.WEST);
 		keywordsPicker.setAddKeywordListener(new UpdateListener<String>() {
 
@@ -127,6 +133,9 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 		refreshUploadButton();
 		buttonPanel.add(uploadButton);
 		centerPanel.add(buttonPanel, BorderLayout.SOUTH);
+		
+		photoStockPanel.build();
+		centerPanel.add(photoStockPanel, BorderLayout.CENTER);
 		
 		centerPanel.setBorder(Constants.EMPTY_BORDER);
 		tagPane.add(centerPanel);
