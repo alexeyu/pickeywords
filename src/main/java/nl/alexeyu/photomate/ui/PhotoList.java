@@ -6,7 +6,6 @@ import static nl.alexeyu.photomate.ui.Constants.LINE_BORDER;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Image;
 
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
@@ -19,17 +18,17 @@ import javax.swing.ListModel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.event.ListSelectionListener;
 
-import nl.alexeyu.photomate.model.Photo;
+import nl.alexeyu.photomate.model.LocalPhoto;
 import nl.alexeyu.photomate.service.UpdateListener;
 import nl.alexeyu.photomate.util.ImageUtils;
 
-public class PhotoList implements UpdateListener<Photo> {
+public class PhotoList implements UpdateListener<LocalPhoto> {
 	
-	private JList<Photo> photoList;
+	private JList<LocalPhoto> photoList;
 	private JScrollPane sp;
 	
-	public PhotoList(ListModel<Photo> listModel) {
-		photoList = new JList<Photo>(listModel);
+	public PhotoList(ListModel<LocalPhoto> listModel) {
+		photoList = new JList<LocalPhoto>(listModel);
 		photoList.setFixedCellHeight(Constants.THUMBNAIL_SIZE.height);
 		photoList.setFixedCellWidth(Constants.THUMBNAIL_SIZE.width);
 		photoList.setCellRenderer(new ThumbnailRenderer());
@@ -55,20 +54,20 @@ public class PhotoList implements UpdateListener<Photo> {
 		photoList.repaint();
 	}
 
-	public void onUpdate(Photo obj) {
+	public void onUpdate(LocalPhoto obj) {
 		photoList.repaint();
 	}
 
-	private static class ThumbnailRenderer implements ListCellRenderer<Photo> {
+	private static class ThumbnailRenderer implements ListCellRenderer<LocalPhoto> {
 
-		public Component getListCellRendererComponent(JList<? extends Photo> list, Photo photo,
+		public Component getListCellRendererComponent(JList<? extends LocalPhoto> list, LocalPhoto photo,
 				int index, boolean isSelected, boolean cellHasFocus) {
-			Image thumbnail = photo.getThumbnail();
+			ImageIcon thumbnail = photo.getThumbnail();
 			JLabel label = new JLabel();
 			if (thumbnail == null) {
 				label.setText("Loading...");
 			} else {
-				label.setIcon(new ImageIcon(thumbnail));
+				label.setIcon(thumbnail);
 			}
 			JPanel panel = new JPanel(new BorderLayout());
 			panel.setBorder(isSelected ? LINE_BORDER : EMPTY_BORDER);

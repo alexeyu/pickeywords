@@ -2,17 +2,17 @@ package nl.alexeyu.photomate.service;
 
 import java.util.Collection;
 
-import nl.alexeyu.photomate.model.Photo;
+import nl.alexeyu.photomate.model.LocalPhoto;
 import nl.alexeyu.photomate.model.PhotoStock;
 
 public abstract class AbstractUploadTask implements WeighedTask {
 
 	protected final PhotoStock photoStock;
-	protected final Photo photo;
+	protected final LocalPhoto photo;
 	protected final int attemptsLeft;
 	protected final Collection<UploadPhotoListener> uploadPhotoListeners;
 
-	public AbstractUploadTask(PhotoStock photoStock, Photo photo, int attemptsLeft, 
+	public AbstractUploadTask(PhotoStock photoStock, LocalPhoto photo, int attemptsLeft, 
 			Collection<UploadPhotoListener> uploadPhotoListeners) {
 		this.photoStock = photoStock;
 		this.photo = photo;

@@ -6,7 +6,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 
-import javax.inject.Inject;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
@@ -29,8 +28,9 @@ public class PhotoChooser extends JPanel {
 	
 	private JTextField textField = new JTextField("Select directory...");
 	
-	public PhotoChooser(final Container parent, final UpdateListener<File> fileListener) {
+	public PhotoChooser(final Container parent, final UpdateListener<File> fileListener, ConfigReader configReader) {
 		super(new BorderLayout());
+		this.defaultFolder = configReader.getProperty("defaultFolder", "");
 		this.fileListener = fileListener;
 		this.parent = parent;
 		textField.setEnabled(false);
@@ -71,11 +71,6 @@ public class PhotoChooser extends JPanel {
 		fileListener.onUpdate(dir);
 	}
 	
-	@Inject
-	public void setConfigReader(ConfigReader configReader) {
-		this.defaultFolder = configReader.getProperty("defaultFolder", "");
-	}
-
 	private static class JpegFilter extends FileFilter {
 		@Override
 		public boolean accept(File file) {

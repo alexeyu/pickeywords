@@ -8,14 +8,14 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
-import nl.alexeyu.photomate.model.Photo;
+import nl.alexeyu.photomate.model.LocalPhoto;
 import nl.alexeyu.photomate.service.UpdateListener;
 
 import org.imgscalr.Scalr;
 
 public class ImgscalrThumbnailingTask extends AbstractThumbnailingTask {
 	
-	public ImgscalrThumbnailingTask(Photo photo, UpdateListener<Photo> observer) {
+	public ImgscalrThumbnailingTask(LocalPhoto photo, UpdateListener<LocalPhoto> observer) {
 		super(photo, observer);
 	}
 

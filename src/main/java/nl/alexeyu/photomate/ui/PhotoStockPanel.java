@@ -1,19 +1,14 @@
 package nl.alexeyu.photomate.ui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -22,19 +17,17 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
-import javax.swing.event.TableModelEvent;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableCellRenderer;
 
-import nl.alexeyu.photomate.model.StockPhotoDescription;
-import nl.alexeyu.photomate.service.PhotoSearcher;
+import nl.alexeyu.photomate.api.PhotoStockApi;
+import nl.alexeyu.photomate.model.Photo;
 
 import com.google.inject.Inject;
 
 public class PhotoStockPanel extends JPanel {
     
-    private static final int MAX_PHOTOS = 10;
-
     private JTextField keywordToSearch;
 
     private JList<String> keywordsList;
@@ -44,9 +37,9 @@ public class PhotoStockPanel extends JPanel {
     private JButton searchButton;
     
     @Inject
-    private PhotoSearcher photoSearcher;
+    private PhotoStockApi photoStockApi;
     
-    private List<StockPhotoDescription> photoDescriptions = new ArrayList<>();
+    private List<Photo> photos = new ArrayList<>();
     
     public PhotoStockPanel() {
         super(new BorderLayout(5, 5));
@@ -72,9 +65,11 @@ public class PhotoStockPanel extends JPanel {
         photoTable.getTableHeader().setVisible(false);
         photoTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         
+        photoTable.getSelectionModel().addListSelectionListener(new PhotoSelectionListener());
+        
         keywordsList = new JList();
         keywordsList.setPreferredSize(new Dimension(250, 0));
-
+        
         add(northPanel, BorderLayout.NORTH);
         add(new JScrollPane(keywordsList), BorderLayout.WEST);
         add(new JScrollPane(photoTable), BorderLayout.CENTER);
@@ -93,9 +88,7 @@ public class PhotoStockPanel extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (keywordToSearch.getText().length() > 0) {
-                    List<StockPhotoDescription> photos = photoSearcher.search(keywordToSearch.getText());
-                    int count = Math.min(photos.size(), MAX_PHOTOS);
-                    photoDescriptions = photos.subList(0, count);
+                    photos = photoStockApi.search(keywordToSearch.getText());
                     photoTable.revalidate();
                     photoTable.repaint();
                 }
@@ -107,8 +100,8 @@ public class PhotoStockPanel extends JPanel {
 
         @Override
         public int getRowCount() {
-            return photoDescriptions.size() / getColumnCount() + 
-                    photoDescriptions.size() % getColumnCount();
+            return photos.size() / getColumnCount() + 
+                    photos.size() % getColumnCount();
         }
 
         @Override
@@ -119,29 +112,22 @@ public class PhotoStockPanel extends JPanel {
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
             int index = rowIndex * getColumnCount() + columnIndex; 
-            if (index >= photoDescriptions.size()) {
+            if (index >= photos.size()) {
                 return null;
             }
-            return photoDescriptions.get(index);
+            return photos.get(index);
         }
         
     }
-    
-    private class PhotoCellRenderer extends DefaultTableCellRenderer {
-        
+
+    private class PhotoSelectionListener implements ListSelectionListener {
+
         @Override
-        public Component getTableCellRendererComponent(JTable table, Object value,
-                boolean isSelected, boolean hasFocus, int row, int column) {
-            JLabel label;
-            if (value instanceof StockPhotoDescription) {
-                label = new JLabel(photoSearcher.getIcon((StockPhotoDescription) value));
-                if (hasFocus) {
-                    label.setBorder(Constants.LINE_BORDER);
-                }
-            } else {
-                label = new JLabel();
+        public void valueChanged(ListSelectionEvent e) {
+            if (e.getFirstIndex() >= 0) {
+                Photo photo = photos.get(e.getFirstIndex());
+                keywordsList.setModel(new KeywordListModel(photo));
             }
-            return label;
         }
         
     }

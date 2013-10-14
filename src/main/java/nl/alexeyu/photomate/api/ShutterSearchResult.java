@@ -2,8 +2,6 @@ package nl.alexeyu.photomate.api;
 
 import java.util.List;
 
-import nl.alexeyu.photomate.model.StockPhotoDescription;
-
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -28,7 +26,7 @@ public class ShutterSearchResult {
         return count;
     }
 
-    public List getPhotoDescriptions() {
+    public List<ShutterPhotoDescription> getPhotoDescriptions() {
         return photoDescriptions;
     }
 

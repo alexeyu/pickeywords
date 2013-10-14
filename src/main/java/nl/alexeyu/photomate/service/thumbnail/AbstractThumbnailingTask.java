@@ -5,7 +5,7 @@ import java.awt.Image;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import nl.alexeyu.photomate.model.Photo;
+import nl.alexeyu.photomate.model.LocalPhoto;
 import nl.alexeyu.photomate.service.WeighedTask;
 import nl.alexeyu.photomate.service.TaskWeight;
 import nl.alexeyu.photomate.service.UpdateListener;
@@ -14,11 +14,11 @@ public abstract class AbstractThumbnailingTask implements WeighedTask {
 	
 	private final Logger logger = LoggerFactory.getLogger("ThumbnailingTask");
 
-	protected final Photo photo;
+	protected final LocalPhoto photo;
 	
-	protected final UpdateListener<Photo> observer;
+	protected final UpdateListener<LocalPhoto> observer;
 	
-	public AbstractThumbnailingTask(Photo photo, UpdateListener<Photo> observer) {
+	public AbstractThumbnailingTask(LocalPhoto photo, UpdateListener<LocalPhoto> observer) {
 		this.photo = photo;
 		this.observer = observer;
 	}

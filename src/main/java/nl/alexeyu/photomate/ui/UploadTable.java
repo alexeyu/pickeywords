@@ -1,7 +1,6 @@
 package nl.alexeyu.photomate.ui;
 
 import java.awt.Component;
-import java.awt.Image;
 import java.net.URL;
 
 import javax.inject.Singleton;
@@ -11,6 +10,7 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableModel;
 
+import nl.alexeyu.photomate.model.LocalPhoto;
 import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.model.PhotoStock;
 import nl.alexeyu.photomate.service.UploadPhotoListener;
@@ -29,6 +29,7 @@ public class UploadTable extends JTable implements UploadPhotoListener {
 
 	public UploadTable() {
 		setDefaultRenderer(Object.class, new UploadTableRenderer());
+	    setDefaultRenderer(Photo.class, new PhotoCellRenderer());
 	}
 
 	@Override
@@ -44,20 +45,20 @@ public class UploadTable extends JTable implements UploadPhotoListener {
 	}
 
 	@Override
-	public void onProgress(PhotoStock photoStock, Photo photo, long uploadedBytes) {
+	public void onProgress(PhotoStock photoStock, LocalPhoto photo, long uploadedBytes) {
 		Integer percent = (int) (uploadedBytes * 100 / photo.getFile().length());
 		uploadModel.setStatus(photoStock, photo, percent);
 		repaint();
 	}
 
 	@Override
-	public void onSuccess(PhotoStock photoStock, Photo photo) {
+	public void onSuccess(PhotoStock photoStock, LocalPhoto photo) {
 		uploadModel.setStatus(photoStock, photo, "");
 		repaint();
 	}
 
 	@Override
-	public void onError(PhotoStock photoStock, Photo photo, Exception ex, int attemptsLeft) {
+	public void onError(PhotoStock photoStock, LocalPhoto photo, Exception ex, int attemptsLeft) {
 		uploadModel.setStatus(photoStock, photo, ex);
 		repaint();
 	}
@@ -74,13 +75,6 @@ public class UploadTable extends JTable implements UploadPhotoListener {
 		}
 		
 		private Component getComponentImpl(Object value) {
-			if (value instanceof Photo) {
-				Photo photo = (Photo) value;
-				Image thumbnail = photo.getThumbnail();
-				JLabel label = new JLabel();
-				label.setIcon(new ImageIcon(thumbnail));
-				return label;
-			}
 			if (value instanceof PhotoStock) {
 				PhotoStock photoStock = (PhotoStock) value;
 				if (photoStock.getIconUrl().isEmpty()) {

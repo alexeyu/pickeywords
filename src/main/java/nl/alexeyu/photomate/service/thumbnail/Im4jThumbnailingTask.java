@@ -4,7 +4,7 @@ import static nl.alexeyu.photomate.ui.Constants.THUMBNAIL_SIZE;
 
 import java.awt.Image;
 
-import nl.alexeyu.photomate.model.Photo;
+import nl.alexeyu.photomate.model.LocalPhoto;
 import nl.alexeyu.photomate.service.UpdateListener;
 
 import org.im4java.core.ConvertCmd;
@@ -13,7 +13,7 @@ import org.im4java.core.Stream2BufferedImage;
 
 public class Im4jThumbnailingTask extends AbstractThumbnailingTask {
 	
-	public Im4jThumbnailingTask(Photo photo, UpdateListener<Photo> observer) {
+	public Im4jThumbnailingTask(LocalPhoto photo, UpdateListener<LocalPhoto> observer) {
 		super(photo, observer);
 	}
 

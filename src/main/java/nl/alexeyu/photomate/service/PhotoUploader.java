@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.inject.Inject;
 
-import nl.alexeyu.photomate.model.Photo;
+import nl.alexeyu.photomate.model.LocalPhoto;
 import nl.alexeyu.photomate.model.PhotoStock;
 import nl.alexeyu.photomate.util.ConfigReader;
 
@@ -19,7 +19,7 @@ public class PhotoUploader implements UploadPhotoListener {
 	
 	private static final int ATTEMPTS = 2;
 	
-	private Map<Photo, AtomicInteger> stocksToGo;
+	private Map<LocalPhoto, AtomicInteger> stocksToGo;
 	
 	@Inject
 	private ConfigReader configReader;
@@ -29,10 +29,10 @@ public class PhotoUploader implements UploadPhotoListener {
 	
 	private Collection<UploadPhotoListener> listeners; 
 	
-	public void uploadPhotos(List<Photo> photos) {
+	public void uploadPhotos(List<LocalPhoto> photos) {
 		stocksToGo = new ConcurrentHashMap<>();
 		List<PhotoStock> photoStocks = configReader.getPhotoStocks();
-		for (Photo photo : photos) {
+		for (LocalPhoto photo : photos) {
 			stocksToGo.put(photo, new AtomicInteger(photoStocks.size()));
 			for (PhotoStock photoStock : photoStocks) {
 				uploadPhoto(photoStock, photo, ATTEMPTS);
@@ -40,17 +40,17 @@ public class PhotoUploader implements UploadPhotoListener {
 		}
 	}
 
-	private void uploadPhoto(PhotoStock photoStock, Photo photo, int attemptsLeft) {
+	private void uploadPhoto(PhotoStock photoStock, LocalPhoto photo, int attemptsLeft) {
 		Runnable uploadTask = new FakeUploadTask(photoStock, photo, attemptsLeft, listeners);
 		taskExecutor.execute(uploadTask);
 	}
 
 	@Override
-	public void onProgress(PhotoStock photoStock, Photo photo, long bytesUploaded) {
+	public void onProgress(PhotoStock photoStock, LocalPhoto photo, long bytesUploaded) {
 	}
 
 	@Override
-	public void onSuccess(PhotoStock photoStock, Photo photo) {
+	public void onSuccess(PhotoStock photoStock, LocalPhoto photo) {
 		AtomicInteger stocksCount = stocksToGo.get(photo);
 		if (stocksCount.decrementAndGet() == 0) {
 			String doneDir = configReader.getProperty("doneFolder", System.getProperty("java.io.tmpdir"));
@@ -60,7 +60,7 @@ public class PhotoUploader implements UploadPhotoListener {
 	}
 
 	@Override
-	public void onError(PhotoStock photoStock, Photo photo, Exception ex, int attemptsLeft) {
+	public void onError(PhotoStock photoStock, LocalPhoto photo, Exception ex, int attemptsLeft) {
 		if (attemptsLeft > 0) {
 			uploadPhoto(photoStock, photo, attemptsLeft - 1);
 		}

@@ -1,14 +1,13 @@
 package nl.alexeyu.photomate.api;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.PostConstruct;
 import javax.inject.Inject;
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
-import nl.alexeyu.photomate.model.StockPhotoDescription;
+import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.util.ConfigReader;
 
 import org.apache.commons.io.IOUtils;
@@ -27,6 +26,13 @@ import org.codehaus.jackson.map.ObjectMapper;
 public class ShutterPhotoStockApi implements PhotoStockApi {
 
     private static final String BASE_URI = "http://api.shutterstock.com/images/";
+    
+    private static final ResponseHandler<ShutterSearchResult> PHOTO_SEARCH_HANDLER 
+        = new JsonResponseHandler<>(ShutterSearchResult.class);
+
+    private static final ResponseHandler<ShutterPhotoDetails> PHOTO_DETAILS_HANDLER 
+        = new JsonResponseHandler<>(ShutterPhotoDetails.class);
+
     private String name;
     private String apiKey;
 
@@ -45,22 +51,25 @@ public class ShutterPhotoStockApi implements PhotoStockApi {
     }
 
     @Override
-    public Icon getImage(StockPhotoDescription photo) {
-        return doRequest(photo.getUrl(), new ImageResponseHandler());
+    public ImageIcon getImage(String photoUrl) {
+        return doRequest(photoUrl, new ImageResponseHandler());
     }
 
     @Override
-    public List<String> getKeywords(StockPhotoDescription photo) {
-        // TODO Auto-generated method stub
-        return null;
+    public List<String> getKeywords(String photoUrl) {
+        ShutterPhotoDetails photoDetails = doRequest(photoUrl + ".json", PHOTO_DETAILS_HANDLER);
+        return photoDetails.getKeywords();
     }
 
     @Override
-    public List<StockPhotoDescription> search(String keyword) {
-        ShutterSearchResult searchResult = doRequest(
-                BASE_URI + "search.json?searchterm=" + keyword,
-                new JsonResponseHandler());
-        return searchResult.getPhotoDescriptions();
+    public List<Photo> search(String keyword) {
+        String requestUri = String.format("%ssearch.json?searchterm=%s&results_per_page=10", BASE_URI, keyword);
+        ShutterSearchResult searchResult = doRequest(requestUri, PHOTO_SEARCH_HANDLER);
+        List<Photo> photos = new ArrayList<>();
+        for (ShutterPhotoDescription photoDescr : searchResult.getPhotoDescriptions()) {
+            photos.add(new RemotePhoto(photoDescr.getUrl(), photoDescr.getThumbailUrl(), this));
+        }
+        return photos;
     }
 
     private <T> T doRequest(String url, ResponseHandler<T> responseHandler) {
@@ -72,17 +81,23 @@ public class ShutterPhotoStockApi implements PhotoStockApi {
         }
     }
 
-    private static class JsonResponseHandler implements ResponseHandler<ShutterSearchResult> {
+    private static class JsonResponseHandler<T> implements ResponseHandler<T> {
 
-        private ObjectMapper objectMapper = new ObjectMapper();
+        private final ObjectMapper objectMapper = new ObjectMapper();
+        
+        private final Class<T> clazz;
+        
+        public JsonResponseHandler(Class<T> clazz) {
+            this.clazz = clazz;
+        }
 
         @Override
-        public ShutterSearchResult handleResponse(HttpResponse response) throws IOException {
+        public T handleResponse(HttpResponse response) throws IOException {
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                 HttpEntity entity = response.getEntity();
                 String result = IOUtils.toString(entity.getContent());
                 EntityUtils.consume(entity);
-                return objectMapper.readValue(result, ShutterSearchResult.class);
+                return objectMapper.readValue(result, clazz);
             } else {
                 throw new IllegalStateException(response.getStatusLine().getReasonPhrase());
             }
@@ -90,10 +105,10 @@ public class ShutterPhotoStockApi implements PhotoStockApi {
 
     }
 
-    private static class ImageResponseHandler implements ResponseHandler<Icon> {
+    private static class ImageResponseHandler implements ResponseHandler<ImageIcon> {
 
         @Override
-        public Icon handleResponse(HttpResponse response) throws IOException {
+        public ImageIcon handleResponse(HttpResponse response) throws IOException {
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                 HttpEntity entity = response.getEntity();
                 byte[] content = IOUtils.toByteArray(entity.getContent());

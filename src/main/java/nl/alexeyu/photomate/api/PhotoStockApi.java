@@ -2,16 +2,16 @@ package nl.alexeyu.photomate.api;
 
 import java.util.List;
 
-import javax.swing.Icon;
+import javax.swing.ImageIcon;
 
-import nl.alexeyu.photomate.model.StockPhotoDescription;
+import nl.alexeyu.photomate.model.Photo;
 
 public interface PhotoStockApi {
 	
-	List<StockPhotoDescription> search(String keyword);
+	List<Photo> search(String keyword);
 
-	Icon getImage(StockPhotoDescription photo);
+	ImageIcon getImage(String photoUrl);
 	
-	List<String> getKeywords(StockPhotoDescription photo);
+	List<String> getKeywords(String photUrl);
 
 }

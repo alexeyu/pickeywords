@@ -22,7 +22,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import nl.alexeyu.photomate.api.ShutterPhotoStockApi;
-import nl.alexeyu.photomate.model.Photo;
+import nl.alexeyu.photomate.model.LocalPhoto;
 import nl.alexeyu.photomate.model.StockPhotoDescription;
 import nl.alexeyu.photomate.service.PhotoUploader;
 import nl.alexeyu.photomate.service.UpdateListener;
@@ -43,7 +43,7 @@ import com.google.inject.Injector;
 
 public class Main implements UpdateListener<File>, ListSelectionListener {
 	
-	private List<Photo> photos = new ArrayList<>();
+	private List<LocalPhoto> photos = new ArrayList<>();
 	
 	private JFrame frame;
 	
@@ -51,7 +51,7 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 	
 	private KeywordPicker keywordsPicker = new KeywordPicker();
 	
-	private Photo currentPhoto = Photo.NULL_PHOTO;
+	private LocalPhoto currentPhoto = LocalPhoto.NULL_PHOTO;
 
 	private JButton uploadButton = new JButton();
 	
@@ -90,7 +90,7 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 		JPanel tagPane = new JPanel(new BorderLayout());
 		tagPane.add(photoList.getComponent(), BorderLayout.WEST);
 		photoList.addListener(this);
-		tagPane.add(new PhotoChooser(frame, this), BorderLayout.NORTH);
+		tagPane.add(new PhotoChooser(frame, this, configReader), BorderLayout.NORTH);
 		
 		JPanel centerPanel = new JPanel(new BorderLayout(5, 5));
 		centerPanel.add(keywordsPicker.getComponent(), BorderLayout.WEST);
@@ -147,7 +147,7 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 		if (photos.size() == 0) {
 			return false;
 		}
-		for (Photo photo : photos) {
+		for (LocalPhoto photo : photos) {
 			if (!photo.isReadyToUpload()) {
 				return false;
 			}
@@ -159,7 +159,7 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 		photos.clear();
 		for (File file : dir.listFiles()) {
 			if (ImageUtils.isJpeg(file)) {
-				Photo photo = new Photo(file);
+				LocalPhoto photo = new LocalPhoto(file);
 				photos.add(photo);
 				keywordReader.readKeywords(photo);
 				scheduleThumbnail(photo);
@@ -182,8 +182,8 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 	public void valueChanged(ListSelectionEvent e) {
 		JList<?> list = (JList<?>) e.getSource();
 		currentPhoto = list.getSelectedValue() == null 
-				? Photo.NULL_PHOTO 
-				: (Photo) list.getSelectedValue();
+				? LocalPhoto.NULL_PHOTO 
+				: (LocalPhoto) list.getSelectedValue();
 		keywordsPicker.setPhoto(currentPhoto);
 	}
 
@@ -193,17 +193,17 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 		this.keywordReader.setListener(photoList);
 	}
 
-	private void scheduleThumbnail(Photo photo) {
+	private void scheduleThumbnail(LocalPhoto photo) {
 		executor.execute(new ImgscalrThumbnailingTask(photo, photoList));
 	}
 
-	private class PhotoListModel extends AbstractListModel<Photo> {
+	private class PhotoListModel extends AbstractListModel<LocalPhoto> {
 
 		public int getSize() {
 			return photos.size();
 		}
 
-		public Photo getElementAt(int index) {
+		public LocalPhoto getElementAt(int index) {
 			return photos.get(index);
 		}
 		

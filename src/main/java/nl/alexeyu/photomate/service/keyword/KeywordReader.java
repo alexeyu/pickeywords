@@ -1,13 +1,13 @@
 package nl.alexeyu.photomate.service.keyword;
 
-import nl.alexeyu.photomate.model.Photo;
+import nl.alexeyu.photomate.model.LocalPhoto;
 
 public interface KeywordReader {
 
-	void readKeywords(Photo photo);
+	void readKeywords(LocalPhoto photo);
 	
-	void addKeyword(Photo photo, String keyword);
+	void addKeyword(LocalPhoto photo, String keyword);
 	
-	void removeKeyword(Photo photo, String keyword);
+	void removeKeyword(LocalPhoto photo, String keyword);
 	
 }

@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
-import nl.alexeyu.photomate.model.Photo;
+import nl.alexeyu.photomate.model.LocalPhoto;
 
 import org.apache.commons.io.FileUtils;
 
@@ -13,11 +13,11 @@ public class MovePhotoTask implements WeighedTask {
 	
 	private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyy-MM-dd");
 	
-	private final Photo photo;
+	private final LocalPhoto photo;
 	
 	private final File directory;
 
-	public MovePhotoTask(Photo photo, File directory) {
+	public MovePhotoTask(LocalPhoto photo, File directory) {
 		this.photo = photo;
 		this.directory = directory;
 	}

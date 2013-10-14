@@ -1,13 +1,7 @@
 package nl.alexeyu.photomate.api;
 
-import java.io.File;
-import java.net.URL;
-
-import nl.alexeyu.photomate.model.StockPhotoDescription;
-
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.map.ObjectMapper;
 
 /*
   { "description" : "cats collection   vector...",
@@ -35,13 +29,19 @@ import org.codehaus.jackson.map.ObjectMapper;
       }
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ShutterPhotoDescription implements StockPhotoDescription {
+public class ShutterPhotoDescription {
 
     @JsonProperty("thumb_large")
     private Thumb thumb;
+    
+    @JsonProperty("resource_url")
+    private String url;
 
-    @Override
     public String getUrl() {
+        return url;
+    }
+    
+    public String getThumbailUrl() {
         return thumb.url;
     }
 
@@ -50,7 +50,4 @@ public class ShutterPhotoDescription implements StockPhotoDescription {
         @JsonProperty("url") String url;
     }
 
-//    public static void main(String[] args) throws Exception {
-//        System.out.println(new ObjectMapper().readValue(new File("/home/lesha/cat.json"), ShutterPhotoDescription.class).getUrl());
-//    }
 }

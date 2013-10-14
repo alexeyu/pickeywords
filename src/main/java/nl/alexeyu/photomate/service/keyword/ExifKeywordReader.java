@@ -10,7 +10,7 @@ import java.util.concurrent.ExecutorService;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import nl.alexeyu.photomate.model.Photo;
+import nl.alexeyu.photomate.model.LocalPhoto;
 import nl.alexeyu.photomate.service.WeighedTask;
 import nl.alexeyu.photomate.service.TaskWeight;
 import nl.alexeyu.photomate.service.UpdateListener;
@@ -26,23 +26,23 @@ public class ExifKeywordReader implements KeywordReader {
 	
 	private ExecutorService executor;
 	
-	private UpdateListener<Photo> listener;
+	private UpdateListener<LocalPhoto> listener;
 	
-	public void readKeywords(Photo photo) {
+	public void readKeywords(LocalPhoto photo) {
 		executor.execute(new ReadKeywordsTask(photo));
 	}
 
-	public void addKeyword(Photo photo, String keyword) {
+	public void addKeyword(LocalPhoto photo, String keyword) {
 		photo.addKeyword(keyword);
 		executor.execute(new AddKeywordTask(photo, keyword));
 	}
 
-	public void removeKeyword(Photo photo, String keyword) {
+	public void removeKeyword(LocalPhoto photo, String keyword) {
 		photo.removeKeyword(keyword);
 		executor.execute(new RemoveKeywordTask(photo, keyword));
 	}
 
-	public void setListener(UpdateListener<Photo> listener) {
+	public void setListener(UpdateListener<LocalPhoto> listener) {
 		this.listener = listener;
 	}
 
@@ -51,7 +51,7 @@ public class ExifKeywordReader implements KeywordReader {
 		this.executor = executor;
 	}
 
-	private String execExif(String args, Photo photo) {
+	private String execExif(String args, LocalPhoto photo) {
 		try {
 			String filePath = photo.getFile().getAbsolutePath();
 			String[] execArgs = new String[] {"exiftool", args, filePath};
@@ -70,9 +70,9 @@ public class ExifKeywordReader implements KeywordReader {
 	
 	private abstract class AbstractKeywordTask implements WeighedTask {
 
-		protected final Photo photo;
+		protected final LocalPhoto photo;
 		
-		public AbstractKeywordTask(Photo photo) {
+		public AbstractKeywordTask(LocalPhoto photo) {
 			this.photo = photo;
 		}
 
@@ -85,7 +85,7 @@ public class ExifKeywordReader implements KeywordReader {
 
 	private class ReadKeywordsTask extends AbstractKeywordTask {
 		
-		public ReadKeywordsTask(Photo photo) {
+		public ReadKeywordsTask(LocalPhoto photo) {
 			super(photo);
 		}
 
@@ -113,7 +113,7 @@ public class ExifKeywordReader implements KeywordReader {
 		
 		private final String keyword;
 
-		public AddKeywordTask(Photo photo, String keyword) {
+		public AddKeywordTask(LocalPhoto photo, String keyword) {
 			super(photo);
 			this.keyword = keyword;
 		}
@@ -128,7 +128,7 @@ public class ExifKeywordReader implements KeywordReader {
 		
 		private final String keyword;
 
-		public RemoveKeywordTask(Photo photo, String keyword) {
+		public RemoveKeywordTask(LocalPhoto photo, String keyword) {
 			super(photo);
 			this.keyword = keyword;
 		}

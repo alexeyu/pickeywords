@@ -3,14 +3,14 @@ package nl.alexeyu.photomate.service;
 import java.util.Collection;
 import java.util.Random;
 
-import nl.alexeyu.photomate.model.Photo;
+import nl.alexeyu.photomate.model.LocalPhoto;
 import nl.alexeyu.photomate.model.PhotoStock;
 
 public class FakeUploadTask extends AbstractUploadTask {
 	
 	private static final double ERROR_PROBABILITY = 0.5;
 
-	public FakeUploadTask(PhotoStock photoStock, Photo photo, int attemptsLeft,
+	public FakeUploadTask(PhotoStock photoStock, LocalPhoto photo, int attemptsLeft,
 			Collection<UploadPhotoListener> uploadPhotoListeners) {
 		super(photoStock, photo, attemptsLeft, uploadPhotoListeners);
 	}
