@@ -9,7 +9,7 @@ import nl.alexeyu.photomate.model.LocalPhoto;
 
 import org.apache.commons.io.FileUtils;
 
-public class MovePhotoTask implements WeighedTask {
+public class MovePhotoTask implements WeighedTask, Runnable {
 	
 	private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyy-MM-dd");
 	

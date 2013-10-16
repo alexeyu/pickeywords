@@ -1,7 +1,7 @@
 package nl.alexeyu.photomate.service;
 
 
-public interface WeighedTask extends Runnable {
+public interface WeighedTask {
 
 	TaskWeight getWeight();
 

@@ -5,7 +5,7 @@ import java.util.Collection;
 import nl.alexeyu.photomate.model.LocalPhoto;
 import nl.alexeyu.photomate.model.PhotoStock;
 
-public abstract class AbstractUploadTask implements WeighedTask {
+public abstract class AbstractUploadTask implements WeighedTask, Runnable {
 
 	protected final PhotoStock photoStock;
 	protected final LocalPhoto photo;

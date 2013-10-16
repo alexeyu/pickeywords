@@ -4,6 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,12 +23,12 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 
-import nl.alexeyu.photomate.api.PhotoStockApi;
+import nl.alexeyu.photomate.api.ShutterPhotoStockApi;
 import nl.alexeyu.photomate.model.Photo;
 
 import com.google.inject.Inject;
 
-public class PhotoStockPanel extends JPanel {
+public class PhotoStockPanel extends JPanel implements PropertyChangeListener {
     
     private JTextField keywordToSearch;
 
@@ -37,7 +39,7 @@ public class PhotoStockPanel extends JPanel {
     private JButton searchButton;
     
     @Inject
-    private PhotoStockApi photoStockApi;
+    private ShutterPhotoStockApi photoStockApi;
     
     private List<Photo> photos = new ArrayList<>();
     
@@ -64,6 +66,7 @@ public class PhotoStockPanel extends JPanel {
         photoTable.setRowHeight(150);
         photoTable.getTableHeader().setVisible(false);
         photoTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        photoTable.setCellSelectionEnabled(true);
         
         photoTable.getSelectionModel().addListSelectionListener(new PhotoSelectionListener());
         
@@ -73,8 +76,17 @@ public class PhotoStockPanel extends JPanel {
         add(northPanel, BorderLayout.NORTH);
         add(new JScrollPane(keywordsList), BorderLayout.WEST);
         add(new JScrollPane(photoTable), BorderLayout.CENTER);
+        
+        photoStockApi.addPropertyChangeListener(this);
     }
     
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        if (evt.getPropertyName().equals("thumbnail")) {
+            photoTable.repaint();
+        }
+    }
+
     public void setListener(ActionListener listener) {
         searchButton.addActionListener(listener);
     }
@@ -85,14 +97,14 @@ public class PhotoStockPanel extends JPanel {
     
     private class SearchListener implements ActionListener {
         
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (keywordToSearch.getText().length() > 0) {
-                    photos = photoStockApi.search(keywordToSearch.getText());
-                    photoTable.revalidate();
-                    photoTable.repaint();
-                }
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (keywordToSearch.getText().length() > 0) {
+                photos = photoStockApi.search(keywordToSearch.getText());
+                photoTable.revalidate();
+                photoTable.repaint();
             }
+        }
 
     }
     
@@ -124,9 +136,12 @@ public class PhotoStockPanel extends JPanel {
 
         @Override
         public void valueChanged(ListSelectionEvent e) {
+            System.out.println(">> " + photoTable.getSelectedColumn() + " " + photoTable.getSelectedRow());
             if (e.getFirstIndex() >= 0) {
                 Photo photo = photos.get(e.getFirstIndex());
                 keywordsList.setModel(new KeywordListModel(photo));
+                keywordsList.revalidate();
+                keywordsList.repaint();
             }
         }
         

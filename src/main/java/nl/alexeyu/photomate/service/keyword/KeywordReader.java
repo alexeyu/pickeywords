@@ -1,13 +1,9 @@
 package nl.alexeyu.photomate.service.keyword;
 
-import nl.alexeyu.photomate.model.LocalPhoto;
+import java.util.List;
 
 public interface KeywordReader {
 
-	void readKeywords(LocalPhoto photo);
-	
-	void addKeyword(LocalPhoto photo, String keyword);
-	
-	void removeKeyword(LocalPhoto photo, String keyword);
+	List<String> readKeywords(String photoUrl);
 	
 }

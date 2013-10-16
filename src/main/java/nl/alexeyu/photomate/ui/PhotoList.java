@@ -6,6 +6,9 @@ import static nl.alexeyu.photomate.ui.Constants.LINE_BORDER;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.List;
 
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
@@ -19,10 +22,9 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.event.ListSelectionListener;
 
 import nl.alexeyu.photomate.model.LocalPhoto;
-import nl.alexeyu.photomate.service.UpdateListener;
 import nl.alexeyu.photomate.util.ImageUtils;
 
-public class PhotoList implements UpdateListener<LocalPhoto> {
+public class PhotoList implements PropertyChangeListener {
 	
 	private JList<LocalPhoto> photoList;
 	private JScrollPane sp;
@@ -54,11 +56,15 @@ public class PhotoList implements UpdateListener<LocalPhoto> {
 		photoList.repaint();
 	}
 
-	public void onUpdate(LocalPhoto obj) {
-		photoList.repaint();
-	}
 
-	private static class ThumbnailRenderer implements ListCellRenderer<LocalPhoto> {
+	@Override
+    public void propertyChange(PropertyChangeEvent evt) {
+	    if (evt.getPropertyName().equals("thumbnail")) {
+	        photoList.repaint();
+	    }
+    }
+
+    private static class ThumbnailRenderer implements ListCellRenderer<LocalPhoto> {
 
 		public Component getListCellRendererComponent(JList<? extends LocalPhoto> list, LocalPhoto photo,
 				int index, boolean isSelected, boolean cellHasFocus) {
@@ -71,7 +77,8 @@ public class PhotoList implements UpdateListener<LocalPhoto> {
 			}
 			JPanel panel = new JPanel(new BorderLayout());
 			panel.setBorder(isSelected ? LINE_BORDER : EMPTY_BORDER);
-			JLabel nameLabel = new JLabel(photo.getName() + " [" + photo.getKeywords().size() + "]");
+			int keywordCount = photo.getKeywords() == null ? 0 : photo.getKeywords().size(); 
+			JLabel nameLabel = new JLabel(photo.getName() + "[" + keywordCount + "]");
 			if (!photo.isReadyToUpload()) {
 				nameLabel.setIcon(ImageUtils.getImage("error.png"));
 			}

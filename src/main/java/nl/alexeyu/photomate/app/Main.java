@@ -7,7 +7,6 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
 
 import javax.inject.Inject;
 import javax.swing.AbstractListModel;
@@ -21,13 +20,10 @@ import javax.swing.WindowConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-import nl.alexeyu.photomate.api.ShutterPhotoStockApi;
+import nl.alexeyu.photomate.api.LocalPhotoApi;
 import nl.alexeyu.photomate.model.LocalPhoto;
-import nl.alexeyu.photomate.model.StockPhotoDescription;
 import nl.alexeyu.photomate.service.PhotoUploader;
 import nl.alexeyu.photomate.service.UpdateListener;
-import nl.alexeyu.photomate.service.keyword.ExifKeywordReader;
-import nl.alexeyu.photomate.service.thumbnail.ImgscalrThumbnailingTask;
 import nl.alexeyu.photomate.ui.Constants;
 import nl.alexeyu.photomate.ui.KeywordPicker;
 import nl.alexeyu.photomate.ui.PhotoChooser;
@@ -51,7 +47,7 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 	
 	private KeywordPicker keywordsPicker = new KeywordPicker();
 	
-	private LocalPhoto currentPhoto = LocalPhoto.NULL_PHOTO;
+	private LocalPhoto currentPhoto = null;
 
 	private JButton uploadButton = new JButton();
 	
@@ -59,16 +55,13 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 	private PhotoStockPanel photoStockPanel;
 
 	@Inject
-	private ExifKeywordReader keywordReader;
+	private LocalPhotoApi localPhotoApi;
 
 	@Inject
 	private UploadTable uploadTable;
 	
 	@Inject
 	private ConfigReader configReader;
-	
-	@Inject
-	private ExecutorService executor;
 	
 	@Inject
 	private PhotoUploader photoUploader;
@@ -80,6 +73,8 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 	}
 	
 	public void start() {
+	    localPhotoApi.addPropertyChangeListener(photoList);
+
 		frame.setSize(1200, 700);
 		buildGraphics();
 		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -97,7 +92,8 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 		keywordsPicker.setAddKeywordListener(new UpdateListener<String>() {
 
 			public void onUpdate(String keyword) {
-				keywordReader.addKeyword(currentPhoto, keyword);
+			    currentPhoto.addKeyword(keyword);
+			    localPhotoApi.addKeyword(currentPhoto.getName(), keyword);
 				keywordsPicker.setPhoto(currentPhoto);
 			}
 			
@@ -106,8 +102,9 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 		keywordsPicker.setRemoveKeywordListener(new UpdateListener<String>() {
 
 			public void onUpdate(String keyword) {
-				keywordReader.removeKeyword(currentPhoto, keyword);
-				keywordsPicker.setPhoto(currentPhoto);
+	             currentPhoto.removeKeyword(keyword);
+	             localPhotoApi.removeKeyword(currentPhoto.getName(), keyword);
+	             keywordsPicker.setPhoto(currentPhoto);
 			}
 			
 		});
@@ -159,10 +156,8 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 		photos.clear();
 		for (File file : dir.listFiles()) {
 			if (ImageUtils.isJpeg(file)) {
-				LocalPhoto photo = new LocalPhoto(file);
+				LocalPhoto photo = new LocalPhoto(file, localPhotoApi);
 				photos.add(photo);
-				keywordReader.readKeywords(photo);
-				scheduleThumbnail(photo);
 			}
 		}
 		photoList.refresh();
@@ -181,20 +176,8 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 	
 	public void valueChanged(ListSelectionEvent e) {
 		JList<?> list = (JList<?>) e.getSource();
-		currentPhoto = list.getSelectedValue() == null 
-				? LocalPhoto.NULL_PHOTO 
-				: (LocalPhoto) list.getSelectedValue();
+		currentPhoto = (LocalPhoto) list.getSelectedValue();
 		keywordsPicker.setPhoto(currentPhoto);
-	}
-
-	@Inject
-	public void setKeywordReader(ExifKeywordReader keywordReader) {
-		this.keywordReader = keywordReader;
-		this.keywordReader.setListener(photoList);
-	}
-
-	private void scheduleThumbnail(LocalPhoto photo) {
-		executor.execute(new ImgscalrThumbnailingTask(photo, photoList));
 	}
 
 	private class PhotoListModel extends AbstractListModel<LocalPhoto> {

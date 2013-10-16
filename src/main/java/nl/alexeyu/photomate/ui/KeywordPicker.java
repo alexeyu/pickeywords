@@ -5,7 +5,6 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.AbstractListModel;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -74,24 +73,6 @@ public class KeywordPicker {
 		return panel;
 	}
 
-	private static class KeywordListModel extends AbstractListModel<String> {
-		
-		private final Photo photo;
-		
-		public KeywordListModel(Photo photo) {
-			this.photo = photo;
-		}
-
-		public int getSize() {
-			return photo.getKeywords().size();
-		}
-
-		public String getElementAt(int index) {
-			return photo.getKeywords().get(index);
-		}
-		
-	}
-	
 	public void onKeywordAdd(String keyword) {
 		if (addKeywordListener != null) {
 			addKeywordListener.onUpdate(keyword);

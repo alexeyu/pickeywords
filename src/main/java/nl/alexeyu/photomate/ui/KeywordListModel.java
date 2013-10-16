@@ -13,7 +13,9 @@ public class KeywordListModel extends AbstractListModel<String> {
     }
 
     public int getSize() {
-        return photo.getKeywords().size();
+        return (photo == null || photo.getKeywords() == null) 
+                ? 0 
+                : photo.getKeywords().size();
     }
 
     public String getElementAt(int index) {

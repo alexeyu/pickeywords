@@ -3,11 +3,18 @@ package nl.alexeyu.photomate.api;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 
 import javax.inject.Inject;
 import javax.swing.ImageIcon;
 
 import nl.alexeyu.photomate.model.Photo;
+import nl.alexeyu.photomate.model.RemotePhoto;
+import nl.alexeyu.photomate.model.ResultFiller;
+import nl.alexeyu.photomate.service.TaskWeight;
+import nl.alexeyu.photomate.service.WeighedTask;
 import nl.alexeyu.photomate.util.ConfigReader;
 
 import org.apache.commons.io.IOUtils;
@@ -17,54 +24,43 @@ import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 
-public class ShutterPhotoStockApi implements PhotoStockApi {
+public class ShutterPhotoStockApi extends AbstractPhotoApi implements PhotoStockApi {
 
     private static final String BASE_URI = "http://api.shutterstock.com/images/";
-    
-    private static final ResponseHandler<ShutterSearchResult> PHOTO_SEARCH_HANDLER 
-        = new JsonResponseHandler<>(ShutterSearchResult.class);
-
-    private static final ResponseHandler<ShutterPhotoDetails> PHOTO_DETAILS_HANDLER 
-        = new JsonResponseHandler<>(ShutterPhotoDetails.class);
 
     private String name;
     private String apiKey;
 
     @Inject
     private ConfigReader configReader;
-
-    private DefaultHttpClient client;
+    
+    @Inject
+    private ExecutorService executor;
 
     @Inject
     public void init() {
         this.name = configReader.getProperty("stock.shutter.api.name", "");
         this.apiKey = configReader.getProperty("stock.shutter.api.key", "");
-        client = new DefaultHttpClient();
+    }
+    
+    private HttpClient createClient() {
+        DefaultHttpClient client = new DefaultHttpClient();
         Credentials credentials = new UsernamePasswordCredentials(name, apiKey);
         client.getCredentialsProvider().setCredentials(AuthScope.ANY, credentials);
-    }
-
-    @Override
-    public ImageIcon getImage(String photoUrl) {
-        return doRequest(photoUrl, new ImageResponseHandler());
-    }
-
-    @Override
-    public List<String> getKeywords(String photoUrl) {
-        ShutterPhotoDetails photoDetails = doRequest(photoUrl + ".json", PHOTO_DETAILS_HANDLER);
-        return photoDetails.getKeywords();
+        return client;
     }
 
     @Override
     public List<Photo> search(String keyword) {
         String requestUri = String.format("%ssearch.json?searchterm=%s&results_per_page=10", BASE_URI, keyword);
-        ShutterSearchResult searchResult = doRequest(requestUri, PHOTO_SEARCH_HANDLER);
+        ShutterSearchResult searchResult = doRequest(requestUri, new JsonResponseHandler<>(ShutterSearchResult.class));
         List<Photo> photos = new ArrayList<>();
         for (ShutterPhotoDescription photoDescr : searchResult.getPhotoDescriptions()) {
             photos.add(new RemotePhoto(photoDescr.getUrl(), photoDescr.getThumbailUrl(), this));
@@ -72,11 +68,33 @@ public class ShutterPhotoStockApi implements PhotoStockApi {
         return photos;
     }
 
+    @Override
+    public void provideThumbnail(String tumbnailUrl, ResultFiller<ImageIcon> filler) {
+        doRequest(tumbnailUrl, new ImageResponseHandler(), new ProxyFiller<>("thumbnail", filler));        
+    }
+
+
+    @Override
+    public void provideKeywords(String url, final ResultFiller<List<String>> filler) {
+        doRequest(url + ".json", new JsonResponseHandler<>(ShutterPhotoDetails.class), new ResultFiller<ShutterPhotoDetails>() {
+
+            @Override
+            public void fill(ShutterPhotoDetails result) {
+                filler.fill(result.getKeywords());
+            }
+            
+        });        
+    }
+
+    private <T> T doRequest(String url, ResponseHandler<T> responseHandler, ResultFiller<T> filler) {
+        executor.submit(new AsyncRestServiceCaller<>(url, responseHandler, filler));
+        return null;
+    }
+
     private <T> T doRequest(String url, ResponseHandler<T> responseHandler) {
         try {
-            HttpGet httpget = new HttpGet(url);
-            return client.execute(httpget, responseHandler);
-        } catch (IOException ex) {
+            return executor.submit(new SyncRestServiceCaller<>(url, responseHandler)).get();
+        } catch (InterruptedException | ExecutionException ex) {
             throw new IllegalStateException(ex);
         }
     }
@@ -119,6 +137,61 @@ public class ShutterPhotoStockApi implements PhotoStockApi {
             }
         }
 
+    }
+
+    private class AsyncRestServiceCaller<T> implements Runnable, WeighedTask {
+        
+        private final String url;
+        
+        private final ResponseHandler<T> responseHandler;
+        
+        private final ResultFiller<T> filler;
+
+        public AsyncRestServiceCaller(String url, ResponseHandler<T> responseHandler, ResultFiller<T> filler) {
+            this.url = url;
+            this.responseHandler = responseHandler;
+            this.filler = filler;
+        }
+        
+        @Override
+        public void run() {
+            try {
+                HttpGet httpget = new HttpGet(url);
+                filler.fill(createClient().execute(httpget, responseHandler));
+            } catch (IOException ex) {
+                throw new IllegalStateException(ex);
+            }
+        }
+
+        @Override
+        public TaskWeight getWeight() {
+            return TaskWeight.MEDIUM;
+        }
+        
+    }
+    
+    private class SyncRestServiceCaller<T> implements Callable<T>, WeighedTask {
+        
+        private final String url;
+        
+        private final ResponseHandler<T> responseHandler;
+        
+        public SyncRestServiceCaller(String url, ResponseHandler<T> responseHandler) {
+            this.url = url;
+            this.responseHandler = responseHandler;
+        }
+        
+        @Override
+        public T call() throws Exception {
+            HttpGet httpget = new HttpGet(url);
+            return createClient().execute(httpget, responseHandler);
+        }
+
+        @Override
+        public TaskWeight getWeight() {
+            return TaskWeight.MEDIUM;
+        }
+        
     }
 
 }
