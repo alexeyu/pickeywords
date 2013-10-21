@@ -15,8 +15,8 @@ import org.imgscalr.Scalr;
 public class ImgscalrThumbnailProvider implements ThumbnailProvider {
 
 	@Override
-    public Image getThumbnail(String photoPath) throws Exception {
-        BufferedImage source = ImageIO.read(new File(photoPath));
+    public Image getThumbnail(File photoFile) throws Exception {
+        BufferedImage source = ImageIO.read(photoFile);
         return Scalr.resize(source, 
                 Scalr.Method.SPEED, 
                 Scalr.Mode.FIT_TO_WIDTH, 

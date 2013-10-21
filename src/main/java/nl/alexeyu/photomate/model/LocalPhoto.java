@@ -1,19 +1,14 @@
 package nl.alexeyu.photomate.model;
 
 import java.io.File;
-
-import nl.alexeyu.photomate.api.PhotoApi;
-import nl.alexeyu.photomate.service.UpdateListener;
+import java.util.List;
 
 public class LocalPhoto extends AbstractPhoto {
 	
 	private final File file;
 	
-	public LocalPhoto(File file, PhotoApi photoApi) {
-	    super(photoApi);
+	LocalPhoto(File file) {
 		this.file = file;
-		getKeywords();
-		getThumbnail();
 	}
 
 	public File getFile() {
@@ -25,23 +20,13 @@ public class LocalPhoto extends AbstractPhoto {
 		return file.getName();
 	}
 
-	public void addKeyword(String keyword) {
-		getKeywords().add(keyword);
+	public void addKeywords(List<String> keywords) {
+		getKeywords().addAll(keywords);
 	}
 	
-	public void removeKeyword(String keyword) {
-		getKeywords().remove(keyword);
+	public void removeKeywords(List<String> keywords) {
+		getKeywords().removeAll(keywords);
 	}
-
-	@Override
-    protected String getThumbnailUrl() {
-        return file.getAbsolutePath();
-    }
-
-    @Override
-    protected String getUrl() {
-        return file.getAbsolutePath();
-    }
 
     public boolean isReadyToUpload() {
 		return hasKeywords() && hasThumbnail();

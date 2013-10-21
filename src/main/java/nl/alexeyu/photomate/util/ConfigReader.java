@@ -73,6 +73,6 @@ public class ConfigReader {
 	}
 	
 	public String getProperty(String property, String defaultValue) {
-		return properties.getProperty(property);
+		return properties.getProperty(property, defaultValue);
 	}
 }

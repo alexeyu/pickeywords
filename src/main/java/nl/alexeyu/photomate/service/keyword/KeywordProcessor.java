@@ -1,10 +1,12 @@
 package nl.alexeyu.photomate.service.keyword;
 
+import java.util.List;
+
 
 public interface KeywordProcessor extends KeywordReader {
 
-	void addKeyword(String photoPath, String keyword);
+	void addKeywords(String photoPath, List<String> keyword);
 	
-	void removeKeyword(String photoPath, String keyword);
+	void removeKeywords(String photoPath, List<String> keyword);
 	
 }

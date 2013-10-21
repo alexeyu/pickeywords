@@ -5,9 +5,10 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 
-import nl.alexeyu.photomate.model.ResultFiller;
+import nl.alexeyu.photomate.model.Photo;
+import nl.alexeyu.photomate.model.ResultProcessor;
 
-public abstract class AbstractPhotoApi implements PhotoApi {
+public abstract class AbstractPhotoApi<P extends Photo> implements PhotoApi<P> {
 
     protected List<PropertyChangeListener> listeners = new ArrayList<>();
 
@@ -15,20 +16,20 @@ public abstract class AbstractPhotoApi implements PhotoApi {
         listeners.add(listener);
     }
 
-    protected class ProxyFiller<T> implements ResultFiller<T> {
+    protected class ProxyResultProcessor<T> implements ResultProcessor<T> {
         
         private final String propertyName;
 
-        private final ResultFiller<T> filler;
+        private final ResultProcessor<T> resultProcessor;
         
-        public ProxyFiller(String propertyName, ResultFiller<T> filler) {
+        public ProxyResultProcessor(String propertyName, ResultProcessor<T> resultProcessor) {
             this.propertyName = propertyName;
-            this.filler = filler;
+            this.resultProcessor = resultProcessor;
         }
 
         @Override
-        public void fill(T result) {
-            filler.fill(result);
+        public void process(T result) {
+            resultProcessor.process(result);
             PropertyChangeEvent event = new PropertyChangeEvent(AbstractPhotoApi.this, propertyName, null, result);
             for (PropertyChangeListener listener : listeners) {
                 listener.propertyChange(event);

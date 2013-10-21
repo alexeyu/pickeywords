@@ -1,9 +1,10 @@
 package nl.alexeyu.photomate.service;
 
 import java.awt.Image;
+import java.io.File;
 
 public interface ThumbnailProvider {
     
-    Image getThumbnail(String photoPath) throws Exception;
+    Image getThumbnail(File photoFile) throws Exception;
 
 }

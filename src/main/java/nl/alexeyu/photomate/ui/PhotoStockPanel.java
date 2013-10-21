@@ -4,6 +4,10 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
+import java.awt.event.MouseMotionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
@@ -68,9 +72,9 @@ public class PhotoStockPanel extends JPanel implements PropertyChangeListener {
         photoTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         photoTable.setCellSelectionEnabled(true);
         
-        photoTable.getSelectionModel().addListSelectionListener(new PhotoSelectionListener());
+        photoTable.addMouseMotionListener(new PhotoPointer());
         
-        keywordsList = new JList();
+        keywordsList = new JList<>();
         keywordsList.setPreferredSize(new Dimension(250, 0));
         
         add(northPanel, BorderLayout.NORTH);
@@ -132,18 +136,40 @@ public class PhotoStockPanel extends JPanel implements PropertyChangeListener {
         
     }
 
-    private class PhotoSelectionListener implements ListSelectionListener {
+    private class PhotoPointer extends MouseMotionAdapter {
+        
+        private int row = -1;
+        
+        private int col = -1;
 
         @Override
-        public void valueChanged(ListSelectionEvent e) {
-            System.out.println(">> " + photoTable.getSelectedColumn() + " " + photoTable.getSelectedRow());
-            if (e.getFirstIndex() >= 0) {
-                Photo photo = photos.get(e.getFirstIndex());
+        public void mouseMoved(MouseEvent e) {
+            int columnIndex = photoTable.columnAtPoint(e.getPoint());
+            int rowIndex = photoTable.rowAtPoint(e.getPoint());
+            if (row != rowIndex || col != columnIndex) {
+                col = columnIndex;
+                row = rowIndex;
+                Photo photo = (Photo) photoTable.getModel().getValueAt(rowIndex, columnIndex);
                 keywordsList.setModel(new KeywordListModel(photo));
                 keywordsList.revalidate();
                 keywordsList.repaint();
+                photoTable.changeSelection(rowIndex, columnIndex, false, false);
+                photoTable.repaint();
             }
         }
         
     }
+    
+    private class PhotoSelector extends MouseAdapter {
+
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            if (e.getClickCount() >= 2) {
+                int columnIndex = photoTable.getSelectedColumn();
+                int rowIndex = photoTable.getSelectedRow();
+            }
+        }
+        
+    }
+        
 }

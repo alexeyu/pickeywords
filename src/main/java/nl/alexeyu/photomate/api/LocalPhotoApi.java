@@ -1,5 +1,6 @@
 package nl.alexeyu.photomate.api;
 
+import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -7,7 +8,8 @@ import java.util.concurrent.ExecutorService;
 import javax.inject.Inject;
 import javax.swing.ImageIcon;
 
-import nl.alexeyu.photomate.model.ResultFiller;
+import nl.alexeyu.photomate.model.LocalPhoto;
+import nl.alexeyu.photomate.model.ResultProcessor;
 import nl.alexeyu.photomate.service.TaskWeight;
 import nl.alexeyu.photomate.service.ThumbnailProvider;
 import nl.alexeyu.photomate.service.WeighedTask;
@@ -16,7 +18,7 @@ import nl.alexeyu.photomate.service.keyword.KeywordProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LocalPhotoApi extends AbstractPhotoApi {
+public class LocalPhotoApi extends AbstractPhotoApi<LocalPhoto> {
     
     private static final Logger logger = LoggerFactory.getLogger("LocalPhotoAPI");
     
@@ -30,44 +32,46 @@ public class LocalPhotoApi extends AbstractPhotoApi {
     private ThumbnailProvider thumbnailProvider;
 
     @Override
-    public void provideThumbnail(String photoPath, ResultFiller<ImageIcon> filler) {
+    public void provideThumbnail(LocalPhoto photo, ResultProcessor<ImageIcon> filler) {
         executor.submit(
-                new ThumbnailingTask(photoPath, 
-                        new ProxyFiller<>("thumbnail", filler)));
+                new ThumbnailingTask(photo.getFile(), 
+                        new ProxyResultProcessor<>("thumbnail", filler)));
     }
 
     @Override
-    public void provideKeywords(String photoPath, ResultFiller<List<String>> filler) {
+    public void provideKeywords(LocalPhoto photo, ResultProcessor<List<String>> filler) {
         executor.submit(
-                new ReadKeywordsTask(photoPath, 
-                        new ProxyFiller<>("keywords", filler)));
+                new ReadKeywordsTask(photo.getFile().getAbsolutePath(), 
+                        new ProxyResultProcessor<>("keywords", filler)));
     }
 
-    public void addKeyword(String photoPath, String keyword) {
-        executor.submit(new AddKeywordTask(photoPath, keyword));
+    public void addKeywords(LocalPhoto photo, List<String> keywords) {
+        photo.addKeywords(keywords);
+        executor.submit(new AddKeywordTask(photo.getFile().getAbsolutePath(), keywords));
     }
 
-    public void removeKeyword(String photoPath, String keyword) {
-        executor.submit(new RemoveKeywordTask(photoPath, keyword));
+    public void removeKeywords(LocalPhoto photo, List<String> keywords) {
+        photo.removeKeywords(keywords);
+        executor.submit(new RemoveKeywordTask(photo.getFile().getAbsolutePath(), keywords));
     }
 
     private class ThumbnailingTask implements WeighedTask, Callable<ImageIcon> {
 
-        protected final String photoPath;
+        protected final File photoFile;
         
-        private final ResultFiller<ImageIcon> filler;
+        private final ResultProcessor<ImageIcon> resultProcessor;
         
-        public ThumbnailingTask(String photoPath, ResultFiller<ImageIcon> filler) {
-            this.photoPath = photoPath;
-            this.filler = filler;
+        public ThumbnailingTask(File photoFile, ResultProcessor<ImageIcon> resultProcessor) {
+            this.photoFile = photoFile;
+            this.resultProcessor = resultProcessor;
         }
 
         @Override
         public ImageIcon call() throws Exception {
             long time = System.currentTimeMillis();
-            ImageIcon image = new ImageIcon(thumbnailProvider.getThumbnail(photoPath));
+            ImageIcon image = new ImageIcon(thumbnailProvider.getThumbnail(photoFile));
             logger.info("" + (System.currentTimeMillis() - time));
-            filler.fill(image);
+            resultProcessor.process(image);
             return image;
         }
 
@@ -95,46 +99,46 @@ public class LocalPhotoApi extends AbstractPhotoApi {
 
     private class ReadKeywordsTask extends AbstractKeywordTask implements Runnable {
         
-        private final ResultFiller<List<String>> filler;
+        private final ResultProcessor<List<String>> filler;
 
-        public ReadKeywordsTask(String path, ResultFiller<List<String>> filler) {
+        public ReadKeywordsTask(String path, ResultProcessor<List<String>> filler) {
             super(path);
             this.filler = filler;
         }
 
         public void run() {
             List<String> keywords = keywordProcessor.readKeywords(path);
-            filler.fill(keywords);
+            filler.process(keywords);
         }
 
     }
 
     private class AddKeywordTask extends AbstractKeywordTask implements Runnable {
 
-        private final String keyword;
+        private final List<String> keywords;
 
-        public AddKeywordTask(String path, String keyword) {
+        public AddKeywordTask(String path, List<String> keywords) {
             super(path);
-            this.keyword = keyword;
+            this.keywords = keywords;
         }
 
         public void run() {
-            keywordProcessor.addKeyword(path, keyword);
+            keywordProcessor.addKeywords(path, keywords);
         }
 
     }
 
     private class RemoveKeywordTask extends AbstractKeywordTask implements Runnable {
 
-        private final String keyword;
+        private final List<String> keywords;
 
-        public RemoveKeywordTask(String path, String keyword) {
+        public RemoveKeywordTask(String path, List<String> keywords) {
             super(path);
-            this.keyword = keyword;
+            this.keywords = keywords;
         }
 
         public void run() {
-            keywordProcessor.removeKeyword(path, keyword);
+            keywordProcessor.removeKeywords(path, keywords);
         }
 
     }

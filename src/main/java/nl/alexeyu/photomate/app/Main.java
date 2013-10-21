@@ -1,5 +1,7 @@
 package nl.alexeyu.photomate.app;
 
+import static java.util.Collections.singletonList;
+
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.event.ActionEvent;
@@ -22,6 +24,7 @@ import javax.swing.event.ListSelectionListener;
 
 import nl.alexeyu.photomate.api.LocalPhotoApi;
 import nl.alexeyu.photomate.model.LocalPhoto;
+import nl.alexeyu.photomate.model.PhotoFactory;
 import nl.alexeyu.photomate.service.PhotoUploader;
 import nl.alexeyu.photomate.service.UpdateListener;
 import nl.alexeyu.photomate.ui.Constants;
@@ -65,6 +68,8 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 	
 	@Inject
 	private PhotoUploader photoUploader;
+	
+	@Inject PhotoFactory photoFactory;
 
 	public Main() {
 		frame = new JFrame("Your Photo Mate");
@@ -92,8 +97,7 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 		keywordsPicker.setAddKeywordListener(new UpdateListener<String>() {
 
 			public void onUpdate(String keyword) {
-			    currentPhoto.addKeyword(keyword);
-			    localPhotoApi.addKeyword(currentPhoto.getName(), keyword);
+			    localPhotoApi.addKeywords(currentPhoto, singletonList(keyword));
 				keywordsPicker.setPhoto(currentPhoto);
 			}
 			
@@ -102,8 +106,7 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 		keywordsPicker.setRemoveKeywordListener(new UpdateListener<String>() {
 
 			public void onUpdate(String keyword) {
-	             currentPhoto.removeKeyword(keyword);
-	             localPhotoApi.removeKeyword(currentPhoto.getName(), keyword);
+	             localPhotoApi.removeKeywords(currentPhoto, singletonList(keyword));
 	             keywordsPicker.setPhoto(currentPhoto);
 			}
 			
@@ -156,7 +159,7 @@ public class Main implements UpdateListener<File>, ListSelectionListener {
 		photos.clear();
 		for (File file : dir.listFiles()) {
 			if (ImageUtils.isJpeg(file)) {
-				LocalPhoto photo = new LocalPhoto(file, localPhotoApi);
+				LocalPhoto photo = photoFactory.createLocalPhoto(file, localPhotoApi);
 				photos.add(photo);
 			}
 		}

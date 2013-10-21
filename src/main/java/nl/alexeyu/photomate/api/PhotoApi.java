@@ -4,12 +4,13 @@ import java.util.List;
 
 import javax.swing.ImageIcon;
 
-import nl.alexeyu.photomate.model.ResultFiller;
+import nl.alexeyu.photomate.model.Photo;
+import nl.alexeyu.photomate.model.ResultProcessor;
 
-public interface PhotoApi {
+public interface PhotoApi<P extends Photo> {
     
-    void provideThumbnail(String tumbnailUrl, ResultFiller<ImageIcon> filler);
+    void provideThumbnail(P photo, ResultProcessor<ImageIcon> processor);
     
-    void provideKeywords(String url, ResultFiller<List<String>> keywords);
+    void provideKeywords(P photo, ResultProcessor<List<String>> processor);
 
 }

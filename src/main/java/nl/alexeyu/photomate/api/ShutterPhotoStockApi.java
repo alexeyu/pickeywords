@@ -1,6 +1,7 @@
 package nl.alexeyu.photomate.api;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -11,8 +12,9 @@ import javax.inject.Inject;
 import javax.swing.ImageIcon;
 
 import nl.alexeyu.photomate.model.Photo;
+import nl.alexeyu.photomate.model.PhotoFactory;
 import nl.alexeyu.photomate.model.RemotePhoto;
-import nl.alexeyu.photomate.model.ResultFiller;
+import nl.alexeyu.photomate.model.ResultProcessor;
 import nl.alexeyu.photomate.service.TaskWeight;
 import nl.alexeyu.photomate.service.WeighedTask;
 import nl.alexeyu.photomate.util.ConfigReader;
@@ -24,69 +26,91 @@ import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 
-public class ShutterPhotoStockApi extends AbstractPhotoApi implements PhotoStockApi {
+public class ShutterPhotoStockApi extends AbstractPhotoApi<RemotePhoto> implements PhotoStockApi {
 
     private static final String BASE_URI = "http://api.shutterstock.com/images/";
-
-    private String name;
-    private String apiKey;
 
     @Inject
     private ConfigReader configReader;
     
     @Inject
     private ExecutorService executor;
+    
+    @Inject 
+    private PhotoFactory photoFactory;
+    
+    private HttpClient client;
+    
+    private int resultsPerPage;
 
     @Inject
     public void init() {
-        this.name = configReader.getProperty("stock.shutter.api.name", "");
-        this.apiKey = configReader.getProperty("stock.shutter.api.key", "");
+        String name = configReader.getProperty("stock.shutter.api.name", "");
+        String apiKey = configReader.getProperty("stock.shutter.api.key", "");
+        resultsPerPage = Integer.valueOf(configReader.getProperty("stock.shutter.api.resultsPerPage", "10"));
+        this.client = createClient(name, apiKey);
     }
     
-    private HttpClient createClient() {
-        DefaultHttpClient client = new DefaultHttpClient();
+    private HttpClient createClient(String name, String apiKey) {
         Credentials credentials = new UsernamePasswordCredentials(name, apiKey);
-        client.getCredentialsProvider().setCredentials(AuthScope.ANY, credentials);
-        return client;
+        CredentialsProvider credProvider = new BasicCredentialsProvider();
+        credProvider.setCredentials(AuthScope.ANY, credentials);
+        return HttpClientBuilder
+                .create()
+                .setDefaultCredentialsProvider(credProvider)
+                .setConnectionManager(new PoolingHttpClientConnectionManager())
+                .build();
     }
 
     @Override
-    public List<Photo> search(String keyword) {
-        String requestUri = String.format("%ssearch.json?searchterm=%s&results_per_page=10", BASE_URI, keyword);
+    public List<Photo> search(String keywords) {
+        String requestUri = String.format("%ssearch.json?searchterm=%s&results_per_page=%s", 
+                BASE_URI, encode(keywords), resultsPerPage);
         ShutterSearchResult searchResult = doRequest(requestUri, new JsonResponseHandler<>(ShutterSearchResult.class));
         List<Photo> photos = new ArrayList<>();
         for (ShutterPhotoDescription photoDescr : searchResult.getPhotoDescriptions()) {
-            photos.add(new RemotePhoto(photoDescr.getUrl(), photoDescr.getThumbailUrl(), this));
+            photos.add(photoFactory.createRemotePhoto(photoDescr.getUrl(), photoDescr.getThumbailUrl(), this));
         }
         return photos;
     }
+    
+    private String encode(String keywords) {
+        try {
+            return URLEncoder.encode(keywords, "UTF-8");
+        } catch (Exception ex) {
+            throw new IllegalArgumentException(keywords, ex);
+        }
+    }
 
     @Override
-    public void provideThumbnail(String tumbnailUrl, ResultFiller<ImageIcon> filler) {
-        doRequest(tumbnailUrl, new ImageResponseHandler(), new ProxyFiller<>("thumbnail", filler));        
+    public void provideThumbnail(RemotePhoto photo, ResultProcessor<ImageIcon> filler) {
+        doRequest(photo.getThumbnailUrl(), new ImageResponseHandler(), new ProxyResultProcessor<>("thumbnail", filler));        
     }
 
 
     @Override
-    public void provideKeywords(String url, final ResultFiller<List<String>> filler) {
-        doRequest(url + ".json", new JsonResponseHandler<>(ShutterPhotoDetails.class), new ResultFiller<ShutterPhotoDetails>() {
+    public void provideKeywords(RemotePhoto photo, final ResultProcessor<List<String>> resultProcessor) {
+        doRequest(photo.getUrl() + ".json", new JsonResponseHandler<>(ShutterPhotoDetails.class), new ResultProcessor<ShutterPhotoDetails>() {
 
             @Override
-            public void fill(ShutterPhotoDetails result) {
-                filler.fill(result.getKeywords());
+            public void process(ShutterPhotoDetails result) {
+                resultProcessor.process(result.getKeywords());
             }
             
         });        
     }
 
-    private <T> T doRequest(String url, ResponseHandler<T> responseHandler, ResultFiller<T> filler) {
+    private <T> T doRequest(String url, ResponseHandler<T> responseHandler, ResultProcessor<T> filler) {
         executor.submit(new AsyncRestServiceCaller<>(url, responseHandler, filler));
         return null;
     }
@@ -145,19 +169,19 @@ public class ShutterPhotoStockApi extends AbstractPhotoApi implements PhotoStock
         
         private final ResponseHandler<T> responseHandler;
         
-        private final ResultFiller<T> filler;
+        private final ResultProcessor<T> resultProcessor;
 
-        public AsyncRestServiceCaller(String url, ResponseHandler<T> responseHandler, ResultFiller<T> filler) {
+        public AsyncRestServiceCaller(String url, ResponseHandler<T> responseHandler, ResultProcessor<T> filler) {
             this.url = url;
             this.responseHandler = responseHandler;
-            this.filler = filler;
+            this.resultProcessor = filler;
         }
         
         @Override
         public void run() {
             try {
                 HttpGet httpget = new HttpGet(url);
-                filler.fill(createClient().execute(httpget, responseHandler));
+                resultProcessor.process(client.execute(httpget, responseHandler));
             } catch (IOException ex) {
                 throw new IllegalStateException(ex);
             }
@@ -184,7 +208,7 @@ public class ShutterPhotoStockApi extends AbstractPhotoApi implements PhotoStock
         @Override
         public T call() throws Exception {
             HttpGet httpget = new HttpGet(url);
-            return createClient().execute(httpget, responseHandler);
+            return client.execute(httpget, responseHandler);
         }
 
         @Override

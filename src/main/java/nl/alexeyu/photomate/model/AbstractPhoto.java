@@ -1,62 +1,51 @@
 package nl.alexeyu.photomate.model;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.swing.ImageIcon;
 
-import nl.alexeyu.photomate.api.PhotoApi;
-
 public abstract class AbstractPhoto implements Photo {
     
-    private AtomicReference<List<String>> keywords;
+    private final AtomicReference<List<String>> keywords = new AtomicReference<>();
     
-    private AtomicReference<ImageIcon> thumbnail;
+    private final AtomicReference<ImageIcon> thumbnail = new AtomicReference<>();
     
-    private final PhotoApi photoApi;
-    
-    public AbstractPhoto(PhotoApi photoApi) {
-        this.photoApi = photoApi;
-    }
-
     @Override
     public ImageIcon getThumbnail() {
-        if (thumbnail == null) {
-            thumbnail = new AtomicReference<>();
-            photoApi.provideThumbnail(getThumbnailUrl(), new ResultFiller<ImageIcon>() {
-                @Override
-                public void fill(ImageIcon thumbnail) {
-                    AbstractPhoto.this.thumbnail.set(thumbnail);
-                }
-            });
-        }
         return thumbnail.get();
     }
 
     @Override
     public List<String> getKeywords() {
-        if (keywords == null) {
-            keywords = new AtomicReference<>();
-            photoApi.provideKeywords(getUrl(), new ResultFiller<List<String>>() {
-                @Override
-                public void fill(List<String> keywords) {
-                    AbstractPhoto.this.keywords.set(keywords);
-                }
-            });
-        }
         return keywords.get();
     }
 
-    protected abstract String getThumbnailUrl();
-    
-    protected abstract String getUrl();
-    
     protected boolean hasKeywords() {
-        return keywords != null && keywords.get() != null && !keywords.get().isEmpty();
+        return keywords.get() != null && !keywords.get().isEmpty();
     }
     
     protected boolean hasThumbnail() {
-        return thumbnail != null && thumbnail.get() != null;
+        return thumbnail.get() != null;
+    }
+
+    ResultProcessor<List<String>> getKeywordsResultProcessor() {
+        return new ResultProcessor<List<String>>() {
+            @Override
+            public void process(List<String> keywords) {
+                AbstractPhoto.this.keywords.set(new ArrayList<>(keywords));
+            }
+        };
+    }
+    
+    ResultProcessor<ImageIcon> getThumbnailProcessor() {
+        return new ResultProcessor<ImageIcon>() {
+            @Override
+            public void process(ImageIcon thumbnail) {
+                AbstractPhoto.this.thumbnail.set(thumbnail);
+            }
+        };
     }
 
     @Override

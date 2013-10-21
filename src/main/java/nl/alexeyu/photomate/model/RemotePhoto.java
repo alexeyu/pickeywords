@@ -1,16 +1,12 @@
 package nl.alexeyu.photomate.model;
 
-import nl.alexeyu.photomate.api.PhotoApi;
-
-
 public class RemotePhoto extends AbstractPhoto {
     
     private final String url;
     
     private final String thumbnailUrl;
     
-    public RemotePhoto(String url, String thumbnailUrl, PhotoApi photoApi) {
-        super(photoApi);
+    RemotePhoto(String url, String thumbnailUrl) {
         this.url = url;
         this.thumbnailUrl = thumbnailUrl;
         getThumbnail();
@@ -21,13 +17,11 @@ public class RemotePhoto extends AbstractPhoto {
         return url;
     }
 
-    @Override
-    protected String getThumbnailUrl() {
+    public String getThumbnailUrl() {
         return thumbnailUrl;
     }
 
-    @Override
-    protected String getUrl() {
+    public String getUrl() {
         return url;
     }
 
