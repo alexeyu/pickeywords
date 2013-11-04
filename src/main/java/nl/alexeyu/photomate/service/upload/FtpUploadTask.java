@@ -1,4 +1,4 @@
-package nl.alexeyu.photomate.service;
+package nl.alexeyu.photomate.service.upload;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -7,7 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collection;
 
-import nl.alexeyu.photomate.model.LocalPhoto;
+import nl.alexeyu.photomate.api.LocalPhoto;
 import nl.alexeyu.photomate.model.PhotoStock;
 
 import org.apache.commons.net.ftp.FTP;

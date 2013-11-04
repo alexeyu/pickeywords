@@ -1,4 +1,4 @@
-package nl.alexeyu.photomate.api;
+package nl.alexeyu.photomate.api.shutterstock;
 
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;

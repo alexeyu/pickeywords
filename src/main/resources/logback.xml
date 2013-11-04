@@ -8,7 +8,7 @@
 
     <logger name="API" level="OFF"/>
 
-    <root level="INFO">
+    <root level="DEBUG">
         <appender-ref ref="STDOUT" />
     </root>
 

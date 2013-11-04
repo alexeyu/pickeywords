@@ -1,6 +1,6 @@
-package nl.alexeyu.photomate.service;
+package nl.alexeyu.photomate.service.upload;
 
-import nl.alexeyu.photomate.model.LocalPhoto;
+import nl.alexeyu.photomate.api.LocalPhoto;
 import nl.alexeyu.photomate.model.PhotoStock;
 
 public interface UploadPhotoListener {

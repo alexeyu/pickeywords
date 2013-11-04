@@ -7,14 +7,14 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import nl.alexeyu.photomate.api.PhotoStockApi;
-import nl.alexeyu.photomate.api.ShutterPhotoStockApi;
-import nl.alexeyu.photomate.service.ThumbnailProvider;
-import nl.alexeyu.photomate.service.UploadPhotoListener;
-import nl.alexeyu.photomate.service.WeighedTask;
-import nl.alexeyu.photomate.service.keyword.ExifKeywordProcessor;
-import nl.alexeyu.photomate.service.keyword.KeywordProcessor;
-import nl.alexeyu.photomate.service.keyword.KeywordReader;
+import nl.alexeyu.photomate.api.shutterstock.ShutterPhotoStockApi;
+import nl.alexeyu.photomate.service.PrioritizedTask;
+import nl.alexeyu.photomate.service.keyword.ExifPhotoMetadataProcessor;
+import nl.alexeyu.photomate.service.keyword.PhotoMetadataProcessor;
+import nl.alexeyu.photomate.service.keyword.PhotoMetadataReader;
 import nl.alexeyu.photomate.service.thumbnail.ImgscalrThumbnailProvider;
+import nl.alexeyu.photomate.service.thumbnail.ThumbnailProvider;
+import nl.alexeyu.photomate.service.upload.UploadPhotoListener;
 import nl.alexeyu.photomate.ui.UploadTable;
 
 import com.google.inject.AbstractModule;
@@ -24,8 +24,8 @@ public class AppModule extends AbstractModule {
 	@Override
 	protected void configure() {
 		bind(ExecutorService.class).to(PhotoExecutorService.class);
-		bind(KeywordReader.class).to(ExifKeywordProcessor.class);
-	    bind(KeywordProcessor.class).to(ExifKeywordProcessor.class);
+		bind(PhotoMetadataReader.class).to(ExifPhotoMetadataProcessor.class);
+	    bind(PhotoMetadataProcessor.class).to(ExifPhotoMetadataProcessor.class);
 		bind(UploadPhotoListener.class).to(UploadTable.class);
 		bind(PhotoStockApi.class).to(ShutterPhotoStockApi.class);
 		bind(ThumbnailProvider.class).to(ImgscalrThumbnailProvider.class);
@@ -50,9 +50,11 @@ public class AppModule extends AbstractModule {
 
 		@Override
 		public int compare(Object t1, Object t2) {
-		    if (t1 instanceof WeighedTask) {
-		        if (t2 instanceof WeighedTask) {
-		            return - ((WeighedTask) t2).getWeight().ordinal() + ((WeighedTask) t1).getWeight().ordinal();
+		    if (t1 instanceof PrioritizedTask) {
+		        if (t2 instanceof PrioritizedTask) {
+		            PrioritizedTask p1 = (PrioritizedTask) t1;
+		            PrioritizedTask p2 = (PrioritizedTask) t2;
+		            return p1.getPriority().ordinal() - p2.getPriority().ordinal();
 		        } else {
 		            return -1;
 		        }

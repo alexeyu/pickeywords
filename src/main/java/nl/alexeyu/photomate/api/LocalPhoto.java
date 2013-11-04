@@ -1,7 +1,6 @@
-package nl.alexeyu.photomate.model;
+package nl.alexeyu.photomate.api;
 
 import java.io.File;
-import java.util.List;
 
 public class LocalPhoto extends AbstractPhoto {
 	
@@ -20,16 +19,8 @@ public class LocalPhoto extends AbstractPhoto {
 		return file.getName();
 	}
 
-	public void addKeywords(List<String> keywords) {
-		getKeywords().addAll(keywords);
-	}
-	
-	public void removeKeywords(List<String> keywords) {
-		getKeywords().removeAll(keywords);
-	}
-
     public boolean isReadyToUpload() {
-		return hasKeywords() && hasThumbnail();
+		return getThumbnail() != null && getMetaData() != null && getMetaData().isComplete();
 	}
 	
 	@Override

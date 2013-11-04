@@ -1,8 +1,6 @@
-package nl.alexeyu.photomate.model;
+package nl.alexeyu.photomate.api;
 
 import java.io.File;
-
-import nl.alexeyu.photomate.api.PhotoApi;
 
 public class PhotoFactory {
     
@@ -15,8 +13,8 @@ public class PhotoFactory {
     }
 
     protected <P extends AbstractPhoto> P initPhoto(P photo, PhotoApi<P> photoApi) {
-        photoApi.provideKeywords(photo, photo.getKeywordsResultProcessor());
-        photoApi.provideThumbnail(photo, photo.getThumbnailProcessor());
+        photoApi.provideMetadata(photo);
+        photoApi.provideThumbnail(photo);
         return photo;
     }
 

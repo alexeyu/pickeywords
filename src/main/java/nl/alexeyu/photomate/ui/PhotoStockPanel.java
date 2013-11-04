@@ -1,42 +1,40 @@
 package nl.alexeyu.photomate.ui;
 
+import static nl.alexeyu.photomate.model.PhotoMetaData.KEYWORDS_PROPERTY;
+
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
-import java.awt.event.MouseMotionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
+import javax.swing.border.LineBorder;
 import javax.swing.table.AbstractTableModel;
 
-import nl.alexeyu.photomate.api.ShutterPhotoStockApi;
+import nl.alexeyu.photomate.api.AbstractPhoto;
+import nl.alexeyu.photomate.api.RemotePhoto;
+import nl.alexeyu.photomate.api.shutterstock.ShutterPhotoStockApi;
 import nl.alexeyu.photomate.model.Photo;
 
 import com.google.inject.Inject;
 
 public class PhotoStockPanel extends JPanel implements PropertyChangeListener {
     
-    private JTextField keywordToSearch;
+    private HintedTextField keywordsToSearch;
 
-    private JList<String> keywordsList;
+    private AbstractPhotoMetaDataPanel photoMetaDataPanel = new LocalPhotoMetaDataPanel();
 
     private JTable photoTable;
     
@@ -45,25 +43,15 @@ public class PhotoStockPanel extends JPanel implements PropertyChangeListener {
     @Inject
     private ShutterPhotoStockApi photoStockApi;
     
-    private List<Photo> photos = new ArrayList<>();
+    private List<RemotePhoto> photos = new ArrayList<>();
     
     public PhotoStockPanel() {
         super(new BorderLayout(5, 5));
     }
 
     public void build() {
-        JLabel label = new JLabel("Keyword to lookup:");
-        keywordToSearch = new JTextField();
-        searchButton = new JButton("Search");
-        searchButton.addActionListener(new SearchListener());
-        
-        JPanel northPanel = new JPanel();
-        northPanel.setLayout(new BoxLayout(northPanel, BoxLayout.X_AXIS));
-        northPanel.add(label);
-        northPanel.add(Box.createRigidArea(new Dimension(5, 0)));
-        northPanel.add(keywordToSearch);
-        northPanel.add(Box.createRigidArea(new Dimension(5, 0)));
-        northPanel.add(searchButton);
+        keywordsToSearch = new HintedTextField("Search by:", "keyword_search");
+        keywordsToSearch.addPropertyChangeListener(this);
 
         photoTable = new JTable(new StockPhotoTableModel());
         photoTable.setDefaultRenderer(Object.class, new PhotoCellRenderer());
@@ -71,22 +59,31 @@ public class PhotoStockPanel extends JPanel implements PropertyChangeListener {
         photoTable.getTableHeader().setVisible(false);
         photoTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         photoTable.setCellSelectionEnabled(true);
+        photoTable.setPreferredScrollableViewportSize(new Dimension(300, 150));
+
+        photoTable.setBorder(new LineBorder(Color.red));
         
         photoTable.addMouseMotionListener(new PhotoPointer());
+        photoTable.addMouseListener(new PhotoSelector());
         
-        keywordsList = new JList<>();
-        keywordsList.setPreferredSize(new Dimension(250, 0));
-        
-        add(northPanel, BorderLayout.NORTH);
-        add(new JScrollPane(keywordsList), BorderLayout.WEST);
-        add(new JScrollPane(photoTable), BorderLayout.CENTER);
-        
-        photoStockApi.addPropertyChangeListener(this);
+        add(keywordsToSearch, BorderLayout.NORTH);
+        JPanel centerPane = new JPanel();
+        centerPane.setLayout(new BoxLayout(centerPane, BoxLayout.Y_AXIS));
+        centerPane.add(new JScrollPane(photoTable));
+        centerPane.add(photoMetaDataPanel);
+        add(centerPane);
     }
     
     @Override
-    public void propertyChange(PropertyChangeEvent evt) {
-        if (evt.getPropertyName().equals("thumbnail")) {
+    public void propertyChange(PropertyChangeEvent e) {
+        if (e.getPropertyName().equals("thumbnail")) {
+            photoTable.repaint();
+        } else if (e.getPropertyName().equals("keyword_search")) {
+            photos = photoStockApi.search(e.getNewValue().toString());
+            for (RemotePhoto photo : photos) {
+                photo.addPropertyChangeListener(PhotoStockPanel.this);
+            }
+            photoTable.revalidate();
             photoTable.repaint();
         }
     }
@@ -95,29 +92,12 @@ public class PhotoStockPanel extends JPanel implements PropertyChangeListener {
         searchButton.addActionListener(listener);
     }
 
-    public String getText() {
-        return keywordToSearch.getText().trim();
-    }
-    
-    private class SearchListener implements ActionListener {
-        
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            if (keywordToSearch.getText().length() > 0) {
-                photos = photoStockApi.search(keywordToSearch.getText());
-                photoTable.revalidate();
-                photoTable.repaint();
-            }
-        }
-
-    }
-    
     private class StockPhotoTableModel extends AbstractTableModel {
 
         @Override
         public int getRowCount() {
-            return photos.size() / getColumnCount() + 
-                    photos.size() % getColumnCount();
+            return Math.max(1, photos.size() / getColumnCount() + 
+                    photos.size() % getColumnCount());
         }
 
         @Override
@@ -149,11 +129,9 @@ public class PhotoStockPanel extends JPanel implements PropertyChangeListener {
             if (row != rowIndex || col != columnIndex) {
                 col = columnIndex;
                 row = rowIndex;
-                Photo photo = (Photo) photoTable.getModel().getValueAt(rowIndex, columnIndex);
-                keywordsList.setModel(new KeywordListModel(photo));
-                keywordsList.revalidate();
-                keywordsList.repaint();
-                photoTable.changeSelection(rowIndex, columnIndex, false, false);
+                AbstractPhoto photo = (AbstractPhoto) photoTable.getModel().getValueAt(rowIndex, columnIndex);
+                photoMetaDataPanel.setPhoto(photo);
+                photoTable.changeSelection(rowIndex, columnIndex, true, false);
                 photoTable.repaint();
             }
         }
@@ -167,6 +145,8 @@ public class PhotoStockPanel extends JPanel implements PropertyChangeListener {
             if (e.getClickCount() >= 2) {
                 int columnIndex = photoTable.getSelectedColumn();
                 int rowIndex = photoTable.getSelectedRow();
+                Photo photo = (Photo) photoTable.getModel().getValueAt(rowIndex, columnIndex);
+                firePropertyChange(KEYWORDS_PROPERTY, null, photo.getMetaData().getKeywords());
             }
         }
         

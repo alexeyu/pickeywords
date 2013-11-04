@@ -1,7 +1,7 @@
 package nl.alexeyu.photomate.ui;
 
-import static nl.alexeyu.photomate.ui.Constants.EMPTY_BORDER;
-import static nl.alexeyu.photomate.ui.Constants.LINE_BORDER;
+import static nl.alexeyu.photomate.ui.UiConstants.EMPTY_BORDER;
+import static nl.alexeyu.photomate.ui.UiConstants.LINE_BORDER;
 
 import java.awt.Component;
 

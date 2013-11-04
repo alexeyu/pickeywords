@@ -6,7 +6,7 @@ import java.util.Map;
 
 import javax.swing.table.AbstractTableModel;
 
-import nl.alexeyu.photomate.model.LocalPhoto;
+import nl.alexeyu.photomate.api.LocalPhoto;
 import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.model.PhotoStock;
 

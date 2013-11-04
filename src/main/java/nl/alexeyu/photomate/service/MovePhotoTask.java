@@ -5,11 +5,11 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
-import nl.alexeyu.photomate.model.LocalPhoto;
+import nl.alexeyu.photomate.api.LocalPhoto;
 
 import org.apache.commons.io.FileUtils;
 
-public class MovePhotoTask implements WeighedTask, Runnable {
+public class MovePhotoTask implements PrioritizedTask, Runnable {
 	
 	private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyy-MM-dd");
 	
@@ -37,8 +37,8 @@ public class MovePhotoTask implements WeighedTask, Runnable {
 	}
 
 	@Override
-	public TaskWeight getWeight() {
-		return TaskWeight.LIGHT;
+	public TaskPriority getPriority() {
+		return TaskPriority.HIGH;
 	}
 
 }

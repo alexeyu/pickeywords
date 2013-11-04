@@ -10,10 +10,10 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableModel;
 
-import nl.alexeyu.photomate.model.LocalPhoto;
+import nl.alexeyu.photomate.api.LocalPhoto;
 import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.model.PhotoStock;
-import nl.alexeyu.photomate.service.UploadPhotoListener;
+import nl.alexeyu.photomate.service.upload.UploadPhotoListener;
 import nl.alexeyu.photomate.util.ImageUtils;
 
 @Singleton

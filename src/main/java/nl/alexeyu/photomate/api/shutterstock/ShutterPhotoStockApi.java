@@ -1,4 +1,4 @@
-package nl.alexeyu.photomate.api;
+package nl.alexeyu.photomate.api.shutterstock;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -11,12 +11,11 @@ import java.util.concurrent.ExecutorService;
 import javax.inject.Inject;
 import javax.swing.ImageIcon;
 
-import nl.alexeyu.photomate.model.Photo;
-import nl.alexeyu.photomate.model.PhotoFactory;
-import nl.alexeyu.photomate.model.RemotePhoto;
-import nl.alexeyu.photomate.model.ResultProcessor;
-import nl.alexeyu.photomate.service.TaskWeight;
-import nl.alexeyu.photomate.service.WeighedTask;
+import nl.alexeyu.photomate.api.PhotoApi;
+import nl.alexeyu.photomate.api.PhotoFactory;
+import nl.alexeyu.photomate.api.PhotoStockApi;
+import nl.alexeyu.photomate.api.RemotePhoto;
+import nl.alexeyu.photomate.service.PrioritizedTask;
 import nl.alexeyu.photomate.util.ConfigReader;
 
 import org.apache.commons.io.IOUtils;
@@ -36,7 +35,7 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 
-public class ShutterPhotoStockApi extends AbstractPhotoApi<RemotePhoto> implements PhotoStockApi {
+public class ShutterPhotoStockApi implements PhotoApi<RemotePhoto>, PhotoStockApi {
 
     private static final String BASE_URI = "http://api.shutterstock.com/images/";
 
@@ -73,11 +72,11 @@ public class ShutterPhotoStockApi extends AbstractPhotoApi<RemotePhoto> implemen
     }
 
     @Override
-    public List<Photo> search(String keywords) {
+    public List<RemotePhoto> search(String keywords) {
         String requestUri = String.format("%ssearch.json?searchterm=%s&results_per_page=%s", 
                 BASE_URI, encode(keywords), resultsPerPage);
         ShutterSearchResult searchResult = doRequest(requestUri, new JsonResponseHandler<>(ShutterSearchResult.class));
-        List<Photo> photos = new ArrayList<>();
+        List<RemotePhoto> photos = new ArrayList<>();
         for (ShutterPhotoDescription photoDescr : searchResult.getPhotoDescriptions()) {
             photos.add(photoFactory.createRemotePhoto(photoDescr.getUrl(), photoDescr.getThumbailUrl(), this));
         }
@@ -93,26 +92,14 @@ public class ShutterPhotoStockApi extends AbstractPhotoApi<RemotePhoto> implemen
     }
 
     @Override
-    public void provideThumbnail(RemotePhoto photo, ResultProcessor<ImageIcon> filler) {
-        doRequest(photo.getThumbnailUrl(), new ImageResponseHandler(), new ProxyResultProcessor<>("thumbnail", filler));        
+    public void provideThumbnail(RemotePhoto photo) {
+        executor.submit(new ThumbnailReader(photo));
     }
 
 
     @Override
-    public void provideKeywords(RemotePhoto photo, final ResultProcessor<List<String>> resultProcessor) {
-        doRequest(photo.getUrl() + ".json", new JsonResponseHandler<>(ShutterPhotoDetails.class), new ResultProcessor<ShutterPhotoDetails>() {
-
-            @Override
-            public void process(ShutterPhotoDetails result) {
-                resultProcessor.process(result.getKeywords());
-            }
-            
-        });        
-    }
-
-    private <T> T doRequest(String url, ResponseHandler<T> responseHandler, ResultProcessor<T> filler) {
-        executor.submit(new AsyncRestServiceCaller<>(url, responseHandler, filler));
-        return null;
+    public void provideMetadata(RemotePhoto photo) {
+        executor.submit(new MetadataReader(photo));
     }
 
     private <T> T doRequest(String url, ResponseHandler<T> responseHandler) {
@@ -163,38 +150,65 @@ public class ShutterPhotoStockApi extends AbstractPhotoApi<RemotePhoto> implemen
 
     }
 
-    private class AsyncRestServiceCaller<T> implements Runnable, WeighedTask {
+    private class ThumbnailReader implements Runnable, PrioritizedTask {
         
-        private final String url;
+        private final RemotePhoto photo;
         
-        private final ResponseHandler<T> responseHandler;
+        private final ImageResponseHandler responseHandler;
         
-        private final ResultProcessor<T> resultProcessor;
-
-        public AsyncRestServiceCaller(String url, ResponseHandler<T> responseHandler, ResultProcessor<T> filler) {
-            this.url = url;
-            this.responseHandler = responseHandler;
-            this.resultProcessor = filler;
+        public ThumbnailReader(RemotePhoto photo) {
+            this.photo = photo;
+            this.responseHandler = new ImageResponseHandler();
         }
         
         @Override
         public void run() {
             try {
-                HttpGet httpget = new HttpGet(url);
-                resultProcessor.process(client.execute(httpget, responseHandler));
+                HttpGet httpget = new HttpGet(photo.getThumbnailUrl());
+                ImageIcon thumbnail = client.execute(httpget, responseHandler);
+                photo.setThumbnail(thumbnail);
             } catch (IOException ex) {
                 throw new IllegalStateException(ex);
             }
         }
 
         @Override
-        public TaskWeight getWeight() {
-            return TaskWeight.MEDIUM;
+        public TaskPriority getPriority() {
+            return TaskPriority.MEDIUM;
         }
         
     }
-    
-    private class SyncRestServiceCaller<T> implements Callable<T>, WeighedTask {
+
+    private class MetadataReader implements Runnable, PrioritizedTask {
+        
+        private final RemotePhoto photo;
+        
+        private final JsonResponseHandler<ShutterPhotoDetails> responseHandler;
+        
+        public MetadataReader(RemotePhoto photo) {
+            this.photo = photo;
+            this.responseHandler = new JsonResponseHandler<>(ShutterPhotoDetails.class);
+        }
+        
+        @Override
+        public void run() {
+            try {
+                HttpGet httpget = new HttpGet(photo.getThumbnailUrl());
+                ShutterPhotoDetails details = client.execute(httpget, responseHandler);
+                photo.setMetaData(details);
+            } catch (IOException ex) {
+                throw new IllegalStateException(ex);
+            }
+        }
+
+        @Override
+        public TaskPriority getPriority() {
+            return TaskPriority.MEDIUM;
+        }
+        
+    }
+
+    private class SyncRestServiceCaller<T> implements Callable<T>, PrioritizedTask {
         
         private final String url;
         
@@ -212,8 +226,8 @@ public class ShutterPhotoStockApi extends AbstractPhotoApi<RemotePhoto> implemen
         }
 
         @Override
-        public TaskWeight getWeight() {
-            return TaskWeight.MEDIUM;
+        public TaskPriority getPriority() {
+            return TaskPriority.MEDIUM;
         }
         
     }

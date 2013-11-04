@@ -1,29 +1,28 @@
 package nl.alexeyu.photomate.api;
 
-import java.io.File;
+import java.awt.Image;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
 import javax.inject.Inject;
 import javax.swing.ImageIcon;
 
-import nl.alexeyu.photomate.model.LocalPhoto;
-import nl.alexeyu.photomate.model.ResultProcessor;
-import nl.alexeyu.photomate.service.TaskWeight;
-import nl.alexeyu.photomate.service.ThumbnailProvider;
-import nl.alexeyu.photomate.service.WeighedTask;
-import nl.alexeyu.photomate.service.keyword.KeywordProcessor;
+import nl.alexeyu.photomate.model.DefaultPhotoMetaData;
+import nl.alexeyu.photomate.model.PhotoMetaData;
+import nl.alexeyu.photomate.service.PrioritizedTask;
+import nl.alexeyu.photomate.service.keyword.PhotoMetadataProcessor;
+import nl.alexeyu.photomate.service.thumbnail.ThumbnailProvider;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LocalPhotoApi extends AbstractPhotoApi<LocalPhoto> {
+public class LocalPhotoApi implements PhotoApi<LocalPhoto> {
     
     private static final Logger logger = LoggerFactory.getLogger("LocalPhotoAPI");
     
     @Inject
-    private KeywordProcessor keywordProcessor;
+    private PhotoMetadataProcessor metadataProcessor;
 
     @Inject
     private ExecutorService executor;
@@ -32,113 +31,133 @@ public class LocalPhotoApi extends AbstractPhotoApi<LocalPhoto> {
     private ThumbnailProvider thumbnailProvider;
 
     @Override
-    public void provideThumbnail(LocalPhoto photo, ResultProcessor<ImageIcon> filler) {
-        executor.submit(
-                new ThumbnailingTask(photo.getFile(), 
-                        new ProxyResultProcessor<>("thumbnail", filler)));
+    public void provideThumbnail(LocalPhoto photo) {
+        executor.submit(new ThumbnailingTask(photo));
     }
 
     @Override
-    public void provideKeywords(LocalPhoto photo, ResultProcessor<List<String>> filler) {
-        executor.submit(
-                new ReadKeywordsTask(photo.getFile().getAbsolutePath(), 
-                        new ProxyResultProcessor<>("keywords", filler)));
+    public void provideMetadata(LocalPhoto photo) {
+        executor.submit(new ReadMetadataTask(photo));
     }
 
-    public void addKeywords(LocalPhoto photo, List<String> keywords) {
-        photo.addKeywords(keywords);
-        executor.submit(new AddKeywordTask(photo.getFile().getAbsolutePath(), keywords));
+    public void updateKeywords(LocalPhoto photo, List<String> keywords) {
+        PhotoMetaData old = photo.getMetaData();
+        PhotoMetaData metaData = new DefaultPhotoMetaData(
+                old.getCaption(), 
+                old.getDescription(), 
+                old.getCreator(), 
+                keywords);
+        executor.submit(new UpdateMetaDataTask(photo, metaData));
     }
 
-    public void removeKeywords(LocalPhoto photo, List<String> keywords) {
-        photo.removeKeywords(keywords);
-        executor.submit(new RemoveKeywordTask(photo.getFile().getAbsolutePath(), keywords));
+    public void updateCaption(LocalPhoto photo, String caption) {
+        PhotoMetaData old = photo.getMetaData();
+        PhotoMetaData metaData = new DefaultPhotoMetaData(
+                caption, 
+                old.getDescription(), 
+                old.getCreator(), 
+                old.getKeywords());
+        executor.submit(new UpdateMetaDataTask(photo, metaData));
     }
 
-    private class ThumbnailingTask implements WeighedTask, Callable<ImageIcon> {
+    public void updateDescription(LocalPhoto photo, String description) {
+        PhotoMetaData old = photo.getMetaData();
+        PhotoMetaData metaData = new DefaultPhotoMetaData(
+                old.getCaption(), 
+                description, 
+                old.getCreator(), 
+                old.getKeywords());
+        executor.submit(new UpdateMetaDataTask(photo, metaData));
+    }
 
-        protected final File photoFile;
+    public void updateCreator(LocalPhoto photo, String creator) {
+        PhotoMetaData old = photo.getMetaData();
+        PhotoMetaData metaData = new DefaultPhotoMetaData(
+                old.getCaption(), 
+                old.getDescription(), 
+                creator, 
+                old.getKeywords());
+        executor.submit(new UpdateMetaDataTask(photo, metaData));
+    }
+
+    private class ThumbnailingTask implements PrioritizedTask, Runnable {
+
+        private final LocalPhoto photo;
         
-        private final ResultProcessor<ImageIcon> resultProcessor;
-        
-        public ThumbnailingTask(File photoFile, ResultProcessor<ImageIcon> resultProcessor) {
-            this.photoFile = photoFile;
-            this.resultProcessor = resultProcessor;
+        public ThumbnailingTask(LocalPhoto photo) {
+            this.photo = photo;
         }
 
         @Override
-        public ImageIcon call() throws Exception {
+        public void run() {
             long time = System.currentTimeMillis();
-            ImageIcon image = new ImageIcon(thumbnailProvider.getThumbnail(photoFile));
+            Pair<Image, Image> images = thumbnailProvider.getThumbnails(photo.getFile());
+            photo.setThumbnail(new ImageIcon(images.getLeft()));
+            photo.setPreview(new ImageIcon(images.getRight()));
             logger.info("" + (System.currentTimeMillis() - time));
-            resultProcessor.process(image);
-            return image;
         }
 
         @Override
-        public TaskWeight getWeight() {
-            return TaskWeight.HEAVY;
+        public TaskPriority getPriority() {
+            return TaskPriority.MEDIUM;
         }
 
     }
 
-    private abstract class AbstractKeywordTask implements WeighedTask {
+    private abstract class AbstractMetadataTask implements PrioritizedTask, Runnable {
 
-        protected final String path;
+        protected final LocalPhoto photo;
 
-        public AbstractKeywordTask(String path) {
-            this.path = path;
+        public AbstractMetadataTask(LocalPhoto photo) {
+            this.photo = photo;
         }
 
-        @Override
-        public TaskWeight getWeight() {
-            return TaskWeight.LIGHT;
-        }
-
-    }
-
-    private class ReadKeywordsTask extends AbstractKeywordTask implements Runnable {
+        protected abstract PhotoMetaData processMetaData();
         
-        private final ResultProcessor<List<String>> filler;
-
-        public ReadKeywordsTask(String path, ResultProcessor<List<String>> filler) {
-            super(path);
-            this.filler = filler;
-        }
-
-        public void run() {
-            List<String> keywords = keywordProcessor.readKeywords(path);
-            filler.process(keywords);
+        @Override
+        public final void run() {
+            PhotoMetaData metaData = processMetaData();
+            photo.setMetaData(metaData);
         }
 
     }
 
-    private class AddKeywordTask extends AbstractKeywordTask implements Runnable {
-
-        private final List<String> keywords;
-
-        public AddKeywordTask(String path, List<String> keywords) {
-            super(path);
-            this.keywords = keywords;
+    private class ReadMetadataTask extends AbstractMetadataTask implements Runnable {
+        
+        public ReadMetadataTask(LocalPhoto photo) {
+            super(photo);
+        }
+        
+        @Override
+        protected DefaultPhotoMetaData processMetaData() {
+            return metadataProcessor.read(photo.getFile().getAbsolutePath());
         }
 
-        public void run() {
-            keywordProcessor.addKeywords(path, keywords);
+        @Override
+        public TaskPriority getPriority() {
+            return TaskPriority.HIGH;
         }
 
     }
 
-    private class RemoveKeywordTask extends AbstractKeywordTask implements Runnable {
+    private class UpdateMetaDataTask extends AbstractMetadataTask {
 
-        private final List<String> keywords;
+        private final PhotoMetaData metaData;
 
-        public RemoveKeywordTask(String path, List<String> keywords) {
-            super(path);
-            this.keywords = keywords;
+        public UpdateMetaDataTask(LocalPhoto photo, PhotoMetaData metaData) {
+            super(photo);
+            this.metaData = metaData;
         }
 
-        public void run() {
-            keywordProcessor.removeKeywords(path, keywords);
+        @Override
+        protected PhotoMetaData processMetaData() {
+            metadataProcessor.update(photo.getFile().getAbsolutePath(), photo.getMetaData(), metaData);
+            return metaData;
+        }
+
+        @Override
+        public TaskPriority getPriority() {
+            return TaskPriority.MEDIUM;
         }
 
     }

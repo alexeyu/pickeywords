@@ -1,7 +1,9 @@
-package nl.alexeyu.photomate.api;
+package nl.alexeyu.photomate.api.shutterstock;
 
 import java.io.File;
 import java.util.List;
+
+import nl.alexeyu.photomate.model.PhotoMetaData;
 
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
@@ -68,13 +70,34 @@ import org.codehaus.jackson.map.ObjectMapper;
 } 
 */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ShutterPhotoDetails {
+public class ShutterPhotoDetails implements PhotoMetaData {
 
     @JsonProperty("keywords")
     private List<String> keywords;
 
+    @JsonProperty("description")
+    private String description;
+
     public List<String> getKeywords() {
         return keywords;
+    }
+    
+    public String getCaption() {
+        return description;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+    
+    @Override
+    public String getCreator() {
+        return "";
+    }
+
+    @Override
+    public boolean isComplete() {
+        return true;
     }
 
     public static void main(String[] args) throws Exception {

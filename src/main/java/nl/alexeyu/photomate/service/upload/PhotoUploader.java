@@ -1,4 +1,4 @@
-package nl.alexeyu.photomate.service;
+package nl.alexeyu.photomate.service.upload;
 
 import java.io.File;
 import java.util.Arrays;
@@ -11,8 +11,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.inject.Inject;
 
-import nl.alexeyu.photomate.model.LocalPhoto;
+import nl.alexeyu.photomate.api.LocalPhoto;
 import nl.alexeyu.photomate.model.PhotoStock;
+import nl.alexeyu.photomate.service.MovePhotoTask;
 import nl.alexeyu.photomate.util.ConfigReader;
 
 public class PhotoUploader implements UploadPhotoListener {
