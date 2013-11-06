@@ -1,5 +1,7 @@
 package nl.alexeyu.photomate.app;
 
+import static nl.alexeyu.photomate.ui.UiConstants.BORDER_WIDTH;
+
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -76,9 +78,10 @@ public class Main implements ListSelectionListener, PropertyChangeListener {
 
     private void buildGraphics() {
         final JPanel tagPane = new JPanel(new BorderLayout());
-        JPanel centerPanel = new JPanel(new BorderLayout(5, 5));
+        JPanel centerPanel = new JPanel(new BorderLayout(BORDER_WIDTH, BORDER_WIDTH));
         centerPanel.add(photoMetaDataPanel, BorderLayout.CENTER);
         photoMetaDataPanel.addPropertyChangeListener(photoManager);
+        photoStockPanel.getMetaDataPanel().addPropertyChangeListener(photoManager);
 
         uploadButton.addActionListener(new ActionListener() {
 
@@ -111,7 +114,7 @@ public class Main implements ListSelectionListener, PropertyChangeListener {
 
         frame.getContentPane().add(northPanel, BorderLayout.NORTH);
         frame.getContentPane().add(photoList.getComponent(), BorderLayout.WEST);
-        frame.getContentPane().add(tagPane);
+        frame.getContentPane().add(tagPane, BorderLayout.CENTER);
     }
 
     private JComponent createUploadPanel() {
@@ -123,7 +126,7 @@ public class Main implements ListSelectionListener, PropertyChangeListener {
     @Override
     public void propertyChange(PropertyChangeEvent e) {
         File dir = (File) e.getNewValue();
-        if (dir != null) {
+        if (dir != null && dir.exists()) {
             photoManager.setPhotoFiles(dir.listFiles());
             photoList.setPhotos(photoManager.getPhotos());
             refreshUploadButton();
@@ -144,6 +147,7 @@ public class Main implements ListSelectionListener, PropertyChangeListener {
         JList<?> list = (JList<?>) e.getSource();
         LocalPhoto currentPhoto = (LocalPhoto) list.getSelectedValue();
         photoMetaDataPanel.setPhoto(currentPhoto);
+        photoManager.setCurrentPhoto(currentPhoto);
         photoPreview.setIcon(currentPhoto == null ? null : currentPhoto.getPreview());
     }
 

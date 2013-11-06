@@ -8,7 +8,7 @@ import javax.swing.border.LineBorder;
 
 public interface UiConstants {
 
-	int BORDER_WIDTH = 4;
+	int BORDER_WIDTH = 2;
 	
 	Border EMPTY_BORDER = new EmptyBorder(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
 	

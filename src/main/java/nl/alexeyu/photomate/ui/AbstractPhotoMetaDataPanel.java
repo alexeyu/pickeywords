@@ -2,6 +2,7 @@ package nl.alexeyu.photomate.ui;
 
 import static nl.alexeyu.photomate.model.PhotoMetaData.CAPTION_PROPERTY;
 import static nl.alexeyu.photomate.model.PhotoMetaData.DESCRIPTION_PROPERTY;
+import static nl.alexeyu.photomate.ui.UiConstants.BORDER_WIDTH;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -10,29 +11,27 @@ import java.beans.PropertyChangeListener;
 import java.util.List;
 
 import javax.swing.BoxLayout;
+import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 import nl.alexeyu.photomate.api.AbstractPhoto;
 import nl.alexeyu.photomate.model.Photo;
-import nl.alexeyu.photomate.service.PhotoContainer;
-
-import org.apache.commons.lang3.ArrayUtils;
 
 public abstract class AbstractPhotoMetaDataPanel<T extends AbstractPhoto> 
-    extends JPanel implements PhotoContainer<T>, PropertyChangeListener {
+    extends JPanel implements PropertyChangeListener {
 	
     protected HintedTextField captionEditor;
     
     protected HintedTextField descriptionEditor;
     
-    protected JList<String> keywordList = new JList<>();
+    protected JList<String> keywordList = new JList<>(new DefaultListModel<String>());
 	
 	protected T photo;
 	
 	public AbstractPhotoMetaDataPanel() {
-	    super(new BorderLayout(5, 5));
+	    super(new BorderLayout(BORDER_WIDTH, BORDER_WIDTH));
 	    JPanel editorPanel = new JPanel();
 	    editorPanel.setLayout(new BoxLayout(editorPanel, BoxLayout.Y_AXIS));
 
@@ -44,7 +43,7 @@ public abstract class AbstractPhotoMetaDataPanel<T extends AbstractPhoto>
 		add(editorPanel, BorderLayout.NORTH);
 		add(new JScrollPane(keywordList), BorderLayout.CENTER);
 		
-		setPreferredSize(new Dimension(300, 500));
+		setPreferredSize(new Dimension(360, 355));
 	}
 	
 	public final void setPhoto(T photo) {
@@ -58,15 +57,16 @@ public abstract class AbstractPhotoMetaDataPanel<T extends AbstractPhoto>
 	    }
 	}
 
-	@Override
-    public final T getPhoto() {
-        return photo;
-    }
-
     private void updateComponentsWithPhotoMetaData() {
         captionEditor.setText(isNull(photo) ? "" : photo.getMetaData().getCaption());
         descriptionEditor.setText(isNull(photo) ? "" : photo.getMetaData().getDescription());
-        keywordList.setListData(isNull(photo) ? ArrayUtils.EMPTY_STRING_ARRAY : getKeywords());
+        DefaultListModel<String> listModel = new DefaultListModel<>();
+        if (!isNull(photo)) {
+            for (String keyword : getKeywords()) {
+                listModel.addElement(keyword);
+            }
+        }
+        keywordList.setModel(listModel);
 	}
 	
     @Override

@@ -24,7 +24,7 @@ public class HintedTextField extends JTextField {
 
             @Override
             public void keyTyped(KeyEvent e) {
-                if (e.getKeyChar() == KeyEvent.VK_ENTER) {
+                if (isEditable() && e.getKeyChar() == KeyEvent.VK_ENTER) {
                     firePropertyChanged();
                 }
             }

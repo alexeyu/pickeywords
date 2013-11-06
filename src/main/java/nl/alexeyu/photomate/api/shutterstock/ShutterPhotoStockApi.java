@@ -34,8 +34,12 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ShutterPhotoStockApi implements PhotoApi<RemotePhoto>, PhotoStockApi {
+    
+    private static final Logger logger = LoggerFactory.getLogger("ShutterStockPhotoAPI");
 
     private static final String BASE_URI = "http://api.shutterstock.com/images/";
 
@@ -95,7 +99,6 @@ public class ShutterPhotoStockApi implements PhotoApi<RemotePhoto>, PhotoStockAp
     public void provideThumbnail(RemotePhoto photo) {
         executor.submit(new ThumbnailReader(photo));
     }
-
 
     @Override
     public void provideMetadata(RemotePhoto photo) {
@@ -193,11 +196,11 @@ public class ShutterPhotoStockApi implements PhotoApi<RemotePhoto>, PhotoStockAp
         @Override
         public void run() {
             try {
-                HttpGet httpget = new HttpGet(photo.getThumbnailUrl());
+                HttpGet httpget = new HttpGet(photo.getUrl() + ".json");
                 ShutterPhotoDetails details = client.execute(httpget, responseHandler);
                 photo.setMetaData(details);
             } catch (IOException ex) {
-                throw new IllegalStateException(ex);
+                logger.error("Could not read metadata of " + photo, ex);
             }
         }
 

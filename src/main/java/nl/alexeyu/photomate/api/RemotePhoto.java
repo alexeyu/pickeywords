@@ -12,7 +12,6 @@ public class RemotePhoto extends AbstractPhoto {
     RemotePhoto(String url, String thumbnailUrl) {
         this.url = url;
         this.thumbnailUrl = thumbnailUrl;
-        getThumbnail();
     }
 
     @Override
@@ -23,7 +22,7 @@ public class RemotePhoto extends AbstractPhoto {
     @Override
     public void setMetaData(PhotoMetaData metaData) {
         if (!this.metaData.compareAndSet(null, metaData)) {
-            throw new IllegalStateException("Attemot to set template 2nd time");
+            throw new IllegalStateException("Attempt to set template 2nd time");
         }
         firePropertyChanged(METADATA_PROPERTY, null, metaData);
     }

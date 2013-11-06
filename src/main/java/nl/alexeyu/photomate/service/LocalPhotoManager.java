@@ -37,6 +37,8 @@ public class LocalPhotoManager implements PropertyChangeListener {
     private PhotoUploader photoUploader;
 
     private PhotoCopyrightSetter photoCopyrightSetter;
+    
+    private LocalPhoto photo;
 
     @Inject
     public void postConstruct() {
@@ -76,10 +78,15 @@ public class LocalPhotoManager implements PropertyChangeListener {
         return true;
     }
     
+    public void setCurrentPhoto(LocalPhoto photo) {
+        this.photo = photo;
+    }
+    
     @Override
     public void propertyChange(PropertyChangeEvent e) {
-        PhotoContainer<LocalPhoto> photoContainer = (PhotoContainer) e.getSource();
-        LocalPhoto photo = photoContainer.getPhoto();
+        if (photo == null) {
+            return;
+        }
         switch (e.getPropertyName()) {
         case CAPTION_PROPERTY:
             localPhotoApi.updateCaption(photo, e.getNewValue().toString());

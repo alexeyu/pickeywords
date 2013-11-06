@@ -6,9 +6,9 @@ import javax.swing.ImageIcon;
 
 public interface Photo {
     
-    Dimension THUMBNAIL_SIZE = new Dimension(180, 135);
+    Dimension THUMBNAIL_SIZE = new Dimension(160, 112);
     
-    Dimension PREVIEW_SIZE = new Dimension(360, 270);
+    Dimension PREVIEW_SIZE = new Dimension(360, 240);
 
     String getName();
 
