@@ -50,6 +50,7 @@ public class LocalPhotoManager implements PropertyChangeListener {
     }
 
     public void setPhotoFiles(File[] files) {
+        photos = new ArrayList<>();
         for (File file : files) {
             if (ImageUtils.isJpeg(file)) {
                 LocalPhoto photo = photoFactory.createLocalPhoto(file, localPhotoApi);

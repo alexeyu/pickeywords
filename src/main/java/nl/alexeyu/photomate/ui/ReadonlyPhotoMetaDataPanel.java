@@ -6,17 +6,17 @@ import java.util.Arrays;
 
 import javax.swing.DefaultListModel;
 
-import nl.alexeyu.photomate.api.RemotePhoto;
+import nl.alexeyu.photomate.api.AbstractPhoto;
 import nl.alexeyu.photomate.model.PhotoMetaData;
 
-public class RemotePhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<RemotePhoto> {
+public class ReadonlyPhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<AbstractPhoto> {
     
-	public RemotePhotoMetaDataPanel() {
+	public ReadonlyPhotoMetaDataPanel() {
 	    captionEditor.setEditable(false);
 	    captionEditor.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() >= 2) {
+                if (photo != null && e.getClickCount() >= 2) {
                     firePropertyChange(PhotoMetaData.CAPTION_PROPERTY, null, captionEditor.getText());
                 }
             }
@@ -25,7 +25,7 @@ public class RemotePhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<RemoteP
 	    descriptionEditor.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() >= 2) {
+                if (photo != null && e.getClickCount() >= 2) {
                     firePropertyChange(PhotoMetaData.DESCRIPTION_PROPERTY, null, descriptionEditor.getText());
                 }
             }
@@ -35,7 +35,7 @@ public class RemotePhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<RemoteP
         keywordList.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() >= 2) {
+                if (photo != null && e.getClickCount() >= 2) {
                     DefaultListModel<String> model = (DefaultListModel<String>) keywordList.getModel();
                     String[] values = new String[model.size()];
                     model.copyInto(values);

@@ -8,7 +8,7 @@ public interface Photo {
     
     Dimension THUMBNAIL_SIZE = new Dimension(160, 112);
     
-    Dimension PREVIEW_SIZE = new Dimension(360, 240);
+    Dimension PREVIEW_SIZE = new Dimension(400, 270);
 
     String getName();
 

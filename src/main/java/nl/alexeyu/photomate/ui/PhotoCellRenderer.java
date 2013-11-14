@@ -3,13 +3,17 @@ package nl.alexeyu.photomate.ui;
 import static nl.alexeyu.photomate.ui.UiConstants.EMPTY_BORDER;
 import static nl.alexeyu.photomate.ui.UiConstants.LINE_BORDER;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
+import nl.alexeyu.photomate.api.LocalPhoto;
 import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.util.ImageUtils;
 
@@ -19,12 +23,28 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
     public Component getTableCellRendererComponent(JTable table, Object value, 
             boolean isSelected, boolean hasFocus, int row, int column) {
         JLabel label = new JLabel();
-        if (value instanceof Photo) {
-            ImageIcon icon = ((Photo) value).getThumbnail();
-            label.setIcon(icon == null ? ImageUtils.getImage("queue.png") : icon);
-            label.setBorder(hasFocus ? LINE_BORDER : EMPTY_BORDER);
+        Photo photo = (Photo) value;
+        if (photo == null) {
+            return label;
         }
-        return label;
+        ImageIcon thumbnail = photo.getThumbnail();
+        if (thumbnail == null) {
+            label.setText("Loading...");
+        } else {
+            label.setIcon(thumbnail);
+        }
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBorder(isSelected ? LINE_BORDER : EMPTY_BORDER);
+        if (photo instanceof LocalPhoto) {
+            JLabel nameLabel = new JLabel(photo.getName());
+            if (!((LocalPhoto)photo).isReadyToUpload()) {
+                nameLabel.setIcon(ImageUtils.getImage("error.png"));
+            }
+            nameLabel.setForeground(Color.GRAY);
+            panel.add(nameLabel, BorderLayout.NORTH);
+        }
+        panel.add(label, BorderLayout.CENTER);
+        return panel;
     }
     
 }

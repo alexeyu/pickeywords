@@ -5,7 +5,6 @@ import static nl.alexeyu.photomate.model.PhotoMetaData.DESCRIPTION_PROPERTY;
 import static nl.alexeyu.photomate.ui.UiConstants.BORDER_WIDTH;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.List;
@@ -36,14 +35,16 @@ public abstract class AbstractPhotoMetaDataPanel<T extends AbstractPhoto>
 	    editorPanel.setLayout(new BoxLayout(editorPanel, BoxLayout.Y_AXIS));
 
 	    captionEditor = new HintedTextField("Caption", CAPTION_PROPERTY);
+	    captionEditor.setSaveOnExit(true);
 	    editorPanel.add(captionEditor);
 		descriptionEditor = new HintedTextField("Description", DESCRIPTION_PROPERTY);
+		descriptionEditor.setSaveOnExit(true);
 		editorPanel.add(descriptionEditor);
 
 		add(editorPanel, BorderLayout.NORTH);
 		add(new JScrollPane(keywordList), BorderLayout.CENTER);
 		
-		setPreferredSize(new Dimension(360, 355));
+		setPreferredSize(Photo.PREVIEW_SIZE);
 	}
 	
 	public final void setPhoto(T photo) {

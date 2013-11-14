@@ -1,11 +1,14 @@
 package nl.alexeyu.photomate.service.keyword;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,6 +31,9 @@ public class ExifPhotoMetadataProcessor implements PhotoMetadataProcessor {
     private static final Pattern KEYWORDS_REGEX = Pattern.compile(".*(Keywords)\\s*\\:(.*)");
     private static final Pattern CREATOR_REGEX = Pattern.compile(".*(Creator)\\s*\\:(.*)");
 
+    private static final String BACKUP_SUFFIX = "_original";
+    private static final String LINE_SEPARATOR = System.getProperty("line.separator");
+
     private static final String CAPTION_ABSTRACT = "-Caption-Abstract";
     private static final String IMAGE_DESCRIPTION = "-ImageDescription";
     private static final String KEYWORDS = "-keywords";
@@ -36,6 +42,8 @@ public class ExifPhotoMetadataProcessor implements PhotoMetadataProcessor {
 
     private static final String ADD_KEYWORD_COMMAND = KEYWORDS + "+=";
     private static final String REMOVE_KEYWORD_COMMAND = KEYWORDS + "-=";
+    
+    private Map<String, File> backupFilesMap = new ConcurrentHashMap<>();
 
     private final Logger logger = LoggerFactory.getLogger("ExifKeywordReader");
     
@@ -43,7 +51,7 @@ public class ExifPhotoMetadataProcessor implements PhotoMetadataProcessor {
     public DefaultPhotoMetaData read(String photoUrl) {
         String[] photoProperties = 
                 execExif(photoUrl, IMAGE_DESCRIPTION, CAPTION_ABSTRACT, CREATOR, KEYWORDS)
-                .split("\n");
+                .split(LINE_SEPARATOR);
         return new DefaultPhotoMetaData(
                 getPhotoProperty(photoProperties, CAPTION_REGEX),
                 getPhotoProperty(photoProperties, DESCR_REGEX),
@@ -74,6 +82,10 @@ public class ExifPhotoMetadataProcessor implements PhotoMetadataProcessor {
         List<String> arguments = getUpdateArguments(oldMetaData, newMetaData);
         if (arguments.size() > 0) {
             execExif(photoPath, arguments.toArray(new String[arguments.size()]));
+            String backupFilePath = photoPath + BACKUP_SUFFIX;
+            File backupFile = new File(backupFilePath);
+            backupFile.deleteOnExit();
+            backupFilesMap.put(backupFilePath, backupFile);
         }
     }
 

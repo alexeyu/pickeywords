@@ -1,8 +1,8 @@
 package nl.alexeyu.photomate.ui;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.swing.table.AbstractTableModel;
 
@@ -16,15 +16,22 @@ public class UploadTableModel extends AbstractTableModel {
 
 	private final List<PhotoStock> photoStocks;
 
-	private final Map<String, Object> statuses;
+	private final Map<String, Object> statuses = new ConcurrentHashMap<>();
 
 	public UploadTableModel(List<LocalPhoto> photos, List<PhotoStock> photoStocks) {
 		this.photos = photos;
 		this.photoStocks = photoStocks;
-		statuses = new HashMap<String, Object>();
 	}
+	
+	@Override
+    public Class<?> getColumnClass(int columnIndex) {
+	    if (columnIndex == 0) {
+	        return Photo.class;
+	    }
+        return super.getColumnClass(columnIndex);
+    }
 
-	public void setStatus(PhotoStock photoStock, Photo photo, Object status) {
+    public void setStatus(PhotoStock photoStock, Photo photo, Object status) {
 		String key = getKey(photoStock, photo);
 		statuses.put(key, status);
 	}
@@ -34,7 +41,7 @@ public class UploadTableModel extends AbstractTableModel {
 	}
 
 	public int getRowCount() {
-		return photos.size() + 1;
+		return photos.size();
 	}
 
 	public int getColumnCount() {
@@ -42,18 +49,16 @@ public class UploadTableModel extends AbstractTableModel {
 	}
 
 	public Object getValueAt(int rowIndex, int columnIndex) {
-		if (rowIndex == 0) {
-			if (columnIndex == 0) {
-				return null;
-			}
-			return photoStocks.get(columnIndex - 1);
-		}
 		if (columnIndex == 0) {
-			return photos.get(rowIndex - 1);
+			return photos.get(rowIndex);
 		}
 		String key = getKey(photoStocks.get(columnIndex - 1),
-				photos.get(rowIndex - 1));
+				photos.get(rowIndex));
 		return statuses.get(key);
+	}
+	
+	public PhotoStock getPhotoStock(int index) {
+	    return photoStocks.get(index);
 	}
 
 }

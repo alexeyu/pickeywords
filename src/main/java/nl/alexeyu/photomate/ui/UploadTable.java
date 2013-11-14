@@ -1,13 +1,18 @@
 package nl.alexeyu.photomate.ui;
 
+import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.net.URL;
 
 import javax.inject.Singleton;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JTable;
+import javax.swing.SwingConstants;
+import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableModel;
 
 import nl.alexeyu.photomate.api.LocalPhoto;
@@ -19,17 +24,21 @@ import nl.alexeyu.photomate.util.ImageUtils;
 @Singleton
 public class UploadTable extends JTable implements UploadPhotoListener {
 	
-	private static final int ROW_HEIGHT = 125;
+	private static final int ROW_HEIGHT = Photo.THUMBNAIL_SIZE.height;
+
+	private static final int PHOTO_COLUMN_WIDTH = Photo.THUMBNAIL_SIZE.width + 4;
 
 	private static final int PHOTO_STOCK_ROW_HEIGHT = 40;
-
-	private static final int PHOTO_COLUMN_WIDTH = 120;
 
 	private UploadTableModel uploadModel;
 
 	public UploadTable() {
 		setDefaultRenderer(Object.class, new UploadTableRenderer());
 	    setDefaultRenderer(Photo.class, new PhotoCellRenderer());
+	    JTableHeader header = getTableHeader();
+	    header.setDefaultRenderer(new HeaderRenderer());
+	    header.setPreferredSize(new Dimension(1, PHOTO_STOCK_ROW_HEIGHT));
+	    header.setBackground(Color.WHITE);
 	}
 
 	@Override
@@ -38,9 +47,8 @@ public class UploadTable extends JTable implements UploadPhotoListener {
 		if (dataModel instanceof UploadTableModel) {
 			this.uploadModel = (UploadTableModel) dataModel;
 			getColumnModel().getColumn(0).setPreferredWidth(PHOTO_COLUMN_WIDTH);
-			getColumnModel().getColumn(0).setWidth(PHOTO_COLUMN_WIDTH);
+			getColumnModel().getColumn(0).setMaxWidth(PHOTO_COLUMN_WIDTH);
 			setRowHeight(ROW_HEIGHT);
-			setRowHeight(0, PHOTO_STOCK_ROW_HEIGHT);
 		}
 	}
 
@@ -63,41 +71,48 @@ public class UploadTable extends JTable implements UploadPhotoListener {
 		repaint();
 	}
 
+    private class HeaderRenderer extends DefaultTableCellRenderer {
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+                boolean hasFocus, int row, int column) {
+            JLabel label = new JLabel();
+            label.setBorder(new LineBorder(Color.LIGHT_GRAY));
+            label.setHorizontalAlignment(SwingConstants.CENTER);
+            if (column > 0) {
+                PhotoStock photoStock = uploadModel.getPhotoStock(column - 1);
+                if (photoStock.getIconUrl().isEmpty()) {
+                    label.setText(photoStock.getName());
+                } else {
+                    URL url = getClass().getResource(photoStock.getIconUrl());
+                    label.setIcon(new ImageIcon(url));
+                }
+            }
+            return label;
+        }
+        
+    }
+
 	private class UploadTableRenderer extends DefaultTableCellRenderer {
 
 		@Override
 		public Component getTableCellRendererComponent(JTable table, Object value, 
 				boolean isSelected, boolean hasFocus, int row, int column) {
-			if (row == 0 && column == 0) {
-				return new JLabel("Uploading " + (table.getRowCount() - 1) + " photos...");
-			}
-			return getComponentImpl(value);
-		}
-		
-		private Component getComponentImpl(Object value) {
-			if (value instanceof PhotoStock) {
-				PhotoStock photoStock = (PhotoStock) value;
-				if (photoStock.getIconUrl().isEmpty()) {
-					return new JLabel(photoStock.getName());
-				} else {
-					URL url = getClass().getResource(photoStock.getIconUrl());
-					return new JLabel(new ImageIcon(url));
-				}
-			}
+		    JLabel label = new JLabel();
+		    label.setHorizontalAlignment(SwingConstants.CENTER);
 			if (value instanceof Exception) {
-				JLabel label = new JLabel(ImageUtils.getImage("error.png"));
+				label.setIcon(ImageUtils.getImage("error.png"));
 				Exception ex = (Exception) value;
 				label.setToolTipText(ex.getMessage());
-				return label;
-			}
-			if (value instanceof Integer) {
+			} else  if (value instanceof Integer) {
 				Integer progress = (Integer) value;
-				return new JLabel("   " + progress + "%");
+				label.setText(progress + "%");
+			} else  if (value instanceof String) {
+				label.setIcon(ImageUtils.getImage("ok.png"));
+			} else {
+			    label.setIcon(ImageUtils.getImage("queue.png"));
 			}
-			if (value instanceof String) {
-				return new JLabel(ImageUtils.getImage("ok.png"));
-			}
-			return new JLabel(ImageUtils.getImage("queue.png"));
+			return label;
 		}
 		
 	}

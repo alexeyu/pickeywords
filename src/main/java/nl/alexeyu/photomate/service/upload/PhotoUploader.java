@@ -42,7 +42,12 @@ public class PhotoUploader implements UploadPhotoListener {
 	}
 
 	private void uploadPhoto(PhotoStock photoStock, LocalPhoto photo, int attemptsLeft) {
-		Runnable uploadTask = new FakeUploadTask(photoStock, photo, attemptsLeft, listeners);
+		Runnable uploadTask;
+		if (Boolean.valueOf(configReader.getProperty("realUpload", "true"))) {
+		    uploadTask = new FtpUploadTask(photoStock, photo, attemptsLeft, listeners);
+		} else {
+            uploadTask = new FakeUploadTask(photoStock, photo, attemptsLeft, listeners);
+		}
 		taskExecutor.execute(uploadTask);
 	}
 
@@ -54,9 +59,9 @@ public class PhotoUploader implements UploadPhotoListener {
 	public void onSuccess(PhotoStock photoStock, LocalPhoto photo) {
 		AtomicInteger stocksCount = stocksToGo.get(photo);
 		if (stocksCount.decrementAndGet() == 0) {
-			String doneDir = configReader.getProperty("doneFolder", System.getProperty("java.io.tmpdir"));
-			Runnable movePhotoTask = new MovePhotoTask(photo, new File(doneDir));
-			taskExecutor.execute(movePhotoTask);
+//			String doneDir = configReader.getProperty("doneFolder", System.getProperty("java.io.tmpdir"));
+//			Runnable movePhotoTask = new MovePhotoTask(photo, new File(doneDir));
+//			taskExecutor.execute(movePhotoTask);
 		}
 	}
 
