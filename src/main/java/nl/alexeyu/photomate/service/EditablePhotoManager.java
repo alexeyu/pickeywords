@@ -9,20 +9,25 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
 
+import nl.alexeyu.photomate.api.EditablePhoto;
 import nl.alexeyu.photomate.api.LocalPhoto;
 import nl.alexeyu.photomate.api.LocalPhotoApi;
 import nl.alexeyu.photomate.api.PhotoFactory;
 import nl.alexeyu.photomate.service.upload.PhotoUploader;
+import nl.alexeyu.photomate.ui.PhotoObserver;
 import nl.alexeyu.photomate.util.ConfigReader;
-import nl.alexeyu.photomate.util.ImageUtils;
 
-public class LocalPhotoManager implements PropertyChangeListener {
+public class EditablePhotoManager implements PropertyChangeListener, PhotoObserver<EditablePhoto> {
 
-    private List<LocalPhoto> photos = new ArrayList<>();
+    private List<EditablePhoto> photos = new ArrayList<>();
+
+    @Inject
+    private PhotoFactory photoFactory;
 
     @Inject
     private LocalPhotoApi localPhotoApi;
@@ -30,9 +35,6 @@ public class LocalPhotoManager implements PropertyChangeListener {
     @Inject
     private ConfigReader configReader;
 
-    @Inject
-    private PhotoFactory photoFactory;
-    
     @Inject
     private PhotoUploader photoUploader;
 
@@ -45,20 +47,16 @@ public class LocalPhotoManager implements PropertyChangeListener {
         photoCopyrightSetter = new PhotoCopyrightSetter();
     }
     
-    public List<LocalPhoto> getPhotos() {
+    public List<EditablePhoto> getPhotos() {
         return photos;
     }
 
-    public void setPhotoFiles(File[] files) {
-        photos = new ArrayList<>();
-        for (File file : files) {
-            if (ImageUtils.isJpeg(file)) {
-                LocalPhoto photo = photoFactory.createLocalPhoto(file, localPhotoApi);
-                photo.addPropertyChangeListener(photoCopyrightSetter);
-                photos.add(photo);
-            }
+    public List<EditablePhoto> createPhotos(File dir) {
+        this.photos = photoFactory.createLocalPhotos(dir, localPhotoApi, EditablePhoto.class);
+        for (LocalPhoto photo : photos) {
+            photo.addPropertyChangeListener(photoCopyrightSetter);
         }
-
+        return Collections.unmodifiableList(photos);
     }
 
     public void uploadPhotos() {
@@ -71,7 +69,7 @@ public class LocalPhotoManager implements PropertyChangeListener {
         if (photos.size() == 0) {
             return false;
         }
-        for (LocalPhoto photo : photos) {
+        for (EditablePhoto photo : photos) {
             if (!photo.isReadyToUpload()) {
                 return false;
             }
@@ -99,6 +97,11 @@ public class LocalPhotoManager implements PropertyChangeListener {
             localPhotoApi.updateKeywords(photo, (List<String>) e.getNewValue());
             break;
         }
+    }
+
+    @Override
+    public void photoSelected(EditablePhoto photo) {
+        this.photo = photo;
     }
 
     private class PhotoCopyrightSetter implements PropertyChangeListener {

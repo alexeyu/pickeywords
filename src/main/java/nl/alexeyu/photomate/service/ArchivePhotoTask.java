@@ -9,7 +9,7 @@ import nl.alexeyu.photomate.api.LocalPhoto;
 
 import org.apache.commons.io.FileUtils;
 
-public class MovePhotoTask implements PrioritizedTask, Runnable {
+public class ArchivePhotoTask implements PrioritizedTask, Runnable {
 	
 	private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyy-MM-dd");
 	
@@ -17,7 +17,7 @@ public class MovePhotoTask implements PrioritizedTask, Runnable {
 	
 	private final File directory;
 
-	public MovePhotoTask(LocalPhoto photo, File directory) {
+	public ArchivePhotoTask(LocalPhoto photo, File directory) {
 		this.photo = photo;
 		this.directory = directory;
 	}
@@ -25,12 +25,11 @@ public class MovePhotoTask implements PrioritizedTask, Runnable {
 	@Override
 	public void run() {
 		directory.mkdir();
-		String subdirName = DATE_FORMAT.format(photo.getFile().lastModified());
-		File subdir = new File(directory, subdirName);
-		subdir.mkdir();
+//		String subdirName = DATE_FORMAT.format(photo.getFile().lastModified());
+//		File subdir = new File(directory, subdirName);
+//		subdir.mkdir();
 		try {
-			FileUtils.copyFile(photo.getFile(), new File(subdir, photo.getName()), true);
-			photo.getFile().deleteOnExit();
+			FileUtils.copyFile(photo.getFile(), new File(directory, photo.getName()), true);
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}

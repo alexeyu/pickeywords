@@ -2,18 +2,18 @@ package nl.alexeyu.photomate.service.upload;
 
 import java.util.Collection;
 
-import nl.alexeyu.photomate.api.LocalPhoto;
+import nl.alexeyu.photomate.api.EditablePhoto;
 import nl.alexeyu.photomate.model.PhotoStock;
 import nl.alexeyu.photomate.service.PrioritizedTask;
 
 public abstract class AbstractUploadTask implements PrioritizedTask, Runnable {
 
 	protected final PhotoStock photoStock;
-	protected final LocalPhoto photo;
+	protected final EditablePhoto photo;
 	protected final int attemptsLeft;
 	protected final Collection<UploadPhotoListener> uploadPhotoListeners;
 
-	public AbstractUploadTask(PhotoStock photoStock, LocalPhoto photo, int attemptsLeft, 
+	public AbstractUploadTask(PhotoStock photoStock, EditablePhoto photo, int attemptsLeft, 
 			Collection<UploadPhotoListener> uploadPhotoListeners) {
 		this.photoStock = photoStock;
 		this.photo = photo;

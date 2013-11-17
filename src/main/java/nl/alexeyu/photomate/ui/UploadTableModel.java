@@ -6,19 +6,19 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.swing.table.AbstractTableModel;
 
-import nl.alexeyu.photomate.api.LocalPhoto;
+import nl.alexeyu.photomate.api.EditablePhoto;
 import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.model.PhotoStock;
 
 public class UploadTableModel extends AbstractTableModel {
 
-	private final List<LocalPhoto> photos;
+	private final List<EditablePhoto> photos;
 
 	private final List<PhotoStock> photoStocks;
 
 	private final Map<String, Object> statuses = new ConcurrentHashMap<>();
 
-	public UploadTableModel(List<LocalPhoto> photos, List<PhotoStock> photoStocks) {
+	public UploadTableModel(List<EditablePhoto> photos, List<PhotoStock> photoStocks) {
 		this.photos = photos;
 		this.photoStocks = photoStocks;
 	}

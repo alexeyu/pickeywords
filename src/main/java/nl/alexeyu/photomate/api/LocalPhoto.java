@@ -6,7 +6,7 @@ public class LocalPhoto extends AbstractPhoto {
 	
 	private final File file;
 	
-	LocalPhoto(File file) {
+	public LocalPhoto(File file) {
 		this.file = file;
 	}
 
@@ -19,10 +19,6 @@ public class LocalPhoto extends AbstractPhoto {
 		return file.getName();
 	}
 
-    public boolean isReadyToUpload() {
-		return getThumbnail() != null && getMetaData() != null && getMetaData().isComplete();
-	}
-	
 	@Override
 	public String toString() {
 		return "My Photo [" + getName() + "]";

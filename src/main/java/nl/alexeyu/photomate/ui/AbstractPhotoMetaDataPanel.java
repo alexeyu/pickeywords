@@ -44,7 +44,7 @@ public abstract class AbstractPhotoMetaDataPanel<T extends AbstractPhoto>
 		add(editorPanel, BorderLayout.NORTH);
 		add(new JScrollPane(keywordList), BorderLayout.CENTER);
 		
-		setPreferredSize(Photo.PREVIEW_SIZE);
+		setPreferredSize(UiConstants.PREVIEW_SIZE);
 	}
 	
 	public final void setPhoto(T photo) {

@@ -7,6 +7,6 @@ import org.apache.commons.lang3.tuple.Pair;
 
 public interface ThumbnailProvider {
     
-    Pair<Image, Image> getThumbnails(File photoFile);
+    Pair<Image, Image> getThumbnails(File photoFile, boolean generatePreview);
 
 }

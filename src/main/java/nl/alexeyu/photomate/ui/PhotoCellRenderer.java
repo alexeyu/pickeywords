@@ -13,7 +13,7 @@ import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
-import nl.alexeyu.photomate.api.LocalPhoto;
+import nl.alexeyu.photomate.api.EditablePhoto;
 import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.util.ImageUtils;
 
@@ -35,9 +35,9 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
         }
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(isSelected ? LINE_BORDER : EMPTY_BORDER);
-        if (photo instanceof LocalPhoto) {
+        if (photo instanceof EditablePhoto) {
             JLabel nameLabel = new JLabel(photo.getName());
-            if (!((LocalPhoto)photo).isReadyToUpload()) {
+            if (!((EditablePhoto)photo).isReadyToUpload()) {
                 nameLabel.setIcon(ImageUtils.getImage("error.png"));
             }
             nameLabel.setForeground(Color.GRAY);

@@ -1,5 +1,8 @@
 package nl.alexeyu.photomate.api;
 
+import static nl.alexeyu.photomate.service.PrioritizedTask.TaskPriority.LOW;
+import static nl.alexeyu.photomate.service.PrioritizedTask.TaskPriority.MEDIUM;
+
 import java.awt.Image;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -84,22 +87,27 @@ public class LocalPhotoApi implements PhotoApi<LocalPhoto> {
 
         private final LocalPhoto photo;
         
+        private final boolean isPhotoEditable;
+        
         public ThumbnailingTask(LocalPhoto photo) {
             this.photo = photo;
+            this.isPhotoEditable = photo instanceof EditablePhoto;
         }
 
         @Override
         public void run() {
             long time = System.currentTimeMillis();
-            Pair<Image, Image> images = thumbnailProvider.getThumbnails(photo.getFile());
-            photo.setThumbnail(new ImageIcon(images.getLeft()));
-            photo.setPreview(new ImageIcon(images.getRight()));
+            Pair<Image, Image> images = thumbnailProvider.getThumbnails(photo.getFile(), isPhotoEditable);
             logger.info("" + (System.currentTimeMillis() - time));
+            photo.setThumbnail(new ImageIcon(images.getLeft()));
+            if (isPhotoEditable) {
+                ((EditablePhoto) photo).setPreview(new ImageIcon(images.getRight()));
+            }
         }
 
         @Override
         public TaskPriority getPriority() {
-            return TaskPriority.MEDIUM;
+            return isPhotoEditable ? MEDIUM : LOW;
         }
 
     }

@@ -15,8 +15,6 @@ import nl.alexeyu.photomate.model.PhotoMetaData;
 
 public abstract class AbstractPhoto implements Photo {
     
-    public static final String PREVIEW_PROPERTY = "preview";
-
     public static final String THUMBNAIL_PROPERTY = "thumbnail";
 
     public static final String METADATA_PROPERTY = "metadata";
@@ -25,8 +23,6 @@ public abstract class AbstractPhoto implements Photo {
     
     private final AtomicReference<ImageIcon> thumbnail = new AtomicReference<>();
     
-    private final AtomicReference<ImageIcon> preview = new AtomicReference<>();
-
     protected List<WeakReference<PropertyChangeListener>> listeners = new ArrayList<>();
 
     public void addPropertyChangeListener(PropertyChangeListener listener) {
@@ -57,11 +53,6 @@ public abstract class AbstractPhoto implements Photo {
     }
 
     @Override
-    public ImageIcon getPreview() {
-        return preview.get();
-    }
-
-    @Override
     public PhotoMetaData getMetaData() {
         return metaData.get();
     }
@@ -73,13 +64,6 @@ public abstract class AbstractPhoto implements Photo {
         firePropertyChanged(THUMBNAIL_PROPERTY, null, thumbnail);
     }
     
-    public void setPreview(ImageIcon preview) {
-        if (!this.preview.compareAndSet(null, preview)) {
-            throw new IllegalStateException("Attempt to set preview 2nd time");
-        }
-        firePropertyChanged(PREVIEW_PROPERTY, null, preview);
-    }
-
     public void setMetaData(PhotoMetaData metaData) {
         PhotoMetaData oldMetaData = this.metaData.getAndSet(metaData);
         firePropertyChanged(METADATA_PROPERTY, oldMetaData, metaData);

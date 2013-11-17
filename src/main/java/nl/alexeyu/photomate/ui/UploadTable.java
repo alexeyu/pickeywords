@@ -15,7 +15,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableModel;
 
-import nl.alexeyu.photomate.api.LocalPhoto;
+import nl.alexeyu.photomate.api.EditablePhoto;
 import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.model.PhotoStock;
 import nl.alexeyu.photomate.service.upload.UploadPhotoListener;
@@ -24,9 +24,9 @@ import nl.alexeyu.photomate.util.ImageUtils;
 @Singleton
 public class UploadTable extends JTable implements UploadPhotoListener {
 	
-	private static final int ROW_HEIGHT = Photo.THUMBNAIL_SIZE.height;
+	private static final int ROW_HEIGHT = UiConstants.THUMBNAIL_SIZE.height;
 
-	private static final int PHOTO_COLUMN_WIDTH = Photo.THUMBNAIL_SIZE.width + 4;
+	private static final int PHOTO_COLUMN_WIDTH = UiConstants.THUMBNAIL_SIZE.width + 4;
 
 	private static final int PHOTO_STOCK_ROW_HEIGHT = 40;
 
@@ -53,20 +53,20 @@ public class UploadTable extends JTable implements UploadPhotoListener {
 	}
 
 	@Override
-	public void onProgress(PhotoStock photoStock, LocalPhoto photo, long uploadedBytes) {
+	public void onProgress(PhotoStock photoStock, EditablePhoto photo, long uploadedBytes) {
 		Integer percent = (int) (uploadedBytes * 100 / photo.getFile().length());
 		uploadModel.setStatus(photoStock, photo, percent);
 		repaint();
 	}
 
 	@Override
-	public void onSuccess(PhotoStock photoStock, LocalPhoto photo) {
+	public void onSuccess(PhotoStock photoStock, EditablePhoto photo) {
 		uploadModel.setStatus(photoStock, photo, "");
 		repaint();
 	}
 
 	@Override
-	public void onError(PhotoStock photoStock, LocalPhoto photo, Exception ex, int attemptsLeft) {
+	public void onError(PhotoStock photoStock, EditablePhoto photo, Exception ex, int attemptsLeft) {
 		uploadModel.setStatus(photoStock, photo, ex);
 		repaint();
 	}

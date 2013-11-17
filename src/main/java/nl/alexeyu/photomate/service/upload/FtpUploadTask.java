@@ -7,7 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collection;
 
-import nl.alexeyu.photomate.api.LocalPhoto;
+import nl.alexeyu.photomate.api.EditablePhoto;
 import nl.alexeyu.photomate.model.PhotoStock;
 
 import org.apache.commons.net.ftp.FTP;
@@ -28,7 +28,7 @@ public class FtpUploadTask extends AbstractUploadTask implements CopyStreamListe
 	
 	private final FTPClient client = new FTPClient();
 	
-	public FtpUploadTask(PhotoStock photoStock, LocalPhoto photo, int attemptsLeft, 
+	public FtpUploadTask(PhotoStock photoStock, EditablePhoto photo, int attemptsLeft, 
 			Collection<UploadPhotoListener> uploadPhotoListeners) {
 		super(photoStock, photo, attemptsLeft, uploadPhotoListeners);
 		client.setCopyStreamListener(this);

@@ -4,23 +4,23 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.inject.Inject;
 
-import nl.alexeyu.photomate.api.LocalPhoto;
+import nl.alexeyu.photomate.api.EditablePhoto;
 import nl.alexeyu.photomate.model.PhotoStock;
-import nl.alexeyu.photomate.service.MovePhotoTask;
+import nl.alexeyu.photomate.service.ArchivePhotoTask;
 import nl.alexeyu.photomate.util.ConfigReader;
 
 public class PhotoUploader implements UploadPhotoListener {
 	
 	private static final int ATTEMPTS = 2;
 	
-	private Map<LocalPhoto, AtomicInteger> stocksToGo;
+	private ConcurrentHashMap<EditablePhoto, Boolean> archivedPhotos;
+	
+	private String archiveDir;
 	
 	@Inject
 	private ConfigReader configReader;
@@ -30,18 +30,18 @@ public class PhotoUploader implements UploadPhotoListener {
 	
 	private Collection<UploadPhotoListener> listeners; 
 	
-	public void uploadPhotos(List<LocalPhoto> photos) {
-		stocksToGo = new ConcurrentHashMap<>();
+	public void uploadPhotos(List<EditablePhoto> photos) {
+	    archivedPhotos = new ConcurrentHashMap<>();
+        archiveDir = configReader.getProperty("archiveFolder", null);
 		List<PhotoStock> photoStocks = configReader.getPhotoStocks();
-		for (LocalPhoto photo : photos) {
-			stocksToGo.put(photo, new AtomicInteger(photoStocks.size()));
+		for (EditablePhoto photo : photos) {
 			for (PhotoStock photoStock : photoStocks) {
 				uploadPhoto(photoStock, photo, ATTEMPTS);
 			}
 		}
 	}
 
-	private void uploadPhoto(PhotoStock photoStock, LocalPhoto photo, int attemptsLeft) {
+	private void uploadPhoto(PhotoStock photoStock, EditablePhoto photo, int attemptsLeft) {
 		Runnable uploadTask;
 		if (Boolean.valueOf(configReader.getProperty("realUpload", "true"))) {
 		    uploadTask = new FtpUploadTask(photoStock, photo, attemptsLeft, listeners);
@@ -52,21 +52,21 @@ public class PhotoUploader implements UploadPhotoListener {
 	}
 
 	@Override
-	public void onProgress(PhotoStock photoStock, LocalPhoto photo, long bytesUploaded) {
+	public void onProgress(PhotoStock photoStock, EditablePhoto photo, long bytesUploaded) {
 	}
 
 	@Override
-	public void onSuccess(PhotoStock photoStock, LocalPhoto photo) {
-		AtomicInteger stocksCount = stocksToGo.get(photo);
-		if (stocksCount.decrementAndGet() == 0) {
-//			String doneDir = configReader.getProperty("doneFolder", System.getProperty("java.io.tmpdir"));
-//			Runnable movePhotoTask = new MovePhotoTask(photo, new File(doneDir));
-//			taskExecutor.execute(movePhotoTask);
+	public void onSuccess(PhotoStock photoStock, EditablePhoto photo) {
+		if (archivedPhotos.put(photo, Boolean.TRUE) == null) {
+			if (archiveDir != null) {
+			    Runnable archivePhotoTask = new ArchivePhotoTask(photo, new File(archiveDir));
+			    taskExecutor.execute(archivePhotoTask);
+			}
 		}
 	}
 
 	@Override
-	public void onError(PhotoStock photoStock, LocalPhoto photo, Exception ex, int attemptsLeft) {
+	public void onError(PhotoStock photoStock, EditablePhoto photo, Exception ex, int attemptsLeft) {
 		if (attemptsLeft > 0) {
 			uploadPhoto(photoStock, photo, attemptsLeft - 1);
 		}
