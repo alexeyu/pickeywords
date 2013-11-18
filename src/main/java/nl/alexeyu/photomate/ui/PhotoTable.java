@@ -20,7 +20,7 @@ import nl.alexeyu.photomate.api.AbstractPhoto;
 
 public class PhotoTable<P extends AbstractPhoto> extends JTable implements PropertyChangeListener {
     
-    private static final int CELL_HEIGHT = UiConstants.THUMBNAIL_SIZE.height + 20;
+    private static final int CELL_HEIGHT = UiConstants.THUMBNAIL_SIZE.height + 16;
     
     private final List<P> emptyPhotos = Collections.emptyList();
     
@@ -28,14 +28,15 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
     
     private final List<PhotoObserver<? super P>> observers = new ArrayList<>();
     
+    public PhotoTable(int columnCount) {
+        this(columnCount, null);
+    }
+
     public PhotoTable(int columnCount, JComponent parent) {
         this.columnCount = columnCount;
         
         setPhotos(emptyPhotos);
         setDefaultRenderer(Object.class, new PhotoCellRenderer());
-        
-        getTableHeader().setPreferredSize(new Dimension(0,0));
-        getTableHeader().setVisible(false);
         
         setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         setCellSelectionEnabled(true);
@@ -45,16 +46,21 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
         
         setRowHeight(CELL_HEIGHT);
         setPreferredScrollableViewportSize(UiConstants.THUMBNAIL_SIZE);
-        
-        JScrollPane sp = new JScrollPane();
-        sp.setViewportView(this);
-        sp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        sp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-        sp.getViewport().setBackground(getBackground());
-        
-        parent.add(sp);
+
+        if (parent != null) {
+            JScrollPane sp = new JScrollPane();
+            sp.setViewportView(this);
+            sp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+            sp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+            sp.getViewport().setBackground(getBackground());
+
+            getTableHeader().setPreferredSize(new Dimension(0,0));
+            getTableHeader().setVisible(false);
+            
+            parent.add(sp);
+        }
     }
-    
+
     public void addObserver(PhotoObserver<? super P> observer) {
         this.observers.add(observer);
     }

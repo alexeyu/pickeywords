@@ -43,6 +43,8 @@ public class ShutterPhotoStockApi implements PhotoApi<RemotePhoto>, PhotoStockAp
 
     private static final String BASE_URI = "http://api.shutterstock.com/images/";
 
+    private static final String QUERY_TEMPLATE = "%ssearch.json?searchterm=%s&results_per_page=%s&search_group=photos";
+
     @Inject
     private ConfigReader configReader;
     
@@ -77,8 +79,7 @@ public class ShutterPhotoStockApi implements PhotoApi<RemotePhoto>, PhotoStockAp
 
     @Override
     public List<RemotePhoto> search(String keywords) {
-        String requestUri = String.format("%ssearch.json?searchterm=%s&results_per_page=%s", 
-                BASE_URI, encode(keywords), resultsPerPage);
+        String requestUri = String.format(QUERY_TEMPLATE, BASE_URI, encode(keywords), resultsPerPage);
         ShutterSearchResult searchResult = doRequest(requestUri, new JsonResponseHandler<>(ShutterSearchResult.class));
         List<RemotePhoto> photos = new ArrayList<>();
         for (ShutterPhotoDescription photoDescr : searchResult.getPhotoDescriptions()) {

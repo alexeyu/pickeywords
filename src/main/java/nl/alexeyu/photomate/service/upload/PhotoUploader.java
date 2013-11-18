@@ -1,6 +1,7 @@
 package nl.alexeyu.photomate.service.upload;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -28,9 +29,10 @@ public class PhotoUploader implements UploadPhotoListener {
 	@Inject
 	private ExecutorService taskExecutor;
 	
-	private Collection<UploadPhotoListener> listeners; 
+	private Collection<UploadPhotoListener> listeners = new ArrayList<>(Arrays.asList( (UploadPhotoListener) this)); 
 	
-	public void uploadPhotos(List<EditablePhoto> photos) {
+	public void uploadPhotos(List<EditablePhoto> photos, UploadPhotoListener l) {
+	    listeners.add(l);
 	    archivedPhotos = new ConcurrentHashMap<>();
         archiveDir = configReader.getProperty("archiveFolder", null);
 		List<PhotoStock> photoStocks = configReader.getPhotoStocks();
@@ -40,7 +42,7 @@ public class PhotoUploader implements UploadPhotoListener {
 			}
 		}
 	}
-
+	
 	private void uploadPhoto(PhotoStock photoStock, EditablePhoto photo, int attemptsLeft) {
 		Runnable uploadTask;
 		if (Boolean.valueOf(configReader.getProperty("realUpload", "true"))) {
@@ -70,11 +72,6 @@ public class PhotoUploader implements UploadPhotoListener {
 		if (attemptsLeft > 0) {
 			uploadPhoto(photoStock, photo, attemptsLeft - 1);
 		}
-	}
-
-	@Inject
-	public void setUploadPhotoListener(UploadPhotoListener listener) {
-		listeners = Arrays.asList(listener, this);
 	}
 
 }

@@ -18,7 +18,6 @@ import nl.alexeyu.photomate.api.EditablePhoto;
 import nl.alexeyu.photomate.api.LocalPhoto;
 import nl.alexeyu.photomate.api.LocalPhotoApi;
 import nl.alexeyu.photomate.api.PhotoFactory;
-import nl.alexeyu.photomate.service.upload.PhotoUploader;
 import nl.alexeyu.photomate.ui.PhotoObserver;
 import nl.alexeyu.photomate.util.ConfigReader;
 
@@ -35,22 +34,15 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
     @Inject
     private ConfigReader configReader;
 
-    @Inject
-    private PhotoUploader photoUploader;
-
     private PhotoCopyrightSetter photoCopyrightSetter;
     
-    private LocalPhoto photo;
+    private LocalPhoto currentPhoto;
 
     @Inject
     public void postConstruct() {
         photoCopyrightSetter = new PhotoCopyrightSetter();
     }
     
-    public List<EditablePhoto> getPhotos() {
-        return photos;
-    }
-
     public List<EditablePhoto> createPhotos(File dir) {
         this.photos = photoFactory.createLocalPhotos(dir, localPhotoApi, EditablePhoto.class);
         for (LocalPhoto photo : photos) {
@@ -59,49 +51,40 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
         return Collections.unmodifiableList(photos);
     }
 
-    public void uploadPhotos() {
-        if (validatePhotos()) {
-            photoUploader.uploadPhotos(photos);
-        }
-    }
-    
-    public boolean validatePhotos() {
-        if (photos.size() == 0) {
-            return false;
-        }
+    public List<EditablePhoto> validatePhotos() throws PhotoNotReadyException {
+        List<EditablePhoto> notReadyPhotos = new ArrayList<>();
         for (EditablePhoto photo : photos) {
             if (!photo.isReadyToUpload()) {
-                return false;
+                notReadyPhotos.add(photo);
             }
         }
-        return true;
-    }
-    
-    public void setCurrentPhoto(LocalPhoto photo) {
-        this.photo = photo;
+        if (photos.size() == 0 || notReadyPhotos.size() > 0) {
+            throw new PhotoNotReadyException(notReadyPhotos);
+        }
+        return photos;
     }
     
     @Override
     public void propertyChange(PropertyChangeEvent e) {
-        if (photo == null) {
+        if (currentPhoto == null) {
             return;
         }
         switch (e.getPropertyName()) {
         case CAPTION_PROPERTY:
-            localPhotoApi.updateCaption(photo, e.getNewValue().toString());
+            localPhotoApi.updateCaption(currentPhoto, e.getNewValue().toString());
             break;
         case DESCRIPTION_PROPERTY:
-            localPhotoApi.updateDescription(photo, e.getNewValue().toString());
+            localPhotoApi.updateDescription(currentPhoto, e.getNewValue().toString());
             break;
         case KEYWORDS_PROPERTY:
-            localPhotoApi.updateKeywords(photo, (List<String>) e.getNewValue());
+            localPhotoApi.updateKeywords(currentPhoto, (List<String>) e.getNewValue());
             break;
         }
     }
 
     @Override
     public void photoSelected(EditablePhoto photo) {
-        this.photo = photo;
+        this.currentPhoto = photo;
     }
 
     private class PhotoCopyrightSetter implements PropertyChangeListener {

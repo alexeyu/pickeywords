@@ -8,6 +8,7 @@ import java.awt.Color;
 import java.awt.Component;
 
 import javax.swing.ImageIcon;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTable;
@@ -15,6 +16,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 
 import nl.alexeyu.photomate.api.EditablePhoto;
 import nl.alexeyu.photomate.model.Photo;
+import nl.alexeyu.photomate.model.PhotoMetaData;
 import nl.alexeyu.photomate.util.ImageUtils;
 
 public class PhotoCellRenderer extends DefaultTableCellRenderer {
@@ -36,15 +38,23 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(isSelected ? LINE_BORDER : EMPTY_BORDER);
         if (photo instanceof EditablePhoto) {
-            JLabel nameLabel = new JLabel(photo.getName());
-            if (!((EditablePhoto)photo).isReadyToUpload()) {
-                nameLabel.setIcon(ImageUtils.getImage("error.png"));
-            }
-            nameLabel.setForeground(Color.GRAY);
-            panel.add(nameLabel, BorderLayout.NORTH);
+            panel.add(createTitle((EditablePhoto) photo), BorderLayout.NORTH);
         }
         panel.add(label, BorderLayout.CENTER);
         return panel;
     }
-    
+
+    private JComponent createTitle(EditablePhoto photo) {
+        String title = photo.getName();
+        PhotoMetaData metadata = photo.getMetaData();
+        if (metadata != null) {
+            title += " [" + metadata.getKeywords().size() + "]";
+        }
+        JLabel nameLabel = new JLabel(title);
+        if (!photo.isReadyToUpload()) {
+            nameLabel.setIcon(ImageUtils.getImage("error.png"));
+        }
+        nameLabel.setForeground(Color.GRAY);
+        return nameLabel;
+    }
 }

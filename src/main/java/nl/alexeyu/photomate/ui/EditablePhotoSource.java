@@ -8,6 +8,7 @@ import java.util.List;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JTable;
 
 import nl.alexeyu.photomate.api.EditablePhoto;
 import nl.alexeyu.photomate.api.LocalPhoto;
@@ -40,7 +41,7 @@ public class EditablePhotoSource extends PhotoSource<EditablePhoto> implements P
 	public JComponent getPreview() {
 	    return photoPreview;
 	}
-
+	
 	@Override
     public void propertyChange(PropertyChangeEvent e) {
 	    initPreview();

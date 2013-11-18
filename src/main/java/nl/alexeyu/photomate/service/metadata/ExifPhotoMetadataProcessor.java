@@ -1,4 +1,4 @@
-package nl.alexeyu.photomate.service.keyword;
+package nl.alexeyu.photomate.service.metadata;
 
 import java.io.File;
 import java.io.IOException;

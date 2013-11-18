@@ -13,7 +13,7 @@ import javax.swing.ImageIcon;
 import nl.alexeyu.photomate.model.DefaultPhotoMetaData;
 import nl.alexeyu.photomate.model.PhotoMetaData;
 import nl.alexeyu.photomate.service.PrioritizedTask;
-import nl.alexeyu.photomate.service.keyword.PhotoMetadataProcessor;
+import nl.alexeyu.photomate.service.metadata.PhotoMetadataProcessor;
 import nl.alexeyu.photomate.service.thumbnail.ThumbnailProvider;
 
 import org.apache.commons.lang3.tuple.Pair;

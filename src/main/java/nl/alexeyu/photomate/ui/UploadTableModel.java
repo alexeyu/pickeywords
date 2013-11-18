@@ -23,14 +23,6 @@ public class UploadTableModel extends AbstractTableModel {
 		this.photoStocks = photoStocks;
 	}
 	
-	@Override
-    public Class<?> getColumnClass(int columnIndex) {
-	    if (columnIndex == 0) {
-	        return Photo.class;
-	    }
-        return super.getColumnClass(columnIndex);
-    }
-
     public void setStatus(PhotoStock photoStock, Photo photo, Object status) {
 		String key = getKey(photoStock, photo);
 		statuses.put(key, status);
@@ -45,15 +37,11 @@ public class UploadTableModel extends AbstractTableModel {
 	}
 
 	public int getColumnCount() {
-		return photoStocks.size() + 1;
+		return photoStocks.size();
 	}
 
 	public Object getValueAt(int rowIndex, int columnIndex) {
-		if (columnIndex == 0) {
-			return photos.get(rowIndex);
-		}
-		String key = getKey(photoStocks.get(columnIndex - 1),
-				photos.get(rowIndex));
+		String key = getKey(photoStocks.get(columnIndex), photos.get(rowIndex));
 		return statuses.get(key);
 	}
 	

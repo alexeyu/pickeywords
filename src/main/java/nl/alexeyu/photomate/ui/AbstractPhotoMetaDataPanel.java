@@ -18,8 +18,8 @@ import javax.swing.JScrollPane;
 import nl.alexeyu.photomate.api.AbstractPhoto;
 import nl.alexeyu.photomate.model.Photo;
 
-public abstract class AbstractPhotoMetaDataPanel<T extends AbstractPhoto> 
-    extends JPanel implements PropertyChangeListener {
+public abstract class AbstractPhotoMetaDataPanel<P extends AbstractPhoto> 
+    extends JPanel implements PropertyChangeListener, PhotoObserver<P> {
 	
     protected HintedTextField captionEditor;
     
@@ -27,7 +27,7 @@ public abstract class AbstractPhotoMetaDataPanel<T extends AbstractPhoto>
     
     protected JList<String> keywordList = new JList<>(new DefaultListModel<String>());
 	
-	protected T photo;
+	protected P photo;
 	
 	public AbstractPhotoMetaDataPanel() {
 	    super(new BorderLayout(BORDER_WIDTH, BORDER_WIDTH));
@@ -47,7 +47,7 @@ public abstract class AbstractPhotoMetaDataPanel<T extends AbstractPhoto>
 		setPreferredSize(UiConstants.PREVIEW_SIZE);
 	}
 	
-	public final void setPhoto(T photo) {
+	public final void setPhoto(P photo) {
 	    if (this.photo != null) {
 	        this.photo.removePropertyChangeListener(this);
 	    }
@@ -87,4 +87,10 @@ public abstract class AbstractPhotoMetaDataPanel<T extends AbstractPhoto>
 	private boolean isNull(Photo photo) {
 	    return photo == null || photo.getMetaData() == null;
 	}
+	
+    @Override
+    public void photoSelected(P photo) {
+        setPhoto(photo);
+    }
+
 }

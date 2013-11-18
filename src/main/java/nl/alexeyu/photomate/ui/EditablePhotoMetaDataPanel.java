@@ -16,13 +16,13 @@ import nl.alexeyu.photomate.model.PhotoMetaData;
 
 import org.apache.commons.collections.ListUtils;
 
-public class LocalPhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<EditablePhoto> implements PhotoObserver<EditablePhoto> {
+public class EditablePhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<EditablePhoto> {
     
     private static final String NEW_KEYWORD_PROPERTY = "newKeyword";
 
     private HintedTextField keywordToAddField;
 	
-	public LocalPhotoMetaDataPanel() {
+	public EditablePhotoMetaDataPanel() {
 	    captionEditor.addPropertyChangeListener(CAPTION_PROPERTY, this);
 		descriptionEditor.addPropertyChangeListener(DESCRIPTION_PROPERTY, this);
 
@@ -56,11 +56,6 @@ public class LocalPhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<Editable
         } else {
             super.propertyChange(e);
         }
-    }
-
-    @Override
-    public void photoSelected(EditablePhoto photo) {
-        setPhoto(photo);
     }
 
 }

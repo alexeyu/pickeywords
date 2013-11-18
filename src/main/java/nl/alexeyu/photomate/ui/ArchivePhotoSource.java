@@ -32,8 +32,10 @@ public class ArchivePhotoSource extends PhotoSource<LocalPhoto> {
         String archiveFolder = configReader.getProperty("archiveFolder", null);
         if (archiveFolder != null) {
             File dir = new File(archiveFolder);
-            List<LocalPhoto> photos = photoFactory.createLocalPhotos(dir, localPhotoApi, LocalPhoto.class);
-            photoTable.setPhotos(photos);
+            if (dir.exists()) {
+                List<LocalPhoto> photos = photoFactory.createLocalPhotos(dir, localPhotoApi, LocalPhoto.class);
+                photoTable.setPhotos(photos);
+            }
         }
     }
     

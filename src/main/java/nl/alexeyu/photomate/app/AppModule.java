@@ -9,13 +9,11 @@ import java.util.concurrent.TimeUnit;
 import nl.alexeyu.photomate.api.PhotoStockApi;
 import nl.alexeyu.photomate.api.shutterstock.ShutterPhotoStockApi;
 import nl.alexeyu.photomate.service.PrioritizedTask;
-import nl.alexeyu.photomate.service.keyword.ExifPhotoMetadataProcessor;
-import nl.alexeyu.photomate.service.keyword.PhotoMetadataProcessor;
-import nl.alexeyu.photomate.service.keyword.PhotoMetadataReader;
+import nl.alexeyu.photomate.service.metadata.ExifPhotoMetadataProcessor;
+import nl.alexeyu.photomate.service.metadata.PhotoMetadataProcessor;
+import nl.alexeyu.photomate.service.metadata.PhotoMetadataReader;
 import nl.alexeyu.photomate.service.thumbnail.ImgscalrThumbnailProvider;
 import nl.alexeyu.photomate.service.thumbnail.ThumbnailProvider;
-import nl.alexeyu.photomate.service.upload.UploadPhotoListener;
-import nl.alexeyu.photomate.ui.UploadTable;
 
 import com.google.inject.AbstractModule;
 
@@ -26,7 +24,6 @@ public class AppModule extends AbstractModule {
 		bind(ExecutorService.class).to(PhotoExecutorService.class);
 		bind(PhotoMetadataReader.class).to(ExifPhotoMetadataProcessor.class);
 	    bind(PhotoMetadataProcessor.class).to(ExifPhotoMetadataProcessor.class);
-		bind(UploadPhotoListener.class).to(UploadTable.class);
 		bind(PhotoStockApi.class).to(ShutterPhotoStockApi.class);
 		bind(ThumbnailProvider.class).to(ImgscalrThumbnailProvider.class);
 	}

@@ -21,7 +21,7 @@ public class LocalPhoto extends AbstractPhoto {
 
 	@Override
 	public String toString() {
-		return "My Photo [" + getName() + "]";
+		return getName();
 	}
 
 }

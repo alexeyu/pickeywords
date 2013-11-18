@@ -1,4 +1,4 @@
-package nl.alexeyu.photomate.service.keyword;
+package nl.alexeyu.photomate.service.metadata;
 
 import nl.alexeyu.photomate.model.DefaultPhotoMetaData;
 

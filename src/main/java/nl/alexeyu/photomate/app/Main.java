@@ -24,27 +24,26 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.WindowConstants;
 
-import nl.alexeyu.photomate.api.AbstractPhoto;
 import nl.alexeyu.photomate.api.EditablePhoto;
 import nl.alexeyu.photomate.service.EditablePhotoManager;
+import nl.alexeyu.photomate.service.PhotoNotReadyException;
+import nl.alexeyu.photomate.service.upload.PhotoUploader;
 import nl.alexeyu.photomate.ui.ArchivePhotoSource;
 import nl.alexeyu.photomate.ui.DirChooser;
+import nl.alexeyu.photomate.ui.EditablePhotoMetaDataPanel;
 import nl.alexeyu.photomate.ui.EditablePhotoSource;
 import nl.alexeyu.photomate.ui.ExternalPhotoSourceRegistry;
-import nl.alexeyu.photomate.ui.LocalPhotoMetaDataPanel;
-import nl.alexeyu.photomate.ui.PhotoObserver;
 import nl.alexeyu.photomate.ui.PhotoSource;
 import nl.alexeyu.photomate.ui.ReadonlyPhotoMetaDataPanel;
 import nl.alexeyu.photomate.ui.StockPhotoSource;
 import nl.alexeyu.photomate.ui.UiConstants;
-import nl.alexeyu.photomate.ui.UploadTable;
-import nl.alexeyu.photomate.ui.UploadTableModel;
+import nl.alexeyu.photomate.ui.UploadPanel;
 import nl.alexeyu.photomate.util.ConfigReader;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
-public class Main implements PropertyChangeListener, PhotoObserver<AbstractPhoto> {
+public class Main implements PropertyChangeListener {
 
     private JFrame frame = new JFrame("Your Photo Mate");
     
@@ -53,7 +52,7 @@ public class Main implements PropertyChangeListener, PhotoObserver<AbstractPhoto
 
     private JButton uploadButton = new JButton();
 
-    private LocalPhotoMetaDataPanel photoMetaDataPanel = new LocalPhotoMetaDataPanel();
+    private EditablePhotoMetaDataPanel photoMetaDataPanel = new EditablePhotoMetaDataPanel();
 
     private ReadonlyPhotoMetaDataPanel sourcePhotoMetaDataPanel = new ReadonlyPhotoMetaDataPanel();
     
@@ -72,13 +71,13 @@ public class Main implements PropertyChangeListener, PhotoObserver<AbstractPhoto
     private ArchivePhotoSource archivePhotoSource;
     
     @Inject
-    private UploadTable uploadTable;
-
-    @Inject
     private DirChooser dirChooser;
 
     @Inject
     private ConfigReader configReader;
+    
+    @Inject
+    private PhotoUploader photoUploader;
 
     public void start() {
         photoSourceRegistry.registerPhotoSource(LOCAL_SOURCE, archivePhotoSource);
@@ -99,8 +98,8 @@ public class Main implements PropertyChangeListener, PhotoObserver<AbstractPhoto
         dirChooser.addPropertyChangeListener("dir", this);
         photoMetaDataPanel.addPropertyChangeListener(photoManager);
         sourcePhotoMetaDataPanel.addPropertyChangeListener(photoManager);
-        stockPhotoSource.addPhotoObserver(this);
-        archivePhotoSource.addPhotoObserver(this);
+        stockPhotoSource.addPhotoObserver(sourcePhotoMetaDataPanel);
+        archivePhotoSource.addPhotoObserver(sourcePhotoMetaDataPanel);
     }
 
     private void buildGraphics() {
@@ -164,7 +163,8 @@ public class Main implements PropertyChangeListener, PhotoObserver<AbstractPhoto
         }
         l.actionPerformed(null);
         buttonsPanel.setBorder(BorderFactory.createTitledBorder("Source"));
-        prepareUploadButton();
+        uploadButton.addActionListener(new UploadStarter());
+
         buttonsPanel.add(uploadButton, BorderLayout.SOUTH);
         centerPanel.add(buttonsPanel, BorderLayout.CENTER);
         
@@ -173,51 +173,34 @@ public class Main implements PropertyChangeListener, PhotoObserver<AbstractPhoto
         return p;
     }
     
-    private void prepareUploadButton() {
-        uploadButton.addActionListener(new ActionListener() {
-
-            public void actionPerformed(ActionEvent e) {
-                if (photoManager.validatePhotos()) {
-                    UploadTableModel tableModel = new UploadTableModel(photoManager.getPhotos(), configReader.getPhotoStocks());
-                    uploadTable.setModel(tableModel);
-                    JComponent uploadPanel = new JScrollPane(uploadTable);
-                    frame.getContentPane().removeAll();
-                    frame.getContentPane().add(uploadPanel);
-                    frame.revalidate();
-                    frame.repaint();
-                    photoManager.uploadPhotos();
-                } else {
-                    JOptionPane.showMessageDialog(frame,
-                            "Cannot upload: there're unloaded photos or photos without tags.");
-                }
-            }
-        });
-        refreshUploadButton();
-    }
-
     @Override
     public void propertyChange(PropertyChangeEvent e) {
         File dir = (File) e.getNewValue();
         if (dir != null && dir.exists()) {
             List<EditablePhoto> photos = photoManager.createPhotos(dir);
             editablePhotoSource.setPhotos(photos);
-            refreshUploadButton();
+            uploadButton.setText("Upload [" + photos.size() + "]");
         }
     }
 
-    @Override
-    public void photoSelected(AbstractPhoto photo) {
-        sourcePhotoMetaDataPanel.setPhoto(photo);
-    }
+    private class UploadStarter implements ActionListener {
 
-    private void refreshUploadButton() {
-        if (photoManager.getPhotos().size() > 0) {
-            uploadButton.setText(">> [" + photoManager.getPhotos().size() + "]");
-            uploadButton.setEnabled(true);
-        } else {
-            uploadButton.setText("The photos are not ready yet");
-            uploadButton.setEnabled(false);
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            try {
+                List<EditablePhoto> photos = photoManager.validatePhotos();
+                UploadPanel uploadPanel = new UploadPanel(photos, configReader.getPhotoStocks());
+                frame.getContentPane().removeAll();
+                frame.getContentPane().add(new JScrollPane(uploadPanel));
+                frame.revalidate();
+                frame.repaint();
+                photoUploader.uploadPhotos(photos, uploadPanel);
+            } catch (PhotoNotReadyException ex) {
+                JOptionPane.showMessageDialog(frame, "Cannot upload photos: " + ex.getPhotos());
+                
+            }
         }
+        
     }
 
     public static void main(String[] args) throws Exception {

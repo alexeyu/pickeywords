@@ -2,22 +2,18 @@ package nl.alexeyu.photomate.service;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 
-import nl.alexeyu.photomate.api.LocalPhoto;
+import nl.alexeyu.photomate.api.EditablePhoto;
 
 import org.apache.commons.io.FileUtils;
 
 public class ArchivePhotoTask implements PrioritizedTask, Runnable {
 	
-	private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyy-MM-dd");
-	
-	private final LocalPhoto photo;
+	private final EditablePhoto photo;
 	
 	private final File directory;
 
-	public ArchivePhotoTask(LocalPhoto photo, File directory) {
+	public ArchivePhotoTask(EditablePhoto photo, File directory) {
 		this.photo = photo;
 		this.directory = directory;
 	}
@@ -25,14 +21,12 @@ public class ArchivePhotoTask implements PrioritizedTask, Runnable {
 	@Override
 	public void run() {
 		directory.mkdir();
-//		String subdirName = DATE_FORMAT.format(photo.getFile().lastModified());
-//		File subdir = new File(directory, subdirName);
-//		subdir.mkdir();
-		try {
-			FileUtils.copyFile(photo.getFile(), new File(directory, photo.getName()), true);
-		} catch (IOException ex) {
-			ex.printStackTrace();
-		}
+//		try {
+		    File file = photo.getFile();
+//			FileUtils.copyFile(file, new File(directory, file.getName()), true);
+//		} catch (IOException ex) {
+//			ex.printStackTrace();
+//		}
 	}
 
 	@Override
