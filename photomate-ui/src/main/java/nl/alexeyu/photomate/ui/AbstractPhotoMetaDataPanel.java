@@ -64,9 +64,7 @@ public abstract class AbstractPhotoMetaDataPanel<P extends AbstractPhoto>
         descriptionEditor.setText(isNull(photo) ? "" : photo.getMetaData().getDescription());
         DefaultListModel<String> listModel = new DefaultListModel<>();
         if (!isNull(photo)) {
-            for (String keyword : getKeywords()) {
-                listModel.addElement(keyword);
-            }
+        	getKeywords().forEach(keyword -> listModel.addElement(keyword));
         }
         keywordList.setModel(listModel);
 	}
@@ -80,10 +78,9 @@ public abstract class AbstractPhotoMetaDataPanel<P extends AbstractPhoto>
         }
     }
 
-    private String[] getKeywords() {
-        List<String> keywords = photo.getMetaData().getKeywords();
-        return keywords.toArray(new String[keywords.size()]);
-	}
+    private List<String> getKeywords() {
+        return photo.getMetaData().getKeywords();
+    }
 	
 	private boolean isNull(Photo photo) {
 	    return photo == null || photo.getMetaData() == null;

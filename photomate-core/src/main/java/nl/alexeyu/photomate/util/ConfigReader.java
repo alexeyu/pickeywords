@@ -4,11 +4,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.inject.Singleton;
 
@@ -48,14 +47,12 @@ public class ConfigReader {
 	}
 
 	private List<PhotoStock> readPhotoStocks() {
-		List<PhotoStock> photoStocks = new ArrayList<PhotoStock>();
-		for (String prop : properties.stringPropertyNames()) {
-			Matcher matcher = PHOTO_STOCK_NAME.matcher(prop);
-			if (matcher.matches() && !prop.startsWith("#")) {
-				photoStocks.add(readPhotoStock(matcher.group(1)));
-			}
-		}
-		return photoStocks;
+		return properties.stringPropertyNames().stream()
+				.filter(prop -> !prop.startsWith("#"))
+				.map(prop -> PHOTO_STOCK_NAME.matcher(prop))
+				.filter(matcher -> matcher.matches())
+				.map(matcher -> readPhotoStock(matcher.group(1)))
+				.collect(Collectors.toList());
 	}
 
 	private PhotoStock readPhotoStock(String key) {

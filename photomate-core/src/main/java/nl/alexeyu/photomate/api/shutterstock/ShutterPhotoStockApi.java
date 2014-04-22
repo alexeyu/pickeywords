@@ -2,11 +2,11 @@ package nl.alexeyu.photomate.api.shutterstock;
 
 import java.io.IOException;
 import java.net.URLEncoder;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.swing.ImageIcon;
@@ -81,11 +81,9 @@ public class ShutterPhotoStockApi implements PhotoApi<RemotePhoto>, PhotoStockAp
     public List<RemotePhoto> search(String keywords) {
         String requestUri = String.format(QUERY_TEMPLATE, BASE_URI, encode(keywords), resultsPerPage);
         ShutterSearchResult searchResult = doRequest(requestUri, new JsonResponseHandler<>(ShutterSearchResult.class));
-        List<RemotePhoto> photos = new ArrayList<>();
-        for (ShutterPhotoDescription photoDescr : searchResult.getPhotoDescriptions()) {
-            photos.add(photoFactory.createRemotePhoto(photoDescr.getUrl(), photoDescr.getThumbailUrl(), this));
-        }
-        return photos;
+        return searchResult.getPhotoDescriptions().stream()
+        		.map(descr -> photoFactory.createRemotePhoto(descr.getUrl(), descr.getThumbailUrl(), this))
+        		.collect(Collectors.toList());
     }
     
     private String encode(String keywords) {

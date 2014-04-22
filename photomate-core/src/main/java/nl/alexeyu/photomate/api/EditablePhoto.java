@@ -5,9 +5,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.swing.ImageIcon;
 
-import nl.alexeyu.photomate.model.UploadablePhoto;
-
-public class EditablePhoto extends LocalPhoto implements UploadablePhoto {
+public class EditablePhoto extends LocalPhoto {
     
     public static final String PREVIEW_PROPERTY = "preview";
 
@@ -17,7 +15,6 @@ public class EditablePhoto extends LocalPhoto implements UploadablePhoto {
         super(file);
     }
 
-    @Override
     public boolean isReadyToUpload() {
         return getThumbnail() != null && getMetaData() != null && getMetaData().isComplete();
     }

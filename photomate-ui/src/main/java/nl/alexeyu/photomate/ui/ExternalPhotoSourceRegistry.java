@@ -4,13 +4,13 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import nl.alexeyu.photomate.ui.PhotoSource;
+import nl.alexeyu.photomate.ui.PhotoContainer;
 
 public class ExternalPhotoSourceRegistry {
     
-    private final Map<String, PhotoSource<?>> photoSources = new LinkedHashMap<>();
+    private final Map<String, PhotoContainer<?>> photoSources = new LinkedHashMap<>();
     
-    public void registerPhotoSource(String name, PhotoSource<?> photoSource) {
+    public void registerPhotoSource(String name, PhotoContainer<?> photoSource) {
         photoSources.put(name, photoSource);
     }
     
@@ -18,7 +18,7 @@ public class ExternalPhotoSourceRegistry {
         return photoSources.keySet();
     }
 
-    public PhotoSource<?> getPhotoSource(String name) {
+    public PhotoContainer<?> getPhotoSource(String name) {
         return photoSources.get(name);
     }
 }

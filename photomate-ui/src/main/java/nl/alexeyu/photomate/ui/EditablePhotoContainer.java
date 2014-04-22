@@ -10,14 +10,13 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 
 import nl.alexeyu.photomate.api.EditablePhoto;
-import nl.alexeyu.photomate.api.LocalPhoto;
 import nl.alexeyu.photomate.service.PhotoObserver;
 
-public class EditablePhotoSource extends PhotoSource<EditablePhoto> implements PropertyChangeListener, PhotoObserver<EditablePhoto> {
+public class EditablePhotoContainer extends PhotoContainer<EditablePhoto> implements PropertyChangeListener, PhotoObserver<EditablePhoto> {
     
 	private JLabel photoPreview = new JLabel();
 	
-	public EditablePhotoSource() {
+	public EditablePhotoContainer() {
 	    super(1);
 	    photoTable.addObserver(this);
         photoPreview.setPreferredSize(PREVIEW_SIZE);
@@ -29,9 +28,7 @@ public class EditablePhotoSource extends PhotoSource<EditablePhoto> implements P
 	}
 	
     public void setPhotos(List<EditablePhoto> photos) {
-	    for (LocalPhoto photo : photos) {
-	        photo.addPropertyChangeListener(this);
-	    }
+    	photos.forEach(photo -> photo.addPropertyChangeListener(this));
 	    photoTable.setPhotos(photos);
 	    if (photos.size() > 0) {
 	        photoTable.getSelectionModel().setSelectionInterval(0, 0);

@@ -10,7 +10,7 @@ import nl.alexeyu.photomate.api.RemotePhoto;
 
 import com.google.inject.Inject;
 
-public class StockPhotoSource extends PhotoSource<RemotePhoto> implements PropertyChangeListener {
+public class StockPhotoContainer extends PhotoContainer<RemotePhoto> implements PropertyChangeListener {
     
     private static final int COLUMN_COUNT = 4;
     
@@ -21,12 +21,12 @@ public class StockPhotoSource extends PhotoSource<RemotePhoto> implements Proper
     @Inject
     private PhotoStockApi photoStockApi;
     
-    public StockPhotoSource() {
+    public StockPhotoContainer() {
         super(COLUMN_COUNT);
-        panel.setBorder(UiConstants.EMPTY_BORDER);
+        setBorder(UiConstants.EMPTY_BORDER);
         keywordsToSearch = new HintedTextField("Search by:", KEYWORD_SEARCH);
         keywordsToSearch.addPropertyChangeListener(this);
-        panel.add(keywordsToSearch, BorderLayout.NORTH);
+        add(keywordsToSearch, BorderLayout.NORTH);
     }
     
     @Override

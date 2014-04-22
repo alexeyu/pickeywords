@@ -72,9 +72,7 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
     }
 
     public void setPhotos(List<P> photos) {
-        for (P photo : photos) {
-            photo.addPropertyChangeListener(this);
-        }
+    	photos.forEach(photo -> photo.addPropertyChangeListener(this));
         final StockPhotoTableModel model = new StockPhotoTableModel(photos); 
         setModel(model);
         if (photos.size() > 0 && photos.get(0) instanceof ArchivePhoto) {
@@ -119,9 +117,7 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
         @Override
         public void valueChanged(ListSelectionEvent e) {
             P photo = getSelectedPhoto();
-            for (PhotoObserver<? super P> observer : observers) {
-                observer.photoSelected(photo);
-            }
+            observers.forEach((observer) -> observer.photoSelected(photo));
         }
         
     }

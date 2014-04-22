@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.inject.Singleton;
 
@@ -121,11 +122,10 @@ public class ExifPhotoMetadataProcessor implements PhotoMetadataProcessor {
     }
     
     private List<String> toArgs(Collection<String> keywords, boolean add) {
-        List<String> result = new ArrayList<String>(keywords.size());
-        for (String kw : keywords) {
-            result.add((add ? ADD_KEYWORD_COMMAND : REMOVE_KEYWORD_COMMAND) + kw.trim());
-        }
-        return result;
+    	String command = add ? ADD_KEYWORD_COMMAND : REMOVE_KEYWORD_COMMAND;
+        return keywords.stream()
+        		.map(kw -> command + kw.trim())
+        		.collect(Collectors.toList());
     }
 
     private String execExif(String path, String... args) {

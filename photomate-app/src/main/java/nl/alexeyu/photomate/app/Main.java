@@ -29,14 +29,14 @@ import nl.alexeyu.photomate.api.EditablePhoto;
 import nl.alexeyu.photomate.service.EditablePhotoManager;
 import nl.alexeyu.photomate.service.PhotoNotReadyException;
 import nl.alexeyu.photomate.service.upload.PhotoUploader;
-import nl.alexeyu.photomate.ui.ArchivePhotoSource;
+import nl.alexeyu.photomate.ui.ArchivePhotoContainer;
 import nl.alexeyu.photomate.ui.DirChooser;
+import nl.alexeyu.photomate.ui.EditablePhotoContainer;
 import nl.alexeyu.photomate.ui.EditablePhotoMetaDataPanel;
-import nl.alexeyu.photomate.ui.EditablePhotoSource;
 import nl.alexeyu.photomate.ui.ExternalPhotoSourceRegistry;
-import nl.alexeyu.photomate.ui.PhotoSource;
+import nl.alexeyu.photomate.ui.PhotoContainer;
 import nl.alexeyu.photomate.ui.ReadonlyPhotoMetaDataPanel;
-import nl.alexeyu.photomate.ui.StockPhotoSource;
+import nl.alexeyu.photomate.ui.StockPhotoContainer;
 import nl.alexeyu.photomate.ui.UiConstants;
 import nl.alexeyu.photomate.ui.UploadPanel;
 import nl.alexeyu.photomate.util.ConfigReader;
@@ -63,13 +63,13 @@ public class Main implements PropertyChangeListener {
     private EditablePhotoManager photoManager;
 
     @Inject
-    private EditablePhotoSource editablePhotoSource;
+    private EditablePhotoContainer editablePhotoContainer;
 
     @Inject
-    private StockPhotoSource stockPhotoSource;
+    private StockPhotoContainer stockPhotoContainer;
 
     @Inject
-    private ArchivePhotoSource archivePhotoSource;
+    private ArchivePhotoContainer archivePhotoContainer;
     
     @Inject
     private DirChooser dirChooser;
@@ -81,8 +81,8 @@ public class Main implements PropertyChangeListener {
     private PhotoUploader photoUploader;
 
     public void start() {
-        photoSourceRegistry.registerPhotoSource(LOCAL_SOURCE, archivePhotoSource);
-        photoSourceRegistry.registerPhotoSource(SHUTTERSTOCK_SOURCE, stockPhotoSource);
+        photoSourceRegistry.registerPhotoSource(LOCAL_SOURCE, archivePhotoContainer);
+        photoSourceRegistry.registerPhotoSource(SHUTTERSTOCK_SOURCE, stockPhotoContainer);
         
         initListeners();
         buildGraphics();
@@ -94,13 +94,13 @@ public class Main implements PropertyChangeListener {
     }
     
     private void initListeners() {
-        editablePhotoSource.addPhotoObserver(photoMetaDataPanel);
-        editablePhotoSource.addPhotoObserver(photoManager);
+        editablePhotoContainer.addPhotoObserver(photoMetaDataPanel);
+        editablePhotoContainer.addPhotoObserver(photoManager);
         dirChooser.addPropertyChangeListener("dir", this);
         photoMetaDataPanel.addPropertyChangeListener(photoManager);
         sourcePhotoMetaDataPanel.addPropertyChangeListener(photoManager);
-        stockPhotoSource.addPhotoObserver(sourcePhotoMetaDataPanel);
-        archivePhotoSource.addPhotoObserver(sourcePhotoMetaDataPanel);
+        stockPhotoContainer.addPhotoObserver(sourcePhotoMetaDataPanel);
+        archivePhotoContainer.addPhotoObserver(sourcePhotoMetaDataPanel);
     }
 
     private void buildGraphics() {
@@ -116,14 +116,14 @@ public class Main implements PropertyChangeListener {
     private JComponent prepareLocalPhotosPanel() {
         JPanel p = new JPanel(new BorderLayout());
         p.add(dirChooser, BorderLayout.NORTH);
-        p.add(editablePhotoSource.getComponent(), BorderLayout.CENTER);
+        p.add(editablePhotoContainer, BorderLayout.CENTER);
         return p;
     }
     
     private JComponent prepareCurrentPhotoPanel() {
         JPanel p = new JPanel(new BorderLayout());
         p.setBorder(UiConstants.EMPTY_BORDER);
-        p.add(editablePhotoSource.getPreview(), BorderLayout.NORTH);
+        p.add(editablePhotoContainer.getPreview(), BorderLayout.NORTH);
         p.add(photoMetaDataPanel, BorderLayout.CENTER);
         return p;
     }
@@ -141,8 +141,8 @@ public class Main implements PropertyChangeListener {
             public void actionPerformed(ActionEvent e) {
                 String sourceName = bgroup.getSelection().getActionCommand();
                 sourcesLayout.show(sourcesPanel, sourceName);
-                PhotoSource<?> photoSource = photoSourceRegistry.getPhotoSource(sourceName);
-                sourcePhotoMetaDataPanel.setPhoto(photoSource.getSelectedPhoto());
+                PhotoContainer<?> photoContainer = photoSourceRegistry.getPhotoSource(sourceName);
+                sourcePhotoMetaDataPanel.setPhoto(photoContainer.getSelectedPhoto());
             }
         };
 
@@ -154,8 +154,8 @@ public class Main implements PropertyChangeListener {
         buttonsPanel.add(new JLabel("Source:"));
         buttonsPanel.add(Box.createVerticalStrut(5));
         for (String sourceName : photoSourceRegistry.getSourceNames()) {
-            sourcesPanel.add(photoSourceRegistry.getPhotoSource(sourceName).getComponent(), sourceName);
-            sourcesPanel.add(archivePhotoSource.getComponent(), LOCAL_SOURCE);
+            sourcesPanel.add(photoSourceRegistry.getPhotoSource(sourceName), sourceName);
+            sourcesPanel.add(archivePhotoContainer, LOCAL_SOURCE);
             JRadioButton rb = new JRadioButton(sourceName);
             rb.setActionCommand(sourceName);
             rb.addActionListener(l);
@@ -182,7 +182,7 @@ public class Main implements PropertyChangeListener {
         File dir = (File) e.getNewValue();
         if (dir != null && dir.exists()) {
             List<EditablePhoto> photos = photoManager.createPhotos(dir);
-            editablePhotoSource.setPhotos(photos);
+            editablePhotoContainer.setPhotos(photos);
             uploadButton.setText("Upload [" + photos.size() + "]");
         }
     }
