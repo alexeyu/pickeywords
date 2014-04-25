@@ -14,11 +14,7 @@ public class HintedTextField extends JTextField {
 
     private final String propertyName;
 
-    private String oldValue;
-    
-    private boolean saveOnExit = false;
-
-    public HintedTextField(String label, String propertyName) {
+    public HintedTextField(String label, String propertyName, boolean reactOnFocus) {
         setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
         this.propertyName = propertyName;
         setToolTipText(label);
@@ -32,32 +28,22 @@ public class HintedTextField extends JTextField {
             }
         });
 
-        addFocusListener(new FocusAdapter() {
+        if (reactOnFocus) {
+	        addFocusListener(new FocusAdapter() {
 
-            @Override
-            public void focusGained(FocusEvent e) {
-                oldValue = getText();
-            }
-
-            @Override
-            public void focusLost(FocusEvent e) {
-                if (saveOnExit) {
-                    firePropertyChanged();
-                }
-            }
-            
-        });
-    }
-
-    public void setSaveOnExit(boolean saveOnExit) {
-        this.saveOnExit = saveOnExit;
+	            @Override
+	            public void focusLost(FocusEvent e) {
+	            	firePropertyChanged();
+	            }
+	            
+	        });
+        }
     }
 
     private void firePropertyChanged() {
         String value = getText();
-        if (StringUtils.isNotBlank(value) && !value.trim().equals(oldValue)) {
-            HintedTextField.this.firePropertyChange(propertyName, null, value);
-            oldValue = value;
+        if (StringUtils.isNotBlank(value)) {
+            firePropertyChange(propertyName, null, value);
         }
     }
     

@@ -4,6 +4,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -60,6 +61,7 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
     }
     
     @Override
+	@SuppressWarnings("unchecked")
     public void propertyChange(PropertyChangeEvent e) {
         if (currentPhoto == null) {
             return;
@@ -72,7 +74,7 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
             localPhotoApi.updateDescription(currentPhoto, e.getNewValue().toString());
             break;
         case KEYWORDS_PROPERTY:
-            localPhotoApi.updateKeywords(currentPhoto, (List<String>) e.getNewValue());
+            localPhotoApi.updateKeywords(currentPhoto, (Collection<String>) e.getNewValue());
             break;
         }
     }

@@ -4,8 +4,9 @@ import static nl.alexeyu.photomate.service.PrioritizedTask.TaskPriority.LOW;
 import static nl.alexeyu.photomate.service.PrioritizedTask.TaskPriority.MEDIUM;
 
 import java.awt.Image;
-import java.util.List;
+import java.util.Collection;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.inject.Inject;
 import javax.swing.ImageIcon;
@@ -28,29 +29,32 @@ public class LocalPhotoApi implements PhotoApi<LocalPhoto> {
     private PhotoMetadataProcessor metadataProcessor;
 
     @Inject
-    private ExecutorService executor;
+    private ExecutorService commonExecutor;
+    
+    // Updates should be serial per photo. Although for simplicity it is OK to make them wholly serial.
+    private ExecutorService updateExecutor = Executors.newSingleThreadExecutor(); 
     
     @Inject 
     private ThumbnailProvider thumbnailProvider;
 
     @Override
     public void provideThumbnail(LocalPhoto photo) {
-        executor.execute(new ThumbnailingTask(photo));
+    	commonExecutor.execute(new ThumbnailingTask(photo));
     }
 
     @Override
     public void provideMetadata(LocalPhoto photo) {
-        executor.execute(new ReadMetadataTask(photo));
+    	commonExecutor.execute(new ReadMetadataTask(photo));
     }
 
-    public void updateKeywords(LocalPhoto photo, List<String> keywords) {
+    public void updateKeywords(LocalPhoto photo, Collection<String> keywords) {
         PhotoMetaData old = photo.getMetaData();
         PhotoMetaData metaData = new DefaultPhotoMetaData(
                 old.getCaption(), 
                 old.getDescription(), 
                 old.getCreator(), 
                 keywords);
-        executor.execute(new UpdateMetaDataTask(photo, metaData));
+        updateExecutor.execute(new UpdateMetaDataTask(photo, metaData));
     }
 
     public void updateCaption(LocalPhoto photo, String caption) {
@@ -60,7 +64,7 @@ public class LocalPhotoApi implements PhotoApi<LocalPhoto> {
                 old.getDescription(), 
                 old.getCreator(), 
                 old.getKeywords());
-        executor.execute(new UpdateMetaDataTask(photo, metaData));
+        updateExecutor.execute(new UpdateMetaDataTask(photo, metaData));
     }
 
     public void updateDescription(LocalPhoto photo, String description) {
@@ -70,7 +74,7 @@ public class LocalPhotoApi implements PhotoApi<LocalPhoto> {
                 description, 
                 old.getCreator(), 
                 old.getKeywords());
-        executor.execute(new UpdateMetaDataTask(photo, metaData));
+        updateExecutor.execute(new UpdateMetaDataTask(photo, metaData));
     }
 
     public void updateCreator(LocalPhoto photo, String creator) {
@@ -80,7 +84,7 @@ public class LocalPhotoApi implements PhotoApi<LocalPhoto> {
                 old.getDescription(), 
                 creator, 
                 old.getKeywords());
-        executor.execute(new UpdateMetaDataTask(photo, metaData));
+        updateExecutor.execute(new UpdateMetaDataTask(photo, metaData));
     }
 
     private class ThumbnailingTask implements PrioritizedTask, Runnable {
@@ -147,7 +151,7 @@ public class LocalPhotoApi implements PhotoApi<LocalPhoto> {
         }
         
         @Override
-        protected DefaultPhotoMetaData processMetaData() {
+        protected PhotoMetaData processMetaData() {
             return metadataProcessor.read(photo.getFile().getAbsolutePath());
         }
 

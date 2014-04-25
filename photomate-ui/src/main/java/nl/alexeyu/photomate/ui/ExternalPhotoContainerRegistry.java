@@ -6,7 +6,7 @@ import java.util.Map;
 
 import nl.alexeyu.photomate.ui.PhotoContainer;
 
-public class ExternalPhotoSourceRegistry {
+public class ExternalPhotoContainerRegistry {
     
     private final Map<String, PhotoContainer<?>> photoSources = new LinkedHashMap<>();
     

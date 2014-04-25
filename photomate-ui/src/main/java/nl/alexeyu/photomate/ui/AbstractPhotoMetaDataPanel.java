@@ -7,7 +7,7 @@ import static nl.alexeyu.photomate.ui.UiConstants.BORDER_WIDTH;
 import java.awt.BorderLayout;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.List;
+import java.util.Collection;
 
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
@@ -35,11 +35,9 @@ public abstract class AbstractPhotoMetaDataPanel<P extends AbstractPhoto>
 	    JPanel editorPanel = new JPanel();
 	    editorPanel.setLayout(new BoxLayout(editorPanel, BoxLayout.Y_AXIS));
 
-	    captionEditor = new HintedTextField("Caption", CAPTION_PROPERTY);
-	    captionEditor.setSaveOnExit(true);
+	    captionEditor = new HintedTextField("Caption", CAPTION_PROPERTY, true);
 	    editorPanel.add(captionEditor);
-		descriptionEditor = new HintedTextField("Description", DESCRIPTION_PROPERTY);
-		descriptionEditor.setSaveOnExit(true);
+		descriptionEditor = new HintedTextField("Description", DESCRIPTION_PROPERTY, true);
 		editorPanel.add(descriptionEditor);
 
 		add(editorPanel, BorderLayout.NORTH);
@@ -77,8 +75,8 @@ public abstract class AbstractPhotoMetaDataPanel<P extends AbstractPhoto>
             firePropertyChange(e.getPropertyName(), null, e.getNewValue());
         }
     }
-
-    private List<String> getKeywords() {
+    
+    private Collection<String> getKeywords() {
         return photo.getMetaData().getKeywords();
     }
 	

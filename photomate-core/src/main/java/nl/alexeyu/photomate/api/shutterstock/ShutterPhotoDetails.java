@@ -1,13 +1,11 @@
 package nl.alexeyu.photomate.api.shutterstock;
 
-import java.io.File;
 import java.util.List;
 
 import nl.alexeyu.photomate.model.PhotoMetaData;
 
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.map.ObjectMapper;
 
 /*{
    "illustration":1,
@@ -100,7 +98,4 @@ public class ShutterPhotoDetails implements PhotoMetaData {
         return true;
     }
 
-    public static void main(String[] args) throws Exception {
-        System.out.println(new ObjectMapper().readValue(new File("/home/lesha/img.json"), ShutterPhotoDetails.class).getKeywords());
-    }
 }

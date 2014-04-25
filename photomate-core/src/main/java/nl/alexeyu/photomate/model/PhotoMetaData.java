@@ -1,6 +1,7 @@
 package nl.alexeyu.photomate.model;
 
-import java.util.List;
+import java.util.Collection;
+
 
 public interface PhotoMetaData {
     
@@ -14,7 +15,7 @@ public interface PhotoMetaData {
     
     String getCreator();
 
-    List<String> getKeywords();
+    Collection<String> getKeywords();
     
     boolean isComplete();
 

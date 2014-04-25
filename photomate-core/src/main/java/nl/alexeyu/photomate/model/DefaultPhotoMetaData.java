@@ -1,6 +1,6 @@
 package nl.alexeyu.photomate.model;
 
-import java.util.List;
+import java.util.Collection;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -12,9 +12,9 @@ public class DefaultPhotoMetaData implements PhotoMetaData {
     
     private String creator;
     
-    private List<String> keywords;
+    private Collection<String> keywords;
     
-    public DefaultPhotoMetaData(String name, String description,String creator, List<String> keywords) {
+    public DefaultPhotoMetaData(String name, String description,String creator, Collection<String> keywords) {
         this.name = name;
         this.description = description;
         this.keywords = keywords;
@@ -32,7 +32,7 @@ public class DefaultPhotoMetaData implements PhotoMetaData {
     }
 
     @Override
-    public List<String> getKeywords() {
+    public Collection<String> getKeywords() {
         return keywords;
     }
     

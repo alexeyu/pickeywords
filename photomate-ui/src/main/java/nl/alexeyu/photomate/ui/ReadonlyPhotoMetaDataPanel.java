@@ -1,5 +1,6 @@
 package nl.alexeyu.photomate.ui;
 
+import java.awt.dnd.DropTarget;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
@@ -10,8 +11,8 @@ import nl.alexeyu.photomate.api.AbstractPhoto;
 import nl.alexeyu.photomate.model.PhotoMetaData;
 
 public class ReadonlyPhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<AbstractPhoto> {
-    
-	public ReadonlyPhotoMetaDataPanel() {
+	
+	public ReadonlyPhotoMetaDataPanel(DropTarget dropTarget) {
 	    captionEditor.setEditable(false);
 	    captionEditor.addMouseListener(new MouseAdapter() {
             @Override
@@ -31,7 +32,8 @@ public class ReadonlyPhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<Abstr
             }
 	    });
 
-	    keywordList.setEnabled(false);
+	    keywordList.setDragEnabled(true);
+	    keywordList.setDropTarget(dropTarget);
         keywordList.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -43,7 +45,7 @@ public class ReadonlyPhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<Abstr
                 }
             }
         });
-	    
+        
 	}
 	
 }

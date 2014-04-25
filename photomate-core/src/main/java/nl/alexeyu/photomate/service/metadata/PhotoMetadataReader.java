@@ -1,9 +1,9 @@
 package nl.alexeyu.photomate.service.metadata;
 
-import nl.alexeyu.photomate.model.DefaultPhotoMetaData;
+import nl.alexeyu.photomate.model.PhotoMetaData;
 
 public interface PhotoMetadataReader {
 
-	DefaultPhotoMetaData read(String photoUrl);
+	PhotoMetaData read(String photoUrl);
 	
 }
