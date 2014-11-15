@@ -4,16 +4,15 @@ import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 
 import javax.imageio.ImageIO;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.imgscalr.Scalr;
+
+import com.google.common.io.Files;
 
 public class ImgscalrThumbnailProvider implements ThumbnailProvider {
 	
@@ -26,32 +25,30 @@ public class ImgscalrThumbnailProvider implements ThumbnailProvider {
 	}
 	
 	@Override
-    public Pair<Image, Image> getThumbnails(File photoFile, boolean generatePreview) {
+    public Thumbnails getThumbnails(Path photoFile, boolean generatePreview) {
         try {
-        	byte[] content = FileUtils.readFileToByteArray(photoFile);
+        	byte[] content = Files.toByteArray(photoFile.toFile());
         	InputStream is = new ByteArrayInputStream(content);
         	BufferedImage source;
         	synchronized (this) {
         		source = ImageIO.read(is);
         	}
-        	boolean portrait = source.getHeight() > source.getWidth();
-        	Scalr.Mode fitMode = portrait ? Scalr.Mode.FIT_TO_HEIGHT : Scalr.Mode.FIT_TO_WIDTH; 
-            Image thumbnail = Scalr.resize(source, 
-                    Scalr.Method.SPEED, 
-                    fitMode, 
-                    thumbnailSize.width, 
-                    thumbnailSize.height);
-            Image preview = generatePreview 
-                    ? Scalr.resize(source, 
-                        Scalr.Method.SPEED, 
-                        fitMode, 
-                        previewSize.width, 
-                        previewSize.height)
-                    : null;
-            return new ImmutablePair<Image, Image>(thumbnail, preview);
+            Image thumbnail = scale(source, thumbnailSize);
+            Image preview = generatePreview ? scale(source, previewSize) : null;
+            return new Thumbnails(thumbnail, preview);
         } catch (IOException ex) {
             throw new IllegalStateException("Could not read image " + photoFile, ex);
         }
+	}
+	
+	private Image scale(BufferedImage source, Dimension size) {
+    	boolean portrait = source.getHeight() > source.getWidth();
+    	Scalr.Mode fitMode = portrait ? Scalr.Mode.FIT_TO_HEIGHT : Scalr.Mode.FIT_TO_WIDTH; 
+		return Scalr.resize(source, 
+				Scalr.Method.SPEED, 
+                fitMode, 
+                size.width, 
+                size.height);
 	}
 
 	

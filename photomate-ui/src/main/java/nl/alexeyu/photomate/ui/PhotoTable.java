@@ -21,7 +21,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 
 import nl.alexeyu.photomate.api.AbstractPhoto;
-import nl.alexeyu.photomate.api.ArchivePhoto;
+import nl.alexeyu.photomate.api.archive.ArchivePhoto;
 import nl.alexeyu.photomate.service.PhotoObserver;
 
 public class PhotoTable<P extends AbstractPhoto> extends JTable implements PropertyChangeListener {

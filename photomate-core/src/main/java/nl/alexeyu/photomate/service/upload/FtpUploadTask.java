@@ -1,13 +1,12 @@
 package nl.alexeyu.photomate.service.upload;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.util.Collection;
 
-import nl.alexeyu.photomate.api.EditablePhoto;
+import nl.alexeyu.photomate.api.editable.EditablePhoto;
 import nl.alexeyu.photomate.model.PhotoStock;
 
 import org.apache.commons.net.ftp.FTP;
@@ -63,11 +62,10 @@ public class FtpUploadTask extends AbstractUploadTask implements CopyStreamListe
 
 	public void run() {
 		notifyProgress(0);
-		File file = photo.getFile();
-		try (InputStream is = new FileInputStream(file)) {
+		try (InputStream is = Files.newInputStream(photo.getPath())) {
 			init();
 			client.setFileType(FTP.BINARY_FILE_TYPE);
-			long fileSize = file.length();
+			long fileSize = photo.getPath().toFile().length();
 			try (OutputStream os = client.storeFileStream(photo.getName())) {
 				if (os == null) {
 					throw new IllegalStateException("Could not create file on a remote server");

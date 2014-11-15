@@ -6,7 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.swing.table.AbstractTableModel;
 
-import nl.alexeyu.photomate.api.EditablePhoto;
+import nl.alexeyu.photomate.api.editable.EditablePhoto;
 import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.model.PhotoStock;
 

@@ -3,6 +3,7 @@ package nl.alexeyu.photomate.api.shutterstock;
 import java.util.List;
 
 import nl.alexeyu.photomate.model.PhotoMetaData;
+import nl.alexeyu.photomate.model.PhotoProperty;
 
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
@@ -76,26 +77,28 @@ public class ShutterPhotoDetails implements PhotoMetaData {
     @JsonProperty("description")
     private String description;
 
+    @Override
     public List<String> getKeywords() {
         return keywords;
     }
     
+    @Override
     public String getCaption() {
         return description;
     }
 
+    @Override
     public String getDescription() {
         return description;
     }
     
     @Override
-    public String getCreator() {
-        return "";
-    }
-
-    @Override
-    public boolean isComplete() {
-        return true;
-    }
+	public Object getProperty(PhotoProperty p) {
+    	switch (p) {
+		case DESCRIPTION: return getDescription();
+		case KEYWORDS:    return getKeywords();
+		default:          return "";
+		}
+	}
 
 }

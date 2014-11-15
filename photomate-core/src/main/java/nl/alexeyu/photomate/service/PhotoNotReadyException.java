@@ -2,7 +2,7 @@ package nl.alexeyu.photomate.service;
 
 import java.util.List;
 
-import nl.alexeyu.photomate.api.EditablePhoto;
+import nl.alexeyu.photomate.api.editable.EditablePhoto;
 
 public class PhotoNotReadyException extends Exception {
     

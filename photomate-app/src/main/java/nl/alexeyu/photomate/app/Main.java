@@ -8,7 +8,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -25,7 +27,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.WindowConstants;
 
-import nl.alexeyu.photomate.api.EditablePhoto;
+import nl.alexeyu.photomate.api.editable.EditablePhoto;
 import nl.alexeyu.photomate.service.EditablePhotoManager;
 import nl.alexeyu.photomate.service.PhotoNotReadyException;
 import nl.alexeyu.photomate.service.upload.PhotoUploader;
@@ -180,8 +182,11 @@ public class Main implements PropertyChangeListener {
     
     @Override
     public void propertyChange(PropertyChangeEvent e) {
-        File dir = (File) e.getNewValue();
-        if (dir != null && dir.exists()) {
+    	if (e.getNewValue() == null) {
+    		return;
+    	}
+        Path dir = Paths.get(e.getNewValue().toString());
+        if (Files.exists(dir)) {
             List<EditablePhoto> photos = photoManager.createPhotos(dir);
             editablePhotoContainer.setPhotos(photos);
             uploadButton.setText("Upload [" + photos.size() + "]");

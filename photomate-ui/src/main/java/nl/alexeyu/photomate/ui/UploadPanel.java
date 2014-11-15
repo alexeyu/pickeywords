@@ -5,7 +5,7 @@ import java.util.List;
 
 import javax.swing.JPanel;
 
-import nl.alexeyu.photomate.api.EditablePhoto;
+import nl.alexeyu.photomate.api.editable.EditablePhoto;
 import nl.alexeyu.photomate.model.PhotoStock;
 import nl.alexeyu.photomate.service.upload.UploadPhotoListener;
 
@@ -37,7 +37,7 @@ public class UploadPanel extends JPanel implements UploadPhotoListener {
 
     @Override
     public void onProgress(PhotoStock photoStock, EditablePhoto photo, long uploadedBytes) {
-        Integer percent = (int) (uploadedBytes * 100 / photo.getFile().length());
+        Integer percent = (int) (uploadedBytes * 100 / photo.getPath().toFile().length());
         uploadTable.getModel().setStatus(photoStock, photo, percent);
         uploadTable.repaint();
     }

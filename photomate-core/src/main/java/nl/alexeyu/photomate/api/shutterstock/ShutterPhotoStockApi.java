@@ -1,6 +1,7 @@
 package nl.alexeyu.photomate.api.shutterstock;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URLEncoder;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -12,13 +13,11 @@ import javax.inject.Inject;
 import javax.swing.ImageIcon;
 
 import nl.alexeyu.photomate.api.PhotoApi;
-import nl.alexeyu.photomate.api.PhotoFactory;
 import nl.alexeyu.photomate.api.PhotoStockApi;
 import nl.alexeyu.photomate.api.RemotePhoto;
 import nl.alexeyu.photomate.service.PrioritizedTask;
 import nl.alexeyu.photomate.util.ConfigReader;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -37,6 +36,9 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.io.ByteStreams;
+import com.google.common.io.CharStreams;
+
 public class ShutterPhotoStockApi implements PhotoApi<RemotePhoto>, PhotoStockApi {
     
     private static final Logger logger = LoggerFactory.getLogger("ShutterStockPhotoAPI");
@@ -50,9 +52,6 @@ public class ShutterPhotoStockApi implements PhotoApi<RemotePhoto>, PhotoStockAp
     
     @Inject
     private ExecutorService executor;
-    
-    @Inject 
-    private PhotoFactory photoFactory;
     
     private HttpClient client;
     
@@ -82,8 +81,14 @@ public class ShutterPhotoStockApi implements PhotoApi<RemotePhoto>, PhotoStockAp
         String requestUri = String.format(QUERY_TEMPLATE, BASE_URI, encode(keywords), resultsPerPage);
         ShutterSearchResult searchResult = doRequest(requestUri, new JsonResponseHandler<>(ShutterSearchResult.class));
         return searchResult.getPhotoDescriptions().stream()
-        		.map(descr -> photoFactory.createRemotePhoto(descr.getUrl(), descr.getThumbailUrl(), this))
+        		.map(descr -> createRemotePhoto(descr))
         		.collect(Collectors.toList());
+    }
+    
+    private RemotePhoto createRemotePhoto(ShutterPhotoDescription descr) {
+        RemotePhoto photo = new RemotePhoto(descr.getUrl(), descr.getThumbailUrl());
+        init(photo);
+        return photo;
     }
     
     private String encode(String keywords) {
@@ -126,7 +131,7 @@ public class ShutterPhotoStockApi implements PhotoApi<RemotePhoto>, PhotoStockAp
         public T handleResponse(HttpResponse response) throws IOException {
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                 HttpEntity entity = response.getEntity();
-                String result = IOUtils.toString(entity.getContent());
+                String result = CharStreams.toString(new InputStreamReader(entity.getContent()));
                 EntityUtils.consume(entity);
                 return objectMapper.readValue(result, clazz);
             } else {
@@ -142,7 +147,7 @@ public class ShutterPhotoStockApi implements PhotoApi<RemotePhoto>, PhotoStockAp
         public ImageIcon handleResponse(HttpResponse response) throws IOException {
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                 HttpEntity entity = response.getEntity();
-                byte[] content = IOUtils.toByteArray(entity.getContent());
+                byte[] content = ByteStreams.toByteArray(entity.getContent());
                 EntityUtils.consume(entity);
                 return new ImageIcon(content);
             } else {

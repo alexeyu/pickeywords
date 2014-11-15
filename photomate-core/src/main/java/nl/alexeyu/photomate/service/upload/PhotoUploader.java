@@ -1,6 +1,6 @@
 package nl.alexeyu.photomate.service.upload;
 
-import java.io.File;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -10,7 +10,7 @@ import java.util.concurrent.ExecutorService;
 
 import javax.inject.Inject;
 
-import nl.alexeyu.photomate.api.EditablePhoto;
+import nl.alexeyu.photomate.api.editable.EditablePhoto;
 import nl.alexeyu.photomate.model.PhotoStock;
 import nl.alexeyu.photomate.service.ArchivePhotoTask;
 import nl.alexeyu.photomate.util.ConfigReader;
@@ -19,7 +19,7 @@ public class PhotoUploader implements UploadPhotoListener {
 	
 	private static final int ATTEMPTS = 2;
 	
-	private ConcurrentHashMap<EditablePhoto, Boolean> archivedPhotos;
+	private ConcurrentHashMap<EditablePhoto, Boolean> archivedPhotos = new ConcurrentHashMap<>();
 	
 	private String archiveDir;
 	
@@ -33,14 +33,11 @@ public class PhotoUploader implements UploadPhotoListener {
 	
 	public void uploadPhotos(List<EditablePhoto> photos, UploadPhotoListener l) {
 	    listeners.add(l);
-	    archivedPhotos = new ConcurrentHashMap<>();
         archiveDir = configReader.getProperty("archiveFolder", null);
 		List<PhotoStock> photoStocks = configReader.getPhotoStocks();
-		for (EditablePhoto photo : photos) {
-			for (PhotoStock photoStock : photoStocks) {
-				uploadPhoto(photoStock, photo, ATTEMPTS);
-			}
-		}
+		photos.forEach(photo ->
+			photoStocks.forEach(photoStock -> 
+				uploadPhoto(photoStock, photo, ATTEMPTS)));
 	}
 	
 	private void uploadPhoto(PhotoStock photoStock, EditablePhoto photo, int attemptsLeft) {
@@ -61,7 +58,7 @@ public class PhotoUploader implements UploadPhotoListener {
 	public void onSuccess(PhotoStock photoStock, EditablePhoto photo) {
 		if (archivedPhotos.put(photo, Boolean.TRUE) == null) {
 			if (archiveDir != null) {
-			    Runnable archivePhotoTask = new ArchivePhotoTask(photo, new File(archiveDir));
+			    Runnable archivePhotoTask = new ArchivePhotoTask(photo, Paths.get(archiveDir));
 			    taskExecutor.execute(archivePhotoTask);
 			}
 		}

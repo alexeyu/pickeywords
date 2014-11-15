@@ -1,27 +1,33 @@
 package nl.alexeyu.photomate.api;
 
-import static nl.alexeyu.photomate.service.PrioritizedTask.TaskPriority.LOW;
 import static nl.alexeyu.photomate.service.PrioritizedTask.TaskPriority.MEDIUM;
 
-import java.awt.Image;
-import java.util.Collection;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.swing.ImageIcon;
 
 import nl.alexeyu.photomate.model.DefaultPhotoMetaData;
 import nl.alexeyu.photomate.model.PhotoMetaData;
+import nl.alexeyu.photomate.model.PhotoProperty;
 import nl.alexeyu.photomate.service.PrioritizedTask;
 import nl.alexeyu.photomate.service.metadata.PhotoMetadataProcessor;
 import nl.alexeyu.photomate.service.thumbnail.ThumbnailProvider;
+import nl.alexeyu.photomate.service.thumbnail.Thumbnails;
+import nl.alexeyu.photomate.util.ImageUtils;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LocalPhotoApi implements PhotoApi<LocalPhoto> {
+public abstract class LocalPhotoApi<P extends LocalPhoto> implements PhotoApi<P> {
     
     private static final Logger logger = LoggerFactory.getLogger("LocalPhotoAPI");
     
@@ -36,9 +42,24 @@ public class LocalPhotoApi implements PhotoApi<LocalPhoto> {
     
     @Inject 
     private ThumbnailProvider thumbnailProvider;
+    
+    public List<P> createPhotos(Path dir) {
+    	try {
+	    	List<P> photos = Files.list(dir)
+	    			.filter(path -> ImageUtils.isJpeg(path))
+	    			.map(path -> createPhoto(path))
+	    			.collect(Collectors.toList());
+	    	photos.forEach(photo -> init(photo));
+	    	return photos;
+    	} catch (IOException ex) {
+    		throw new IllegalStateException(ex);
+    	}
+    }
 
+    protected abstract P createPhoto(Path path);
+    
     @Override
-    public void provideThumbnail(LocalPhoto photo) {
+    public void provideThumbnail(P photo) {
     	commonExecutor.execute(new ThumbnailingTask(photo));
     }
 
@@ -47,71 +68,39 @@ public class LocalPhotoApi implements PhotoApi<LocalPhoto> {
     	commonExecutor.execute(new ReadMetadataTask(photo));
     }
 
-    public void updateKeywords(LocalPhoto photo, Collection<String> keywords) {
-        PhotoMetaData old = photo.getMetaData();
-        PhotoMetaData metaData = new DefaultPhotoMetaData(
-                old.getCaption(), 
-                old.getDescription(), 
-                old.getCreator(), 
-                keywords);
+    public void updateProperty(LocalPhoto photo, String propertyName, Object propertyValue) {
+        Map<PhotoProperty, Object> newProps = new HashMap<>();
+        for (PhotoProperty pp : PhotoProperty.values()) {
+        	newProps.put(pp, photo.getMetaData().getProperty(pp));
+        }
+        newProps.put(PhotoProperty.of(propertyName), propertyValue);
+        PhotoMetaData metaData = new DefaultPhotoMetaData(newProps);
         updateExecutor.execute(new UpdateMetaDataTask(photo, metaData));
     }
-
-    public void updateCaption(LocalPhoto photo, String caption) {
-        PhotoMetaData old = photo.getMetaData();
-        PhotoMetaData metaData = new DefaultPhotoMetaData(
-                caption, 
-                old.getDescription(), 
-                old.getCreator(), 
-                old.getKeywords());
-        updateExecutor.execute(new UpdateMetaDataTask(photo, metaData));
-    }
-
-    public void updateDescription(LocalPhoto photo, String description) {
-        PhotoMetaData old = photo.getMetaData();
-        PhotoMetaData metaData = new DefaultPhotoMetaData(
-                old.getCaption(), 
-                description, 
-                old.getCreator(), 
-                old.getKeywords());
-        updateExecutor.execute(new UpdateMetaDataTask(photo, metaData));
-    }
-
-    public void updateCreator(LocalPhoto photo, String creator) {
-        PhotoMetaData old = photo.getMetaData();
-        PhotoMetaData metaData = new DefaultPhotoMetaData(
-                old.getCaption(), 
-                old.getDescription(), 
-                creator, 
-                old.getKeywords());
-        updateExecutor.execute(new UpdateMetaDataTask(photo, metaData));
+    
+    protected void setThumbnails(P photo, Thumbnails images) {
+    	photo.setThumbnail(new ImageIcon(images.getThumbnail()));
     }
 
     private class ThumbnailingTask implements PrioritizedTask, Runnable {
 
-        private final LocalPhoto photo;
+        private final P photo;
         
-        private final boolean isPhotoEditable;
-        
-        public ThumbnailingTask(LocalPhoto photo) {
+        public ThumbnailingTask(P photo) {
             this.photo = photo;
-            this.isPhotoEditable = photo instanceof EditablePhoto;
         }
 
         @Override
         public void run() {
             long time = System.currentTimeMillis();
-            Pair<Image, Image> images = thumbnailProvider.getThumbnails(photo.getFile(), isPhotoEditable);
+            Thumbnails images = thumbnailProvider.getThumbnails(photo.getPath(), photo.hasPreview());
             logger.info("" + (System.currentTimeMillis() - time));
-            photo.setThumbnail(new ImageIcon(images.getLeft()));
-            if (isPhotoEditable) {
-                ((EditablePhoto) photo).setPreview(new ImageIcon(images.getRight()));
-            }
+            setThumbnails(photo, images);
         }
 
         @Override
         public TaskPriority getPriority() {
-            return isPhotoEditable ? MEDIUM : LOW;
+            return MEDIUM;
         }
 
 		@Override
@@ -152,7 +141,7 @@ public class LocalPhotoApi implements PhotoApi<LocalPhoto> {
         
         @Override
         protected PhotoMetaData processMetaData() {
-            return metadataProcessor.read(photo.getFile().getAbsolutePath());
+            return metadataProcessor.read(photo.getPath());
         }
 
         @Override
@@ -173,7 +162,7 @@ public class LocalPhotoApi implements PhotoApi<LocalPhoto> {
 
         @Override
         protected PhotoMetaData processMetaData() {
-            metadataProcessor.update(photo.getFile().getAbsolutePath(), photo.getMetaData(), metaData);
+            metadataProcessor.update(photo.getPath(), photo.getMetaData(), metaData);
             return metaData;
         }
 

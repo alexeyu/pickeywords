@@ -20,8 +20,8 @@ import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 
-import nl.alexeyu.photomate.api.ArchivePhoto;
-import nl.alexeyu.photomate.api.EditablePhoto;
+import nl.alexeyu.photomate.api.archive.ArchivePhoto;
+import nl.alexeyu.photomate.api.editable.EditablePhoto;
 import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.model.PhotoMetaData;
 import nl.alexeyu.photomate.util.ImageUtils;

@@ -5,12 +5,11 @@ import java.beans.PropertyChangeListener;
 import java.lang.ref.WeakReference;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.swing.ImageIcon;
-
-import org.apache.commons.lang3.StringUtils;
 
 import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.model.PhotoMetaData;
@@ -28,9 +27,9 @@ public abstract class AbstractPhoto implements Photo {
     protected Map<WeakReference<PropertyChangeListener>, Object> listeners = new ConcurrentHashMap<>();
 
     public void addPropertyChangeListener(PropertyChangeListener listener) {
-        listeners.put(new WeakReference<PropertyChangeListener>(listener), StringUtils.EMPTY);
+        listeners.put(new WeakReference<PropertyChangeListener>(listener), "");
     }
-    
+
     public void removePropertyChangeListener(PropertyChangeListener listener) {
         Iterator<WeakReference<PropertyChangeListener>> it = listeners.keySet().iterator();
         while (it.hasNext()) {
@@ -71,19 +70,12 @@ public abstract class AbstractPhoto implements Photo {
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + getName().hashCode();
-        return result;
+    	return Objects.hash(getName());
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
+        if (!(obj instanceof AbstractPhoto))
             return false;
         Photo other = (Photo) obj;
         return getName().equals(other.getName());

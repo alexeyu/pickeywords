@@ -1,7 +1,5 @@
 package nl.alexeyu.photomate.ui;
 
-import static nl.alexeyu.photomate.model.PhotoMetaData.CAPTION_PROPERTY;
-import static nl.alexeyu.photomate.model.PhotoMetaData.DESCRIPTION_PROPERTY;
 import static nl.alexeyu.photomate.ui.UiConstants.BORDER_WIDTH;
 
 import java.awt.BorderLayout;
@@ -17,6 +15,7 @@ import javax.swing.JScrollPane;
 
 import nl.alexeyu.photomate.api.AbstractPhoto;
 import nl.alexeyu.photomate.model.Photo;
+import nl.alexeyu.photomate.model.PhotoProperty;
 import nl.alexeyu.photomate.service.PhotoObserver;
 
 public abstract class AbstractPhotoMetaDataPanel<P extends AbstractPhoto> 
@@ -35,9 +34,9 @@ public abstract class AbstractPhotoMetaDataPanel<P extends AbstractPhoto>
 	    JPanel editorPanel = new JPanel();
 	    editorPanel.setLayout(new BoxLayout(editorPanel, BoxLayout.Y_AXIS));
 
-	    captionEditor = new HintedTextField("Caption", CAPTION_PROPERTY, true);
+	    captionEditor = new HintedTextField("Caption", PhotoProperty.CAPTION.getPropertyName(), true);
 	    editorPanel.add(captionEditor);
-		descriptionEditor = new HintedTextField("Description", DESCRIPTION_PROPERTY, true);
+		descriptionEditor = new HintedTextField("Description", PhotoProperty.DESCRIPTION.getPropertyName(), true);
 		editorPanel.add(descriptionEditor);
 
 		add(editorPanel, BorderLayout.NORTH);

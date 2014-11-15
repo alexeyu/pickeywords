@@ -1,9 +1,9 @@
 package nl.alexeyu.photomate.ui;
 
 import static java.util.Arrays.asList;
-import static nl.alexeyu.photomate.model.PhotoMetaData.CAPTION_PROPERTY;
-import static nl.alexeyu.photomate.model.PhotoMetaData.DESCRIPTION_PROPERTY;
-import static nl.alexeyu.photomate.model.PhotoMetaData.KEYWORDS_PROPERTY;
+import static nl.alexeyu.photomate.model.PhotoProperty.CAPTION;
+import static nl.alexeyu.photomate.model.PhotoProperty.DESCRIPTION;
+import static nl.alexeyu.photomate.model.PhotoProperty.KEYWORDS;
 
 import java.awt.BorderLayout;
 import java.awt.datatransfer.DataFlavor;
@@ -16,11 +16,9 @@ import java.beans.PropertyChangeEvent;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import nl.alexeyu.photomate.api.EditablePhoto;
-import nl.alexeyu.photomate.model.PhotoMetaData;
-
-import org.apache.commons.collections.ListUtils;
+import nl.alexeyu.photomate.api.editable.EditablePhoto;
 
 public class EditablePhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<EditablePhoto> {
 	
@@ -29,8 +27,8 @@ public class EditablePhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<Edita
     private HintedTextField keywordToAddField;
 	
 	public EditablePhotoMetaDataPanel() {
-	    captionEditor.addPropertyChangeListener(CAPTION_PROPERTY, this);
-		descriptionEditor.addPropertyChangeListener(DESCRIPTION_PROPERTY, this);
+	    captionEditor.addPropertyChangeListener(CAPTION.getPropertyName(), this);
+		descriptionEditor.addPropertyChangeListener(DESCRIPTION.getPropertyName(), this);
 
 		keywordList.addKeyListener(new KeyAdapter() {
             
@@ -41,7 +39,7 @@ public class EditablePhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<Edita
                 }
             }
 		});
-		keywordList.addPropertyChangeListener(KEYWORDS_PROPERTY, this);
+		keywordList.addPropertyChangeListener(KEYWORDS.getPropertyName(), this);
 		
 		keywordToAddField = new HintedTextField("Keyword to add", NEW_KEYWORD_PROPERTY, false);
 		add(keywordToAddField, BorderLayout.SOUTH);
@@ -58,18 +56,19 @@ public class EditablePhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<Edita
         }
     }
     
-    @SuppressWarnings("unchecked")
     private void removeKeywords(List<String> keywords) {
         if (keywords.size() > 0) {
-            List<String> reducedKeywords = ListUtils.removeAll(photo.getMetaData().getKeywords(), keywords);
-            firePropertyChange(KEYWORDS_PROPERTY, photo.getMetaData().getKeywords(), reducedKeywords);
+            List<String> reducedKeywords = photo.getMetaData().getKeywords().stream()
+            		.filter(k -> !keywords.contains(k))
+            		.collect(Collectors.toList());
+            firePropertyChange(KEYWORDS.getPropertyName(), photo.getMetaData().getKeywords(), reducedKeywords);
         }
     }
     
     private void addKeywords(List<String> keywords) {
     	Collection<String> extendedKeywords = new LinkedHashSet<>(photo.getMetaData().getKeywords());
     	extendedKeywords.addAll(keywords);
-        firePropertyChange(PhotoMetaData.KEYWORDS_PROPERTY, photo.getMetaData().getKeywords(), extendedKeywords);
+        firePropertyChange(KEYWORDS.getPropertyName(), photo.getMetaData().getKeywords(), extendedKeywords);
     }
 
     public DropTarget getDropTarget() {

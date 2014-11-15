@@ -1,5 +1,8 @@
 package nl.alexeyu.photomate.ui;
 
+import static nl.alexeyu.photomate.model.PhotoProperty.CAPTION;
+import static nl.alexeyu.photomate.model.PhotoProperty.DESCRIPTION;
+
 import java.awt.dnd.DropTarget;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -8,7 +11,7 @@ import java.util.Arrays;
 import javax.swing.DefaultListModel;
 
 import nl.alexeyu.photomate.api.AbstractPhoto;
-import nl.alexeyu.photomate.model.PhotoMetaData;
+import nl.alexeyu.photomate.model.PhotoProperty;
 
 public class ReadonlyPhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<AbstractPhoto> {
 	
@@ -18,7 +21,7 @@ public class ReadonlyPhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<Abstr
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (photo != null && e.getClickCount() >= 2) {
-                    firePropertyChange(PhotoMetaData.CAPTION_PROPERTY, null, captionEditor.getText());
+                    firePropertyChange(CAPTION.getPropertyName(), null, captionEditor.getText());
                 }
             }
         });
@@ -27,7 +30,7 @@ public class ReadonlyPhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<Abstr
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (photo != null && e.getClickCount() >= 2) {
-                    firePropertyChange(PhotoMetaData.DESCRIPTION_PROPERTY, null, descriptionEditor.getText());
+                    firePropertyChange(DESCRIPTION.getPropertyName(), null, descriptionEditor.getText());
                 }
             }
 	    });
@@ -41,7 +44,7 @@ public class ReadonlyPhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<Abstr
                     DefaultListModel<String> model = (DefaultListModel<String>) keywordList.getModel();
                     String[] values = new String[model.size()];
                     model.copyInto(values);
-                    firePropertyChange(PhotoMetaData.KEYWORDS_PROPERTY, null, Arrays.asList(values));
+                    firePropertyChange(PhotoProperty.KEYWORDS.getPropertyName(), null, Arrays.asList(values));
                 }
             }
         });

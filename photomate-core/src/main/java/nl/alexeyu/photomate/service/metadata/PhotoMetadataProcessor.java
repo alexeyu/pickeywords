@@ -1,9 +1,11 @@
 package nl.alexeyu.photomate.service.metadata;
 
+import java.nio.file.Path;
+
 import nl.alexeyu.photomate.model.PhotoMetaData;
 
 public interface PhotoMetadataProcessor extends PhotoMetadataReader {
 
-    void update(String photoPath, PhotoMetaData oldMetaData, PhotoMetaData newMetaData);
+    void update(Path photoPath, PhotoMetaData oldMetaData, PhotoMetaData newMetaData);
 
 }

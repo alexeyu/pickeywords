@@ -8,7 +8,7 @@ import java.awt.event.KeyEvent;
 import javax.swing.BoxLayout;
 import javax.swing.JTextField;
 
-import org.apache.commons.lang3.StringUtils;
+import com.google.common.base.Strings;
 
 public class HintedTextField extends JTextField {
 
@@ -42,7 +42,7 @@ public class HintedTextField extends JTextField {
 
     private void firePropertyChanged() {
         String value = getText();
-        if (StringUtils.isNotBlank(value)) {
+        if (Strings.nullToEmpty(value).trim().length() > 0) {
             firePropertyChange(propertyName, null, value);
         }
     }

@@ -1,9 +1,12 @@
-package nl.alexeyu.photomate.api;
+package nl.alexeyu.photomate.api.editable;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.swing.ImageIcon;
+
+import nl.alexeyu.photomate.api.LocalPhoto;
+import nl.alexeyu.photomate.model.PhotoMetaData;
 
 public class EditablePhoto extends LocalPhoto {
     
@@ -11,12 +14,20 @@ public class EditablePhoto extends LocalPhoto {
 
     private final AtomicReference<ImageIcon> preview = new AtomicReference<>();
 
-    public EditablePhoto(File file) {
+    public EditablePhoto(Path file) {
         super(file);
     }
 
     public boolean isReadyToUpload() {
-        return getThumbnail() != null && getMetaData() != null && getMetaData().isComplete();
+        if (getThumbnail() == null || getMetaData() == null) {
+        	return false;
+        }
+        PhotoMetaData m = getMetaData();
+		return !m.getDescription().isEmpty()
+				&& !m.getCaption().isEmpty()
+                && m.getKeywords() != null 
+                && m.getKeywords().size() > 0
+                && m.getKeywords().size() <= 50;
     }
 
     public ImageIcon getPreview() {
@@ -29,5 +40,10 @@ public class EditablePhoto extends LocalPhoto {
         }
         firePropertyChanged(PREVIEW_PROPERTY, null, preview);
     }
+
+	@Override
+	public boolean hasPreview() {
+		return true;
+	}
 
 }

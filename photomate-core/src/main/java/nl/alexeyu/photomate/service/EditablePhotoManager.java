@@ -1,25 +1,21 @@
 package nl.alexeyu.photomate.service;
 
+import static nl.alexeyu.photomate.api.AbstractPhoto.METADATA_PROPERTY;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static nl.alexeyu.photomate.api.AbstractPhoto.METADATA_PROPERTY;
-import static nl.alexeyu.photomate.model.PhotoMetaData.CAPTION_PROPERTY;
-import static nl.alexeyu.photomate.model.PhotoMetaData.DESCRIPTION_PROPERTY;
-import static nl.alexeyu.photomate.model.PhotoMetaData.KEYWORDS_PROPERTY;
-
 import javax.inject.Inject;
 
-import nl.alexeyu.photomate.api.EditablePhoto;
 import nl.alexeyu.photomate.api.LocalPhoto;
-import nl.alexeyu.photomate.api.LocalPhotoApi;
-import nl.alexeyu.photomate.api.PhotoFactory;
+import nl.alexeyu.photomate.api.editable.EditablePhoto;
+import nl.alexeyu.photomate.api.editable.EditablePhotoApi;
+import nl.alexeyu.photomate.model.PhotoProperty;
 import nl.alexeyu.photomate.util.ConfigReader;
 
 public class EditablePhotoManager implements PropertyChangeListener, PhotoObserver<EditablePhoto> {
@@ -27,10 +23,7 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
     private List<EditablePhoto> photos = new ArrayList<>();
 
     @Inject
-    private PhotoFactory photoFactory;
-
-    @Inject
-    private LocalPhotoApi localPhotoApi;
+    private EditablePhotoApi photoApi;
 
     @Inject
     private ConfigReader configReader;
@@ -44,8 +37,8 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
         photoCopyrightSetter = new PhotoCopyrightSetter();
     }
     
-    public List<EditablePhoto> createPhotos(File dir) {
-        this.photos = photoFactory.createLocalPhotos(dir, localPhotoApi, EditablePhoto.class);
+    public List<EditablePhoto> createPhotos(Path dir) {
+        this.photos = photoApi.createPhotos(dir);
         photos.forEach(photo -> photo.addPropertyChangeListener(photoCopyrightSetter));
         return Collections.unmodifiableList(photos);
     }
@@ -61,22 +54,11 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
     }
     
     @Override
-	@SuppressWarnings("unchecked")
     public void propertyChange(PropertyChangeEvent e) {
-        if (currentPhoto == null) {
+        if (currentPhoto == null || !PhotoProperty.has(e.getPropertyName())) {
             return;
         }
-        switch (e.getPropertyName()) {
-        case CAPTION_PROPERTY:
-            localPhotoApi.updateCaption(currentPhoto, e.getNewValue().toString());
-            break;
-        case DESCRIPTION_PROPERTY:
-            localPhotoApi.updateDescription(currentPhoto, e.getNewValue().toString());
-            break;
-        case KEYWORDS_PROPERTY:
-            localPhotoApi.updateKeywords(currentPhoto, (Collection<String>) e.getNewValue());
-            break;
-        }
+       	photoApi.updateProperty(currentPhoto, e.getPropertyName(), e.getNewValue());
     }
 
     @Override
@@ -98,7 +80,7 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
                 LocalPhoto photo = (LocalPhoto) e.getSource();
                 photo.removePropertyChangeListener(this);
                 if (creator != null) {
-                    localPhotoApi.updateCreator(photo, creator);
+                    photoApi.updateProperty(photo, "creator", creator);
                 }
             }
         }

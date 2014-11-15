@@ -7,5 +7,10 @@ public interface PhotoApi<P extends Photo> {
     void provideThumbnail(P photo);
     
     void provideMetadata(P photo);
+    
+    default void init(P photo) {
+    	provideThumbnail(photo);
+    	provideMetadata(photo);
+    }
 
 }

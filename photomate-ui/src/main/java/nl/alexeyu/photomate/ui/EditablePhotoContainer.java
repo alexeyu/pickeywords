@@ -9,7 +9,7 @@ import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 
-import nl.alexeyu.photomate.api.EditablePhoto;
+import nl.alexeyu.photomate.api.editable.EditablePhoto;
 import nl.alexeyu.photomate.service.PhotoObserver;
 
 public class EditablePhotoContainer extends PhotoContainer<EditablePhoto> implements PropertyChangeListener, PhotoObserver<EditablePhoto> {

@@ -1,23 +1,25 @@
 package nl.alexeyu.photomate.api;
 
-import java.io.File;
+import java.nio.file.Path;
 
 public abstract class LocalPhoto extends AbstractPhoto {
 	
-	private final File file;
+	private final Path path;
 	
-	public LocalPhoto(File file) {
-		this.file = file;
+	public LocalPhoto(Path path) {
+		this.path = path;
 	}
 
-	public File getFile() {
-		return file;
+	public Path getPath() {
+		return path;
 	}
 
 	@Override
     public String getName() {
-		return file.getName();
+		return path.getFileName().toString();
 	}
+
+	public abstract boolean hasPreview();
 
 	@Override
 	public String toString() {

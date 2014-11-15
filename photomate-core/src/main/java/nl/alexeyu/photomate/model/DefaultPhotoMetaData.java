@@ -1,53 +1,41 @@
 package nl.alexeyu.photomate.model;
 
-import java.util.Collection;
+import static nl.alexeyu.photomate.model.PhotoProperty.CAPTION;
+import static nl.alexeyu.photomate.model.PhotoProperty.DESCRIPTION;
 
-import org.apache.commons.lang3.StringUtils;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DefaultPhotoMetaData implements PhotoMetaData {
+	
+    private final Map<PhotoProperty, Object> properties = new HashMap<>();
     
-    private String name;
-    
-    private String description;
-    
-    private String creator;
-    
-    private Collection<String> keywords;
-    
-    public DefaultPhotoMetaData(String name, String description,String creator, Collection<String> keywords) {
-        this.name = name;
-        this.description = description;
-        this.keywords = keywords;
-        this.creator = creator;
+    public DefaultPhotoMetaData(Map<PhotoProperty, Object> properties) {
+    	for (PhotoProperty pp : PhotoProperty.values()) {
+    		this.properties.put(pp, properties.get(pp));
+    	}
     }
 
     @Override
-    public String getCaption() {
-        return name;
-    }
-
-    @Override
-    public String getDescription() {
-        return description;
-    }
-
-    @Override
+    @SuppressWarnings("unchecked")
     public Collection<String> getKeywords() {
-        return keywords;
+        return (Collection<String>) properties.get(PhotoProperty.KEYWORDS);
     }
     
-    @Override
-    public String getCreator() {
-        return creator;
-    }
+	@Override
+	public Object getProperty(PhotoProperty p) {
+		return properties.get(p);
+	}
 
-    public boolean isComplete() {
-        return StringUtils.isNotBlank(name) 
-                && StringUtils.isNotBlank(description)
-                && StringUtils.isNotBlank(creator)
-                && keywords != null 
-                && keywords.size() > 0
-                && keywords.size() <= 50;
-    }
-    
+	@Override
+	public String getDescription() {
+		return properties.get(DESCRIPTION).toString();
+	}
+
+	@Override
+	public String getCaption() {
+		return properties.get(CAPTION).toString();
+	}
+
 }

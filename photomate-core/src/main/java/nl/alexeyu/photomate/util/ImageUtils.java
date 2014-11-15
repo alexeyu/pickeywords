@@ -1,7 +1,8 @@
 package nl.alexeyu.photomate.util;
 
-import java.io.File;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import javax.swing.ImageIcon;
 
@@ -20,13 +21,13 @@ public class ImageUtils {
 		return new ImageIcon(url);
 	}
 
-	public static boolean isJpeg(File file) {
-		String fileName = file.getName().toLowerCase();
+	public static boolean isJpeg(Path path) {
+		String fileName = path.getFileName().toString().toLowerCase();
 		return fileName.endsWith("jpg") || fileName.endsWith("jpeg");
 	}
 
-	public static File getThumbnailFile(Photo photo) {
-		return new File(tempDir + "/" + photo.getName());
+	public static Path getThumbnailFile(Photo photo) {
+		return Paths.get(tempDir, photo.getName());
 	}
 	
 }

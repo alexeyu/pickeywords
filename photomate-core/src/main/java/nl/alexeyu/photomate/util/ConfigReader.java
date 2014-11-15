@@ -1,9 +1,9 @@
 package nl.alexeyu.photomate.util;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Properties;
 import java.util.regex.Pattern;
@@ -12,8 +12,6 @@ import java.util.stream.Collectors;
 import javax.inject.Singleton;
 
 import nl.alexeyu.photomate.model.PhotoStock;
-
-import org.apache.commons.io.IOUtils;
 
 @Singleton
 public class ConfigReader {
@@ -24,44 +22,48 @@ public class ConfigReader {
 	
 	private static final Pattern PHOTO_STOCK_NAME = Pattern.compile("stock\\.([\\w]+)\\.name");
 	
-	private Properties properties = new Properties();
+	private final Properties properties = new Properties();
 	
-	private List<PhotoStock> photoStocks;
+	private final List<PhotoStock> photoStocks;
 	
 	public ConfigReader() {
-		InputStream is = null;
-		try {
-			String location = System.getProperty(CONFIG_LOCATION_SYS_PROP);
-			if (location != null) {
-				is = new FileInputStream(new File(location));
-			} else {
-				is = getClass().getResourceAsStream(DEFAULT_CONFIG_FILE);
-			}
+		try (InputStream is = getStream()) {
 			properties.load(is);
 		} catch (IOException ex) {
 			throw new IllegalStateException(ex);
-		} finally {
-			IOUtils.closeQuietly(is);
 		}
 		photoStocks = readPhotoStocks();
 	}
 
+	private InputStream getStream() throws IOException {
+		String location = System.getProperty(CONFIG_LOCATION_SYS_PROP);
+		if (location == null) {
+			return getClass().getResourceAsStream(DEFAULT_CONFIG_FILE);
+		} 
+		return Files.newInputStream(Paths.get(location));
+	}
+
 	private List<PhotoStock> readPhotoStocks() {
 		return properties.stringPropertyNames().stream()
-				.filter(prop -> !prop.startsWith("#"))
+				.filter(prop -> isNotCommentedOut(prop))
 				.map(prop -> PHOTO_STOCK_NAME.matcher(prop))
 				.filter(matcher -> matcher.matches())
 				.map(matcher -> readPhotoStock(matcher.group(1)))
 				.collect(Collectors.toList());
 	}
 
+	private boolean isNotCommentedOut(String prop) {
+		return !prop.startsWith("#");
+	}
+
+	// TODO: builder
 	private PhotoStock readPhotoStock(String key) {
 		String prefix = "stock." + key + ".";
-		String name = properties.getProperty(prefix + "name", "");
-		String icon = properties.getProperty(prefix + "icon", "");
-		String ftpUrl = properties.getProperty(prefix + "ftp.url", "");
-		String ftpUsername = properties.getProperty(prefix + "ftp.username", "");
-		String ftpPassword = properties.getProperty(prefix + "ftp.password", "");
+		String name = getProperty(prefix + "name", "");
+		String icon = getProperty(prefix + "icon", "");
+		String ftpUrl = getProperty(prefix + "ftp.url", "");
+		String ftpUsername = getProperty(prefix + "ftp.username", "");
+		String ftpPassword = getProperty(prefix + "ftp.password", "");
 		return new PhotoStock(name, icon, ftpUrl, ftpUsername, ftpPassword);
 	}
 	

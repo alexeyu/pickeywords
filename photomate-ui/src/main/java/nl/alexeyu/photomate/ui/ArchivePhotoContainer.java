@@ -1,14 +1,15 @@
 package nl.alexeyu.photomate.ui;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 import javax.inject.Inject;
 
-import nl.alexeyu.photomate.api.ArchivePhoto;
-import nl.alexeyu.photomate.api.LocalPhotoApi;
-import nl.alexeyu.photomate.api.PhotoFactory;
+import nl.alexeyu.photomate.api.archive.ArchivePhoto;
+import nl.alexeyu.photomate.api.archive.ArchivePhotoApi;
 import nl.alexeyu.photomate.util.ConfigReader;
 
 public class ArchivePhotoContainer extends PhotoContainer<ArchivePhoto> {
@@ -19,11 +20,8 @@ public class ArchivePhotoContainer extends PhotoContainer<ArchivePhoto> {
     private ConfigReader configReader;
     
     @Inject
-    private LocalPhotoApi localPhotoApi;
+    private ArchivePhotoApi photoApi;
 
-    @Inject
-    private PhotoFactory photoFactory;
-    
     public ArchivePhotoContainer() {
         super(COLUMN_COUNT);
     }
@@ -32,9 +30,9 @@ public class ArchivePhotoContainer extends PhotoContainer<ArchivePhoto> {
     public void init() throws IOException {
         String archiveFolder = configReader.getProperty("archiveFolder", null);
         if (archiveFolder != null) {
-            File dir = new File(archiveFolder);
-            if (dir.exists()) {
-                List<ArchivePhoto> photos = photoFactory.createLocalPhotos(dir, localPhotoApi, ArchivePhoto.class);
+            Path dir = Paths.get(archiveFolder);
+            if (Files.exists(dir)) {
+                List<ArchivePhoto> photos = photoApi.createPhotos(dir);
                 photoTable.setPhotos(photos);
             }
         }

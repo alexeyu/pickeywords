@@ -62,14 +62,15 @@ public class DirChooser extends JPanel {
 	}
 	
 	public void selectDir(File dir) {
-		pathLabel.setText(dir.getAbsolutePath());
-		firePropertyChange("dir", null, dir);
+		String path = dir.getAbsolutePath();
+		pathLabel.setText(path);
+		firePropertyChange("dir", null, path);
 	}
 	
 	private static class JpegFilter extends FileFilter {
 		@Override
 		public boolean accept(File file) {
-			return file.isDirectory() || ImageUtils.isJpeg(file);
+			return file.isDirectory() || ImageUtils.isJpeg(file.toPath());
 		}
 
 		@Override
