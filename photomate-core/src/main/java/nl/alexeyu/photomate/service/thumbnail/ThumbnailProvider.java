@@ -1,9 +1,10 @@
 package nl.alexeyu.photomate.service.thumbnail;
 
-import java.nio.file.Path;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
 
 public interface ThumbnailProvider {
-    
-    Thumbnails getThumbnails(Path photoPath, boolean generatePreview);
+
+	Image getThumbnail(BufferedImage source);
 
 }

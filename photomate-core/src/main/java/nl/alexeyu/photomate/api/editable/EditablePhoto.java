@@ -14,8 +14,8 @@ public class EditablePhoto extends LocalPhoto {
 
     private final AtomicReference<ImageIcon> preview = new AtomicReference<>();
 
-    public EditablePhoto(Path file) {
-        super(file);
+    public EditablePhoto(Path path) {
+        super(path);
     }
 
     public boolean isReadyToUpload() {
@@ -35,15 +35,30 @@ public class EditablePhoto extends LocalPhoto {
     }
 
     public void setPreview(ImageIcon preview) {
-        if (!this.preview.compareAndSet(null, preview)) {
-            throw new IllegalStateException("Attempt to set preview 2nd time");
-        }
         firePropertyChanged(PREVIEW_PROPERTY, null, preview);
     }
-
+    
 	@Override
-	public boolean hasPreview() {
-		return true;
+	public void addThumbnail(ImageIcon thumbnail) {
+		if (getThumbnail() != null) {
+			preview.set(thumbnail);
+		} else {
+			super.addThumbnail(thumbnail);
+		}
 	}
 
+	@Override
+	public int getThumbnailCount() {
+		return 2;
+	}
+
+	@Override
+	public ImageIcon getThumbnail(int index) {
+		if (index == 1) {
+			return getPreview();
+		}
+		return super.getThumbnail();
+	}
+
+    
 }

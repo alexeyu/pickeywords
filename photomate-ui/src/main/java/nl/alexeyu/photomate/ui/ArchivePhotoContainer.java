@@ -8,8 +8,9 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import nl.alexeyu.photomate.api.LocalPhotoApi;
 import nl.alexeyu.photomate.api.archive.ArchivePhoto;
-import nl.alexeyu.photomate.api.archive.ArchivePhotoApi;
+import nl.alexeyu.photomate.api.archive.ArchivePhotoFactory;
 import nl.alexeyu.photomate.util.ConfigReader;
 
 public class ArchivePhotoContainer extends PhotoContainer<ArchivePhoto> {
@@ -20,7 +21,7 @@ public class ArchivePhotoContainer extends PhotoContainer<ArchivePhoto> {
     private ConfigReader configReader;
     
     @Inject
-    private ArchivePhotoApi photoApi;
+    private LocalPhotoApi<ArchivePhoto> photoApi;
 
     public ArchivePhotoContainer() {
         super(COLUMN_COUNT);
@@ -32,7 +33,7 @@ public class ArchivePhotoContainer extends PhotoContainer<ArchivePhoto> {
         if (archiveFolder != null) {
             Path dir = Paths.get(archiveFolder);
             if (Files.exists(dir)) {
-                List<ArchivePhoto> photos = photoApi.createPhotos(dir);
+                List<ArchivePhoto> photos = photoApi.createPhotos(dir, new ArchivePhotoFactory());
                 photoTable.setPhotos(photos);
             }
         }

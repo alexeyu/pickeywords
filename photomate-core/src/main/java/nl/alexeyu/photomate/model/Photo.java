@@ -5,7 +5,7 @@ import javax.swing.ImageIcon;
 public interface Photo {
     
     String getName();
-
+    
     ImageIcon getThumbnail();
     
     PhotoMetaData getMetaData();

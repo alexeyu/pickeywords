@@ -21,9 +21,4 @@ public class ArchivePhoto extends LocalPhoto {
 		return toBeDeleted;
 	}
 
-	@Override
-	public boolean hasPreview() {
-		return false;
-	}
-	
 }

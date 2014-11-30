@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 
 import javax.inject.Inject;
 
@@ -26,9 +26,6 @@ public class PhotoUploader implements UploadPhotoListener {
 	@Inject
 	private ConfigReader configReader;
 	
-	@Inject
-	private ExecutorService taskExecutor;
-	
 	private Collection<UploadPhotoListener> listeners = new ArrayList<>(Arrays.asList( (UploadPhotoListener) this)); 
 	
 	public void uploadPhotos(List<EditablePhoto> photos, UploadPhotoListener l) {
@@ -47,7 +44,7 @@ public class PhotoUploader implements UploadPhotoListener {
 		} else {
             uploadTask = new FakeUploadTask(photoStock, photo, attemptsLeft, listeners);
 		}
-		taskExecutor.execute(uploadTask);
+		CompletableFuture.runAsync(uploadTask);
 	}
 
 	@Override
@@ -59,7 +56,7 @@ public class PhotoUploader implements UploadPhotoListener {
 		if (archivedPhotos.put(photo, Boolean.TRUE) == null) {
 			if (archiveDir != null) {
 			    Runnable archivePhotoTask = new ArchivePhotoTask(photo, Paths.get(archiveDir));
-			    taskExecutor.execute(archivePhotoTask);
+			    CompletableFuture.runAsync(archivePhotoTask);
 			}
 		}
 	}

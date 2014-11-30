@@ -19,8 +19,6 @@ public abstract class LocalPhoto extends AbstractPhoto {
 		return path.getFileName().toString();
 	}
 
-	public abstract boolean hasPreview();
-
 	@Override
 	public String toString() {
 		return getName();

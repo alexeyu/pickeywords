@@ -13,8 +13,9 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import nl.alexeyu.photomate.api.LocalPhoto;
+import nl.alexeyu.photomate.api.LocalPhotoApi;
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
-import nl.alexeyu.photomate.api.editable.EditablePhotoApi;
+import nl.alexeyu.photomate.api.editable.EditablePhotoFactory;
 import nl.alexeyu.photomate.model.PhotoProperty;
 import nl.alexeyu.photomate.util.ConfigReader;
 
@@ -23,7 +24,7 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
     private List<EditablePhoto> photos = new ArrayList<>();
 
     @Inject
-    private EditablePhotoApi photoApi;
+    private LocalPhotoApi<EditablePhoto> photoApi;
 
     @Inject
     private ConfigReader configReader;
@@ -38,7 +39,7 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
     }
     
     public List<EditablePhoto> createPhotos(Path dir) {
-        this.photos = photoApi.createPhotos(dir);
+        this.photos = photoApi.createPhotos(dir, new EditablePhotoFactory());
         photos.forEach(photo -> photo.addPropertyChangeListener(photoCopyrightSetter));
         return Collections.unmodifiableList(photos);
     }

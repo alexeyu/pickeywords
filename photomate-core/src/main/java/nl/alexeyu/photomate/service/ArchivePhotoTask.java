@@ -11,7 +11,7 @@ import nl.alexeyu.photomate.api.editable.EditablePhoto;
 
 import com.google.common.io.Files;
 
-public class ArchivePhotoTask implements PrioritizedTask, Runnable {
+public class ArchivePhotoTask implements  Runnable {
 
 	private final Logger logger = LoggerFactory.getLogger("ArchivePhotoTask");
 	
@@ -33,11 +33,6 @@ public class ArchivePhotoTask implements PrioritizedTask, Runnable {
 		} catch (IOException ex) {
 			logger.error("Error on copying file", ex);
 		}
-	}
-
-	@Override
-	public TaskPriority getPriority() {
-		return TaskPriority.HIGH;
 	}
 
 }
