@@ -27,7 +27,7 @@ public class ImageUtils {
 	}
 
 	public static Path getThumbnailFile(Photo photo) {
-		return Paths.get(tempDir, photo.getName());
+		return Paths.get(tempDir, photo.name());
 	}
 	
 }

@@ -8,7 +8,7 @@ import javax.swing.ImageIcon;
 import nl.alexeyu.photomate.api.LocalPhoto;
 import nl.alexeyu.photomate.model.PhotoMetaData;
 
-public class EditablePhoto extends LocalPhoto {
+public final class EditablePhoto extends LocalPhoto {
     
     public static final String PREVIEW_PROPERTY = "preview";
 
@@ -19,29 +19,29 @@ public class EditablePhoto extends LocalPhoto {
     }
 
     public boolean isReadyToUpload() {
-        if (getThumbnail() == null || getMetaData() == null) {
+        if (!thumbnail().isPresent() || !metaData().isPresent()) {
         	return false;
         }
-        PhotoMetaData m = getMetaData();
-		return !m.getDescription().isEmpty()
-				&& !m.getCaption().isEmpty()
-                && m.getKeywords() != null 
-                && m.getKeywords().size() > 0
-                && m.getKeywords().size() <= 50;
+        PhotoMetaData m = metaData().get();
+		return !m.description().isEmpty()
+				&& !m.caption().isEmpty()
+                && m.keywords().size() > 0
+                && m.keywords().size() <= 50;
     }
 
     public ImageIcon getPreview() {
         return preview.get();
     }
 
-    public void setPreview(ImageIcon preview) {
-        firePropertyChanged(PREVIEW_PROPERTY, null, preview);
+    public void setPreview(ImageIcon thumbnail) {
+    	preview.set(thumbnail);
+        firePropertyChange(PREVIEW_PROPERTY, null, preview);
     }
     
 	@Override
 	public void addThumbnail(ImageIcon thumbnail) {
-		if (getThumbnail() != null) {
-			preview.set(thumbnail);
+		if (thumbnail().isPresent()) {
+			setPreview(thumbnail);
 		} else {
 			super.addThumbnail(thumbnail);
 		}
@@ -52,13 +52,4 @@ public class EditablePhoto extends LocalPhoto {
 		return 2;
 	}
 
-	@Override
-	public ImageIcon getThumbnail(int index) {
-		if (index == 1) {
-			return getPreview();
-		}
-		return super.getThumbnail();
-	}
-
-    
 }

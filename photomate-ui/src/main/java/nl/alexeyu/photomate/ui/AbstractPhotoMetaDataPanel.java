@@ -5,7 +5,7 @@ import static nl.alexeyu.photomate.ui.UiConstants.BORDER_WIDTH;
 import java.awt.BorderLayout;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.Collection;
+import java.util.Optional;
 
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
@@ -14,7 +14,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 import nl.alexeyu.photomate.api.AbstractPhoto;
-import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.model.PhotoProperty;
 import nl.alexeyu.photomate.service.PhotoObserver;
 
@@ -27,7 +26,7 @@ public abstract class AbstractPhotoMetaDataPanel<P extends AbstractPhoto>
     
     protected JList<String> keywordList = new JList<>(new DefaultListModel<String>());
 	
-	protected P photo;
+	protected Optional<P> photo = Optional.empty();
 	
 	public AbstractPhotoMetaDataPanel() {
 	    super(new BorderLayout(BORDER_WIDTH, BORDER_WIDTH));
@@ -45,23 +44,20 @@ public abstract class AbstractPhotoMetaDataPanel<P extends AbstractPhoto>
 		setPreferredSize(UiConstants.PREVIEW_SIZE);
 	}
 	
-	public final void setPhoto(P photo) {
-	    if (this.photo != null) {
-	        this.photo.removePropertyChangeListener(this);
-	    }
+	public final void setPhoto(Optional<P> photo) {
+	    this.photo.ifPresent(p -> p.removePropertyChangeListener(this));
 	    this.photo = photo;
 	    updateComponentsWithPhotoMetaData();
-	    if (photo != null) {
-	        this.photo.addPropertyChangeListener(this);
-	    }
+	    this.photo.ifPresent(p -> p.addPropertyChangeListener(this));
 	}
 
     private void updateComponentsWithPhotoMetaData() {
-        captionEditor.setText(isNull(photo) ? "" : photo.getMetaData().getCaption());
-        descriptionEditor.setText(isNull(photo) ? "" : photo.getMetaData().getDescription());
+    	boolean isNull = !photo.isPresent() || !photo.get().metaData().isPresent();;
+        captionEditor.setText(isNull ? "" : photo.get().metaData().get().caption());
+        descriptionEditor.setText(isNull ? "" : photo.get().metaData().get().description());
         DefaultListModel<String> listModel = new DefaultListModel<>();
-        if (!isNull(photo)) {
-        	getKeywords().forEach(keyword -> listModel.addElement(keyword));
+        if (!isNull) {
+        	photo.get().keywords().forEach(keyword -> listModel.addElement(keyword));
         }
         keywordList.setModel(listModel);
 	}
@@ -74,17 +70,9 @@ public abstract class AbstractPhotoMetaDataPanel<P extends AbstractPhoto>
             firePropertyChange(e.getPropertyName(), null, e.getNewValue());
         }
     }
-    
-    private Collection<String> getKeywords() {
-        return photo.getMetaData().getKeywords();
-    }
-	
-	private boolean isNull(Photo photo) {
-	    return photo == null || photo.getMetaData() == null;
-	}
-	
+ 
     @Override
-    public void photoSelected(P photo) {
+    public void photoSelected(Optional<P> photo) {
         setPhoto(photo);
     }
 

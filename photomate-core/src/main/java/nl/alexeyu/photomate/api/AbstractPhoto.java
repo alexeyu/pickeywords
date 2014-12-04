@@ -3,8 +3,10 @@ package nl.alexeyu.photomate.api;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.lang.ref.WeakReference;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -25,53 +27,50 @@ public abstract class AbstractPhoto implements Photo {
     
     protected List<WeakReference<PropertyChangeListener>> listeners = new CopyOnWriteArrayList<>();
 
-    public void addPropertyChangeListener(PropertyChangeListener listener) {
+    public final void addPropertyChangeListener(PropertyChangeListener listener) {
         listeners.add(new WeakReference<PropertyChangeListener>(listener));
     }
 
-    public void removePropertyChangeListener(PropertyChangeListener listener) {
+    public final void removePropertyChangeListener(PropertyChangeListener listener) {
     	listeners.removeIf(ref -> ref.get() == listener);
     }
 
-    protected void firePropertyChanged(String propertyName, Object oldValue, Object newValue) {
+    protected final void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
         PropertyChangeEvent event = new PropertyChangeEvent(this, propertyName, oldValue, newValue);
         listeners.forEach(ref -> ref.get().propertyChange(event)); 
     }
 
     @Override
-    public ImageIcon getThumbnail() {
-        return thumbnail.get();
+    public Optional<ImageIcon> thumbnail() {
+        return Optional.ofNullable(thumbnail.get());
     }
 
     public int getThumbnailCount() {
     	return 1;
     }
     
-    public ImageIcon getThumbnail(int index) {
-    	if (index > 0) {
-    		throw new IllegalArgumentException("Only one thumbnail is allowed");
-    	}
-    	return getThumbnail();
-    }
-    
     @Override
-    public PhotoMetaData getMetaData() {
-        return metaData.get();
+    public Optional<PhotoMetaData> metaData() {
+        return Optional.ofNullable(metaData.get());
     }
 
     public void addThumbnail(ImageIcon thumbnail) {
     	this.thumbnail.set(thumbnail);
-        firePropertyChanged(THUMBNAIL_PROPERTY, null, thumbnail);
+        firePropertyChange(THUMBNAIL_PROPERTY, null, thumbnail);
     }
     
-    public void setMetaData(PhotoMetaData metaData) {
+    public final void setMetaData(PhotoMetaData metaData) {
         PhotoMetaData oldMetaData = this.metaData.getAndSet(metaData);
-        firePropertyChanged(METADATA_PROPERTY, oldMetaData, metaData);
+        firePropertyChange(METADATA_PROPERTY, oldMetaData, metaData);
     }
     
+    public final Collection<String> keywords() {
+    	return metaData.get().keywords();
+    }
+
     @Override
     public int hashCode() {
-    	return Objects.hash(getName());
+    	return Objects.hash(name());
     }
 
     @Override
@@ -79,7 +78,7 @@ public abstract class AbstractPhoto implements Photo {
         if (!(obj instanceof AbstractPhoto))
             return false;
         Photo other = (Photo) obj;
-        return getName().equals(other.getName());
+        return name().equals(other.name());
     }
 
 }

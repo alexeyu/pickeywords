@@ -4,7 +4,7 @@ import java.nio.file.Path;
 
 import nl.alexeyu.photomate.api.LocalPhoto;
 
-public class ArchivePhoto extends LocalPhoto {
+public final class ArchivePhoto extends LocalPhoto {
 	
 	private boolean toBeDeleted = false;
 	

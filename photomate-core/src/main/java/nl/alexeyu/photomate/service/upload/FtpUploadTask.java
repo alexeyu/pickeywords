@@ -35,8 +35,8 @@ public class FtpUploadTask extends AbstractUploadTask implements CopyStreamListe
 	}
 
 	public void init() throws IOException {
-		client.connect(photoStock.getFtpUrl());
-		if (!client.login(photoStock.getFtpUsername(), photoStock.getFtpPassword())) {
+		client.connect(photoStock.ftpUrl());
+		if (!client.login(photoStock.ftpUsername(), photoStock.ftpPassword())) {
 			throw new IllegalStateException("Could not connect to " + photoStock);
 		}
 	}
@@ -66,7 +66,7 @@ public class FtpUploadTask extends AbstractUploadTask implements CopyStreamListe
 			init();
 			client.setFileType(FTP.BINARY_FILE_TYPE);
 			long fileSize = photo.getPath().toFile().length();
-			try (OutputStream os = client.storeFileStream(photo.getName())) {
+			try (OutputStream os = client.storeFileStream(photo.name())) {
 				if (os == null) {
 					throw new IllegalStateException("Could not create file on a remote server");
 				}
@@ -76,7 +76,7 @@ public class FtpUploadTask extends AbstractUploadTask implements CopyStreamListe
 				}
 			}
 			Thread.sleep(1000);
-			logger.info(photo.getName() + "\t" + fileSize + "\t" + photoStock.getName());
+			logger.info(photo.name() + "\t" + fileSize + "\t" + photoStock.getName());
 			notifySuccess();
 		} catch (Exception ex) {
 			logger.error("", ex);

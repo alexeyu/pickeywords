@@ -58,17 +58,19 @@ public class EditablePhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<Edita
     
     private void removeKeywords(List<String> keywords) {
         if (keywords.size() > 0) {
-            List<String> reducedKeywords = photo.getMetaData().getKeywords().stream()
+        	Collection<String> currentKeywords = photo.get().keywords();
+            List<String> reducedKeywords = currentKeywords.stream()
             		.filter(k -> !keywords.contains(k))
             		.collect(Collectors.toList());
-            firePropertyChange(KEYWORDS.getPropertyName(), photo.getMetaData().getKeywords(), reducedKeywords);
+            firePropertyChange(KEYWORDS.getPropertyName(), currentKeywords, reducedKeywords);
         }
     }
     
     private void addKeywords(List<String> keywords) {
-    	Collection<String> extendedKeywords = new LinkedHashSet<>(photo.getMetaData().getKeywords());
+    	Collection<String> currentgKeywords = photo.get().keywords();
+    	Collection<String> extendedKeywords = new LinkedHashSet<>(currentgKeywords);
     	extendedKeywords.addAll(keywords);
-        firePropertyChange(KEYWORDS.getPropertyName(), photo.getMetaData().getKeywords(), extendedKeywords);
+        firePropertyChange(KEYWORDS.getPropertyName(), currentgKeywords, extendedKeywords);
     }
 
     public DropTarget getDropTarget() {

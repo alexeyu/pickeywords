@@ -78,25 +78,25 @@ public class ShutterPhotoDetails implements PhotoMetaData {
     private String description;
 
     @Override
-    public List<String> getKeywords() {
+    public List<String> keywords() {
         return keywords;
     }
     
     @Override
-    public String getCaption() {
+    public String caption() {
         return description;
     }
 
     @Override
-    public String getDescription() {
+    public String description() {
         return description;
     }
     
     @Override
 	public Object getProperty(PhotoProperty p) {
     	switch (p) {
-		case DESCRIPTION: return getDescription();
-		case KEYWORDS:    return getKeywords();
+		case DESCRIPTION: return description();
+		case KEYWORDS:    return keywords();
 		default:          return "";
 		}
 	}

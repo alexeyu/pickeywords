@@ -12,6 +12,7 @@ import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.util.Optional;
 
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
@@ -34,6 +35,9 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
     public Component getTableCellRendererComponent(JTable table, Object value, 
             boolean isSelected, boolean hasFocus, int row, int column) {
     	JComponent comp;
+    	if (value instanceof Optional) {
+    		value = ((Optional) value).isPresent() ? ((Optional) value).get() : null;
+    	}
         if (value instanceof ArchivePhoto) {
         	comp = new ArchivePhotoLabel((ArchivePhoto) value, table.getColumnModel().getColumn(column).getWidth()).getComponent();
         } else if (value instanceof EditablePhoto) {
@@ -62,12 +66,10 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
     	}
     	
     	protected JComponent createComponent() {
-			ImageIcon thumbnail = photo.getThumbnail();
-			if (thumbnail != null) {
-				return new JLabel(thumbnail);
-			} else {
-				return new JLabel("Loading...");
-    		}
+			Optional<ImageIcon> thumbnail = photo.thumbnail();
+			return thumbnail.isPresent()
+				? new JLabel(thumbnail.get())
+				: new JLabel("Loading...");
     	}
     	
     	public final JComponent getComponent() {
@@ -90,11 +92,11 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
     	
 		@Override
 		protected JComponent createComponent() {
-			ImageIcon thumbnail = photo.getThumbnail();
-			if (thumbnail == null) {
+			Optional<ImageIcon> thumbnail = photo.thumbnail();
+			if (!thumbnail.isPresent()) {
 				return super.createComponent();
 			}
-			return new JLabel(thumbnail) {
+			return new JLabel(thumbnail.get()) {
 				@Override
 				protected void paintComponent(Graphics g) {
 					if (photo.isDeleted()) {
@@ -131,10 +133,10 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
 		}
 
 	    private JComponent createTitle(EditablePhoto photo) {
-	        String title = photo.getName();
-	        PhotoMetaData metadata = photo.getMetaData();
-	        if (metadata != null) {
-	            title += " [" + metadata.getKeywords().size() + "]";
+	        String title = photo.name();
+	        Optional<PhotoMetaData> metadata = photo.metaData();
+	        if (metadata.isPresent()) {
+	            title += " [" + metadata.get().keywords().size() + "]";
 	        }
 	        JLabel nameLabel = new JLabel(title);
 	        if (!photo.isReadyToUpload()) {

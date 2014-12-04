@@ -27,6 +27,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.WindowConstants;
 
+import nl.alexeyu.photomate.api.AbstractPhoto;
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
 import nl.alexeyu.photomate.service.EditablePhotoManager;
 import nl.alexeyu.photomate.service.PhotoNotReadyException;
@@ -144,7 +145,8 @@ public class Main implements PropertyChangeListener {
             public void actionPerformed(ActionEvent e) {
                 String sourceName = bgroup.getSelection().getActionCommand();
                 sourcesLayout.show(sourcesPanel, sourceName);
-                PhotoContainer<?> photoContainer = photoSourceRegistry.getPhotoSource(sourceName);
+                PhotoContainer<AbstractPhoto> photoContainer = (PhotoContainer<AbstractPhoto>) 
+                		photoSourceRegistry.getPhotoSource(sourceName);
                 sourcePhotoMetaDataPanel.setPhoto(photoContainer.getSelectedPhoto());
             }
         };

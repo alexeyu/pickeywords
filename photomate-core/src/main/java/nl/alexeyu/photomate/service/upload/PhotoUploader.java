@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -21,7 +22,7 @@ public class PhotoUploader implements UploadPhotoListener {
 	
 	private ConcurrentHashMap<EditablePhoto, Boolean> archivedPhotos = new ConcurrentHashMap<>();
 	
-	private String archiveDir;
+	private Optional<String> archiveDir;
 	
 	@Inject
 	private ConfigReader configReader;
@@ -30,7 +31,7 @@ public class PhotoUploader implements UploadPhotoListener {
 	
 	public void uploadPhotos(List<EditablePhoto> photos, UploadPhotoListener l) {
 	    listeners.add(l);
-        archiveDir = configReader.getProperty("archiveFolder", null);
+        archiveDir = configReader.getProperty("archiveFolder");
 		List<PhotoStock> photoStocks = configReader.getPhotoStocks();
 		photos.forEach(photo ->
 			photoStocks.forEach(photoStock -> 
@@ -54,8 +55,8 @@ public class PhotoUploader implements UploadPhotoListener {
 	@Override
 	public void onSuccess(PhotoStock photoStock, EditablePhoto photo) {
 		if (archivedPhotos.put(photo, Boolean.TRUE) == null) {
-			if (archiveDir != null) {
-			    Runnable archivePhotoTask = new ArchivePhotoTask(photo, Paths.get(archiveDir));
+			if (archiveDir.isPresent()) {
+			    Runnable archivePhotoTask = new ArchivePhotoTask(photo, Paths.get(archiveDir.get()));
 			    CompletableFuture.runAsync(archivePhotoTask);
 			}
 		}

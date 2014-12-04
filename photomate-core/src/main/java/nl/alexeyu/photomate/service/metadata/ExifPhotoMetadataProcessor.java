@@ -117,8 +117,8 @@ public class ExifPhotoMetadataProcessor implements PhotoMetadataProcessor {
         arguments.addAll(args(oldMetaData, newMetaData, PhotoProperty.DESCRIPTION, IMAGE_DESCRIPTION));
         arguments.addAll(args(oldMetaData, newMetaData, PhotoProperty.CREATOR, CREATOR, COPYRIGHT));
 
-        Collection<String> oldKeywords = oldMetaData.getKeywords();
-        Collection<String> newKeywords = newMetaData.getKeywords();
+        Collection<String> oldKeywords = oldMetaData.keywords();
+        Collection<String> newKeywords = newMetaData.keywords();
         if (!oldKeywords.equals(newKeywords)) {
         	Collection<String> addedKeywords = newKeywords.stream()
         			.filter(k -> !oldKeywords.contains(k))

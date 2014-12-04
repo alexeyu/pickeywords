@@ -20,7 +20,7 @@ public class ReadonlyPhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<Abstr
 	    captionEditor.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (photo != null && e.getClickCount() >= 2) {
+                if (photo.isPresent() && e.getClickCount() >= 2) {
                     firePropertyChange(CAPTION.getPropertyName(), null, captionEditor.getText());
                 }
             }
@@ -29,7 +29,7 @@ public class ReadonlyPhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<Abstr
 	    descriptionEditor.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (photo != null && e.getClickCount() >= 2) {
+                if (photo.isPresent() && e.getClickCount() >= 2) {
                     firePropertyChange(DESCRIPTION.getPropertyName(), null, descriptionEditor.getText());
                 }
             }
@@ -40,7 +40,7 @@ public class ReadonlyPhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<Abstr
         keywordList.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (photo != null && e.getClickCount() >= 2) {
+                if (photo.isPresent() && e.getClickCount() >= 2) {
                     DefaultListModel<String> model = (DefaultListModel<String>) keywordList.getModel();
                     String[] values = new String[model.size()];
                     model.copyInto(values);

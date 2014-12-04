@@ -79,12 +79,12 @@ public class LocalPhotoApi<P extends LocalPhoto> implements PhotoApi<P> {
     public void updateProperty(LocalPhoto photo, String propertyName, Object propertyValue) {
         Map<PhotoProperty, Object> newProps = new HashMap<>();
         for (PhotoProperty pp : PhotoProperty.values()) {
-        	newProps.put(pp, photo.getMetaData().getProperty(pp));
+        	newProps.put(pp, photo.metaData().get().getProperty(pp));
         }
         newProps.put(PhotoProperty.of(propertyName), propertyValue);
         PhotoMetaData metaData = new DefaultPhotoMetaData(newProps);
         CompletableFuture
-        	.runAsync(() -> metadataProcessor.update(photo.getPath(), photo.getMetaData(), metaData))
+        	.runAsync(() -> metadataProcessor.update(photo.getPath(), photo.metaData().get(), metaData))
         	.thenRun(() -> photo.setMetaData(metaData));
     }
 

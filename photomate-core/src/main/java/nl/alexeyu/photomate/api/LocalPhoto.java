@@ -15,13 +15,13 @@ public abstract class LocalPhoto extends AbstractPhoto {
 	}
 
 	@Override
-    public String getName() {
+    public String name() {
 		return path.getFileName().toString();
 	}
 
 	@Override
 	public String toString() {
-		return getName();
+		return name();
 	}
 
 }

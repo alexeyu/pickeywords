@@ -46,10 +46,10 @@ public class UploadTable extends JTable {
             label.setBorder(new LineBorder(Color.LIGHT_GRAY));
             label.setHorizontalAlignment(SwingConstants.CENTER);
             PhotoStock photoStock = getModel().getPhotoStock(column);
-            if (photoStock.getIconUrl().isEmpty()) {
+            if (photoStock.iconUrl().isEmpty()) {
                 label.setText(photoStock.getName());
             } else {
-                URL url = getClass().getResource(photoStock.getIconUrl());
+                URL url = getClass().getResource(photoStock.iconUrl());
                 label.setIcon(new ImageIcon(url));
             }
             return label;

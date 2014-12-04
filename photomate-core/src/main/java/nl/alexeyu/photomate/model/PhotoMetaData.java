@@ -6,10 +6,10 @@ public interface PhotoMetaData {
     
     Object getProperty(PhotoProperty p);
 
-    Collection<String> getKeywords();
+    Collection<String> keywords();
     
-    String getDescription();
+    String description();
     
-    String getCaption();
+    String caption();
 
 }

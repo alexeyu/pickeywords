@@ -27,19 +27,19 @@ public class PhotoStock {
 		return name;
 	}
 
-	public String getIconUrl() {
+	public String iconUrl() {
 		return iconUrl;
 	}
 
-	public String getFtpUrl() {
+	public String ftpUrl() {
 		return ftpUrl;
 	}
 
-	public String getFtpUsername() {
+	public String ftpUsername() {
 		return ftpUsername;
 	}
 
-	public String getFtpPassword() {
+	public String ftpPassword() {
 		return ftpPassword;
 	}
 

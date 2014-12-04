@@ -27,7 +27,7 @@ public class ArchivePhotoTask implements  Runnable {
 	@Override
 	public void run() {
 		try {
-		    File archiveFile = new File(directory.toFile(), photo.getName());
+		    File archiveFile = new File(directory.toFile(), photo.name());
 		    Files.createParentDirs(archiveFile);
 			Files.copy(photo.getPath().toFile(), archiveFile);
 		} catch (IOException ex) {

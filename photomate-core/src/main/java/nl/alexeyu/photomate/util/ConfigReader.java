@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -74,4 +75,9 @@ public class ConfigReader {
 	public String getProperty(String property, String defaultValue) {
 		return properties.getProperty(property, defaultValue);
 	}
+	
+	public Optional<String> getProperty(String property) {
+		return Optional.ofNullable(properties.getProperty(property));
+	}
+
 }

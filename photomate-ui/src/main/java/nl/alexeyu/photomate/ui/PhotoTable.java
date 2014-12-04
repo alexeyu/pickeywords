@@ -10,6 +10,7 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
@@ -35,12 +36,16 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
     private final List<PhotoObserver<? super P>> observers = new ArrayList<>();
     
     public PhotoTable(int columnCount) {
-        this(columnCount, null);
+    	this.columnCount = columnCount;
+        init();
     }
 
     public PhotoTable(int columnCount, JComponent parent) {
-        this.columnCount = columnCount;
-        
+    	this(columnCount);
+    	initParent(parent);
+    }
+    
+    private void init() {
         setPhotos(emptyPhotos);
         setDefaultRenderer(Object.class, new PhotoCellRenderer());
         
@@ -52,19 +57,19 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
         
         setRowHeight(CELL_HEIGHT);
         setPreferredScrollableViewportSize(UiConstants.THUMBNAIL_SIZE);
+    }
+    
+    private void initParent(JComponent parent) {
+        JScrollPane sp = new JScrollPane();
+        sp.setViewportView(this);
+        sp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        sp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+        sp.getViewport().setBackground(getBackground());
 
-        if (parent != null) {
-            JScrollPane sp = new JScrollPane();
-            sp.setViewportView(this);
-            sp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-            sp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
-            sp.getViewport().setBackground(getBackground());
-
-            getTableHeader().setPreferredSize(new Dimension(0,0));
-            getTableHeader().setVisible(false);
-            
-            parent.add(sp);
-        }
+        getTableHeader().setPreferredSize(new Dimension(0,0));
+        getTableHeader().setVisible(false);
+        
+        parent.add(sp);
     }
 
     public void addObserver(PhotoObserver<? super P> observer) {
@@ -83,8 +88,9 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
 					int row = rowAtPoint(e.getPoint());
 					int col = columnAtPoint(e.getPoint());
 					if (getColumnRight(col) - e.getPoint().x < CLICKABLE_ICON_SIZE && e.getPoint().y - getRowTop(row) < CLICKABLE_ICON_SIZE) {
-						if (model.getValueAt(row, col).getThumbnail() != null) {
-							((ArchivePhoto) model.getValueAt(row, col)).delete();
+						Optional<P> photo = model.getValueAt(row, col);
+						if (photo.isPresent() && photo.get().thumbnail().isPresent()) {
+							((ArchivePhoto) photo.get()).delete();
 							repaint();
 						}
 					}
@@ -107,16 +113,21 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
     	return row  * getRowHeight(); 
     }
 
+    public Optional<P> getSelectedPhoto() {
+    	return getSelectedPhotoImpl();
+    }
+    
     @SuppressWarnings("unchecked")
-    public P getSelectedPhoto() {
-        return ((StockPhotoTableModel) getModel()).getValueAt(getSelectedRow(), getSelectedColumn());
+    private Optional<P> getSelectedPhotoImpl() {    	
+    	return ((StockPhotoTableModel) getModel()).getValueAt(getSelectedRow(), getSelectedColumn());
     }
     
     private class SelectionListener implements ListSelectionListener {
 
         @Override
+        @SuppressWarnings("rawtypes")
         public void valueChanged(ListSelectionEvent e) {
-            P photo = getSelectedPhoto();
+        	Optional photo = getSelectedPhotoImpl();
             observers.forEach((observer) -> observer.photoSelected(photo));
         }
         
@@ -150,12 +161,12 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
         }
 
         @Override
-        public P getValueAt(int rowIndex, int columnIndex) {
+        public Optional<P> getValueAt(int rowIndex, int columnIndex) {
             int index = rowIndex * getColumnCount() + columnIndex; 
             if (index < 0 || index >= photos.size()) {
-                return null;
+                return Optional.empty();
             }
-            return photos.get(index);
+            return Optional.of(photos.get(index));
         }
         
     }

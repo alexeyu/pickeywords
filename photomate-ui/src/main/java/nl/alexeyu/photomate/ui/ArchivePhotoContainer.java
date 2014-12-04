@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Optional;
 
 import javax.inject.Inject;
 
@@ -29,9 +30,9 @@ public class ArchivePhotoContainer extends PhotoContainer<ArchivePhoto> {
 
     @Inject
     public void init() throws IOException {
-        String archiveFolder = configReader.getProperty("archiveFolder", null);
-        if (archiveFolder != null) {
-            Path dir = Paths.get(archiveFolder);
+        Optional<String> archiveFolder = configReader.getProperty("archiveFolder");
+        if (archiveFolder.isPresent()) {
+            Path dir = Paths.get(archiveFolder.get());
             if (Files.exists(dir)) {
                 List<ArchivePhoto> photos = photoApi.createPhotos(dir, new ArchivePhotoFactory());
                 photoTable.setPhotos(photos);

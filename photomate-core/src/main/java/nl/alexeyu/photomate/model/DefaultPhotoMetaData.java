@@ -4,6 +4,7 @@ import static nl.alexeyu.photomate.model.PhotoProperty.CAPTION;
 import static nl.alexeyu.photomate.model.PhotoProperty.DESCRIPTION;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,8 +20,9 @@ public class DefaultPhotoMetaData implements PhotoMetaData {
 
     @Override
     @SuppressWarnings("unchecked")
-    public Collection<String> getKeywords() {
-        return (Collection<String>) properties.get(PhotoProperty.KEYWORDS);
+    public Collection<String> keywords() {
+    	Collection<String> keywords = (Collection<String>) properties.get(PhotoProperty.KEYWORDS);
+    	return keywords == null ? Collections.emptyList() : keywords;
     }
     
 	@Override
@@ -29,12 +31,12 @@ public class DefaultPhotoMetaData implements PhotoMetaData {
 	}
 
 	@Override
-	public String getDescription() {
+	public String description() {
 		return properties.get(DESCRIPTION).toString();
 	}
 
 	@Override
-	public String getCaption() {
+	public String caption() {
 		return properties.get(CAPTION).toString();
 	}
 

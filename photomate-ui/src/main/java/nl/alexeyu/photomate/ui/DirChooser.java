@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.swing.JFileChooser;
@@ -55,10 +56,8 @@ public class DirChooser extends JPanel {
 	}
 
 	public void init() {
-        String defaultDir = configReader.getProperty("defaultFolder", null);
-        if (defaultDir != null) {
-            selectDir(new File(defaultDir));
-        }
+        Optional<String> defaultDir = configReader.getProperty("defaultFolder");
+        defaultDir.ifPresent(dir -> selectDir(new File(dir)));
 	}
 	
 	public void selectDir(File dir) {

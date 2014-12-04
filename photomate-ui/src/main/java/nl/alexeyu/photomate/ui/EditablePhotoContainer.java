@@ -5,6 +5,7 @@ import static nl.alexeyu.photomate.ui.UiConstants.PREVIEW_SIZE;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.List;
+import java.util.Optional;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -23,8 +24,8 @@ public class EditablePhotoContainer extends PhotoContainer<EditablePhoto> implem
 	}
 	
 	private void initPreview() {
-	    EditablePhoto photo = photoTable.getSelectedPhoto();
-	    photoPreview.setIcon(photo == null ? null : photo.getPreview());
+	    Optional<EditablePhoto> photo = photoTable.getSelectedPhoto();
+	    photoPreview.setIcon(photo.isPresent() ? photo.get().getPreview() : null);
 	}
 	
     public void setPhotos(List<EditablePhoto> photos) {
@@ -45,7 +46,7 @@ public class EditablePhotoContainer extends PhotoContainer<EditablePhoto> implem
     }
 
     @Override
-    public void photoSelected(EditablePhoto photo) {
+    public void photoSelected(Optional<EditablePhoto> photo) {
         initPreview();
     }
 

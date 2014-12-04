@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
@@ -31,7 +32,7 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
 
     private PhotoCopyrightSetter photoCopyrightSetter;
     
-    private LocalPhoto currentPhoto;
+    private Optional<EditablePhoto> currentPhoto;
 
     @Inject
     public void postConstruct() {
@@ -56,23 +57,23 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
     
     @Override
     public void propertyChange(PropertyChangeEvent e) {
-        if (currentPhoto == null || !PhotoProperty.has(e.getPropertyName())) {
+        if (!currentPhoto.isPresent() || !PhotoProperty.has(e.getPropertyName())) {
             return;
         }
-       	photoApi.updateProperty(currentPhoto, e.getPropertyName(), e.getNewValue());
+       	photoApi.updateProperty(currentPhoto.get(), e.getPropertyName(), e.getNewValue());
     }
 
     @Override
-    public void photoSelected(EditablePhoto photo) {
+    public void photoSelected(Optional<EditablePhoto> photo) {
         this.currentPhoto = photo;
     }
 
     private class PhotoCopyrightSetter implements PropertyChangeListener {
 
-        private final String creator;
+        private final Optional<String> creator;
 
         public PhotoCopyrightSetter() {
-            creator = configReader.getProperty("copyright", null);
+            creator = configReader.getProperty("copyright");
         }
 
         @Override
@@ -80,9 +81,7 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
             if (e.getPropertyName().equals(METADATA_PROPERTY)) {
                 LocalPhoto photo = (LocalPhoto) e.getSource();
                 photo.removePropertyChangeListener(this);
-                if (creator != null) {
-                    photoApi.updateProperty(photo, "creator", creator);
-                }
+                creator.ifPresent(c -> photoApi.updateProperty(photo, "creator", c));
             }
         }
 

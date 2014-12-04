@@ -29,7 +29,7 @@ public class UploadTableModel extends AbstractTableModel {
 	}
 
 	private String getKey(PhotoStock photoStock, Photo photo) {
-		return photoStock.getName() + "-" + photo.getName();
+		return photoStock.getName() + "-" + photo.name();
 	}
 
 	public int getRowCount() {
