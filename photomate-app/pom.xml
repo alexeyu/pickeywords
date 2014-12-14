@@ -13,12 +13,10 @@
 		<dependency>
 			<groupId>nl.alexeyu</groupId>
 			<artifactId>photomate-core</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>nl.alexeyu</groupId>
 			<artifactId>photomate-ui</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
 	<build>

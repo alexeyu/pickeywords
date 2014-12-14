@@ -13,7 +13,6 @@
 		<dependency>
 			<groupId>nl.alexeyu</groupId>
 			<artifactId>photomate-core</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
 

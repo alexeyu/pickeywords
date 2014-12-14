@@ -1,17 +1,15 @@
 package nl.alexeyu.photomate.service;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+
+import nl.alexeyu.photomate.api.editable.EditablePhoto;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import nl.alexeyu.photomate.api.editable.EditablePhoto;
-
-import com.google.common.io.Files;
-
-public class ArchivePhotoTask implements  Runnable {
+public class ArchivePhotoTask implements Runnable {
 
 	private final Logger logger = LoggerFactory.getLogger("ArchivePhotoTask");
 	
@@ -27,9 +25,9 @@ public class ArchivePhotoTask implements  Runnable {
 	@Override
 	public void run() {
 		try {
-		    File archiveFile = new File(directory.toFile(), photo.name());
-		    Files.createParentDirs(archiveFile);
-			Files.copy(photo.getPath().toFile(), archiveFile);
+			Files.createDirectories(directory);
+		    Path archiveFile = directory.resolve(photo.name());
+		    Files.copy(photo.getPath(), archiveFile);
 		} catch (IOException ex) {
 			logger.error("Error on copying file", ex);
 		}
