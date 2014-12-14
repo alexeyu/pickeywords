@@ -9,13 +9,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.inject.Singleton;
 
@@ -27,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.io.CharStreams;
 
@@ -34,10 +34,13 @@ import com.google.common.io.CharStreams;
 public class ExifPhotoMetadataProcessor implements PhotoMetadataProcessor {
     
     private static final Splitter KEYWORD_SPLITTER = Splitter.on(',').trimResults();
-	private static final Pattern DESCR_REGEX = Pattern.compile(".*(Image Description)\\s*\\:(.*)");
-    private static final Pattern CAPTION_REGEX = Pattern.compile(".*(Caption-Abstract)\\s*\\:(.*)");
-    private static final Pattern KEYWORDS_REGEX = Pattern.compile(".*(Keywords)\\s*\\:(.*)");
-    private static final Pattern CREATOR_REGEX = Pattern.compile(".*(Creator)\\s*\\:(.*)");
+    
+    private static final Map<PhotoProperty, Pattern> PROPERTY_PATTERN = ImmutableMap.of(
+    	PhotoProperty.DESCRIPTION, Pattern.compile(".*(Image Description)\\s*\\:(.*)"),
+    	PhotoProperty.CAPTION, Pattern.compile(".*(Caption-Abstract)\\s*\\:(.*)"),
+    	PhotoProperty.KEYWORDS, Pattern.compile(".*(Keywords)\\s*\\:(.*)"),
+    	PhotoProperty.CREATOR, Pattern.compile(".*(Creator)\\s*\\:(.*)"));
+    
 
     private static final String BACKUP_SUFFIX = "_original";
     private static final String LINE_SEPARATOR = System.getProperty("line.separator");
@@ -48,6 +51,12 @@ public class ExifPhotoMetadataProcessor implements PhotoMetadataProcessor {
     private static final String KEYWORDS = "-keywords";
     private static final String CREATOR = "-Creator";
     private static final String COPYRIGHT = "-Copyright";
+    
+
+    private static final Map<PhotoProperty, List<String>> PHOTO_TO_EXIF_PROPERTIES = ImmutableMap.of(
+    		PhotoProperty.CAPTION, Arrays.asList(CAPTION_ABSTRACT, OBJECT_NAME),
+    		PhotoProperty.DESCRIPTION, Arrays.asList(IMAGE_DESCRIPTION),
+    		PhotoProperty.CREATOR, Arrays.asList(CREATOR, COPYRIGHT));
 
     private static final String ADD_KEYWORD_COMMAND = KEYWORDS + "+=";
     private static final String REMOVE_KEYWORD_COMMAND = KEYWORDS + "-=";
@@ -58,25 +67,24 @@ public class ExifPhotoMetadataProcessor implements PhotoMetadataProcessor {
     
     @Override
     public DefaultPhotoMetaData read(Path photoPath) {
-        String[] photoProperties = 
-                execExif(photoPath.toString(), IMAGE_DESCRIPTION, CAPTION_ABSTRACT, CREATOR, KEYWORDS)
-                .split(LINE_SEPARATOR);
-        Map<PhotoProperty, Object> properties = new HashMap<>();
-        properties.put(PhotoProperty.CAPTION, getPhotoProperty(photoProperties, CAPTION_REGEX));
-        properties.put(PhotoProperty.DESCRIPTION, getPhotoProperty(photoProperties, DESCR_REGEX));
-        properties.put(PhotoProperty.CREATOR, getPhotoProperty(photoProperties, CREATOR_REGEX));
-        properties.put(PhotoProperty.KEYWORDS, preProcessKeywords(getPhotoProperty(photoProperties, KEYWORDS_REGEX)));
+        List<String> photoProperties = Arrays.asList(
+        	execExif(photoPath, IMAGE_DESCRIPTION, CAPTION_ABSTRACT, CREATOR, KEYWORDS)
+            .split(LINE_SEPARATOR));
+        Map<PhotoProperty, Object> properties = Stream.of(PhotoProperty.values())
+        		.collect(Collectors.toMap(
+        				p -> p, 
+        				p -> getPhotoProperty(photoProperties)));
+        properties.put(PhotoProperty.KEYWORDS, preProcessKeywords(properties.get(PhotoProperty.KEYWORDS).toString()));
         return new DefaultPhotoMetaData(properties);
     }
     
-    private String getPhotoProperty(String[] photoProperties, Pattern propertyPattern) {
-    	for (String line : photoProperties) {
-            Matcher m = propertyPattern.matcher(line);
-            if (m.matches()) {
-                return m.group(2).trim();
-            }
-        }
-        return "";
+    private String getPhotoProperty(List<String> photoProperties) {
+    	return photoProperties.stream()
+    		.map(p -> PROPERTY_PATTERN.get(p).matcher(p))
+    		.filter(m -> m.matches())
+    		.map(m -> m.group(2).trim())
+    		.findFirst()
+    		.orElse("");
     }
     
     private List<String> preProcessKeywords(String keywordsLine) {
@@ -87,7 +95,7 @@ public class ExifPhotoMetadataProcessor implements PhotoMetadataProcessor {
     public void update(Path photoPath, PhotoMetaData oldMetaData, PhotoMetaData newMetaData) {
         List<String> arguments = getUpdateArguments(oldMetaData, newMetaData);
         if (arguments.size() > 0) {
-            execExif(photoPath.toString(), arguments.toArray(new String[arguments.size()]));
+            execExif(photoPath, arguments.toArray(new String[arguments.size()]));
             ensureBackupDeleted(photoPath);
         }
     }
@@ -100,51 +108,40 @@ public class ExifPhotoMetadataProcessor implements PhotoMetadataProcessor {
 	}
 
 	private List<String> args(PhotoMetaData oldMetaData, PhotoMetaData newMetaData,
-			PhotoProperty property, String... exifProperties) {
+			PhotoProperty property) {
 		if (oldMetaData.getProperty(property).equals(newMetaData.getProperty(property))) {
 			return Collections.emptyList();
 	    }
-		List<String> result = new ArrayList<>();
-		for (String exifProp : exifProperties) {
-			result.add(exifProp + "=" + newMetaData.getProperty(property));
-		}
-		return result;
+		return PHOTO_TO_EXIF_PROPERTIES.get(property).stream()
+				.map(p -> p + "=" + newMetaData.getProperty(property))
+				.collect(Collectors.toList());
 	}
 
 	private List<String> getUpdateArguments(PhotoMetaData oldMetaData, PhotoMetaData newMetaData) {
         List<String> arguments = new ArrayList<>();
-        arguments.addAll(args(oldMetaData, newMetaData, PhotoProperty.CAPTION, CAPTION_ABSTRACT, OBJECT_NAME));
-        arguments.addAll(args(oldMetaData, newMetaData, PhotoProperty.DESCRIPTION, IMAGE_DESCRIPTION));
-        arguments.addAll(args(oldMetaData, newMetaData, PhotoProperty.CREATOR, CREATOR, COPYRIGHT));
+        PHOTO_TO_EXIF_PROPERTIES.keySet().stream().forEach(p ->
+        	arguments.addAll(args(oldMetaData, newMetaData, p)));
 
-        Collection<String> oldKeywords = oldMetaData.keywords();
-        Collection<String> newKeywords = newMetaData.keywords();
-        if (!oldKeywords.equals(newKeywords)) {
-        	Collection<String> addedKeywords = newKeywords.stream()
-        			.filter(k -> !oldKeywords.contains(k))
-        			.collect(Collectors.toList());
-            arguments.addAll(toArgs(addedKeywords, true));
-            Collection<String> removedKeywords = oldKeywords.stream()
-            		.filter(k -> !newKeywords.contains(k))
-            		.collect(Collectors.toList());
-            arguments.addAll(toArgs(removedKeywords, false));
-        }
+    	Stream<String> changedKeywords = Stream.concat(
+    		diff(newMetaData.keywords(), oldMetaData.keywords())
+    			.map(kw -> ADD_KEYWORD_COMMAND + kw.trim()),
+    		diff(oldMetaData.keywords(), newMetaData.keywords())
+        		.map(kw -> REMOVE_KEYWORD_COMMAND + kw.trim()));
+        arguments.addAll(changedKeywords.collect(Collectors.toList()));
+
         return arguments;
     }
+	
+	private Stream<String> diff(Collection<String> a, Collection<String> b) {
+		return a.stream().filter(element -> !b.contains(element));
+	}
     
-    private List<String> toArgs(Collection<String> keywords, boolean add) {
-    	String command = add ? ADD_KEYWORD_COMMAND : REMOVE_KEYWORD_COMMAND;
-        return keywords.stream()
-        		.map(kw -> command + kw.trim())
-        		.collect(Collectors.toList());
-    }
-
-    private String execExif(String path, String... args) {
+    private String execExif(Path path, String... args) {
         try {
             String[] execArgs = new String[args.length + 2];
             execArgs[0] = "exiftool";
             System.arraycopy(args, 0, execArgs, 1, args.length);
-            execArgs[execArgs.length - 1] = path;
+            execArgs[execArgs.length - 1] = path.toString();
             logger.debug("" + Arrays.asList(execArgs));
             return doExec(execArgs);
         } catch (IOException ex) {

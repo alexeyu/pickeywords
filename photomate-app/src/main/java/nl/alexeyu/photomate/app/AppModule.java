@@ -20,6 +20,7 @@ public class AppModule extends AbstractModule {
 		bind(PhotoMetadataReader.class).to(ExifPhotoMetadataProcessor.class);
 	    bind(PhotoMetadataProcessor.class).to(ExifPhotoMetadataProcessor.class);
 		bind(PhotoStockApi.class).to(ShutterPhotoStockApi.class);
+
 		bind(ThumbnailProvider.class).annotatedWith(Names.named("thumbnail")).toInstance(
 				new ImgscalrThumbnailProvider(THUMBNAIL_SIZE));
 		bind(ThumbnailProvider.class).annotatedWith(Names.named("preview")).toInstance(

@@ -13,9 +13,7 @@ public class DefaultPhotoMetaData implements PhotoMetaData {
     private final Map<PhotoProperty, Object> properties = new HashMap<>();
     
     public DefaultPhotoMetaData(Map<PhotoProperty, Object> properties) {
-    	for (PhotoProperty pp : PhotoProperty.values()) {
-    		this.properties.put(pp, properties.get(pp));
-    	}
+    	this.properties.putAll(properties);
     }
 
     @Override

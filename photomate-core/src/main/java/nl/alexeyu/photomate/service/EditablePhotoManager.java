@@ -32,7 +32,7 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
 
     private PhotoCopyrightSetter photoCopyrightSetter;
     
-    private Optional<EditablePhoto> currentPhoto;
+    private Optional<EditablePhoto> currentPhoto = Optional.empty();
 
     @Inject
     public void postConstruct() {

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -78,9 +79,8 @@ public class LocalPhotoApi<P extends LocalPhoto> implements PhotoApi<P> {
 
     public void updateProperty(LocalPhoto photo, String propertyName, Object propertyValue) {
         Map<PhotoProperty, Object> newProps = new HashMap<>();
-        for (PhotoProperty pp : PhotoProperty.values()) {
-        	newProps.put(pp, photo.metaData().get().getProperty(pp));
-        }
+        Stream.of(PhotoProperty.values()).
+        	forEach(pp -> newProps.put(pp, photo.metaData().get().getProperty(pp)));
         newProps.put(PhotoProperty.of(propertyName), propertyValue);
         PhotoMetaData metaData = new DefaultPhotoMetaData(newProps);
         CompletableFuture

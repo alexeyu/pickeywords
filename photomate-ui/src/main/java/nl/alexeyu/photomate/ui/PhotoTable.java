@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.IntStream;
 
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
@@ -102,11 +103,9 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
     }
     
     private int getColumnRight(int col) {
-		int columnX = 0;
-		for (int i = 0; i <= col; i++) {
-			columnX += getColumnModel().getColumn(i).getWidth();
-		}
-		return columnX;
+    	return IntStream.range(0, col + 1)
+    			.map(index -> getColumnModel().getColumn(index).getWidth())
+    			.sum();
     }
     
     private int getRowTop(int row) {

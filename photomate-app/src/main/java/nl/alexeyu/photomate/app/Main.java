@@ -51,6 +51,8 @@ public class Main implements PropertyChangeListener {
 
     private JFrame frame = new JFrame("Your Photo Mate");
     
+    private static final String DEFAULT_FOLDER_PROPERTY = "defaultFolder";
+    
     private static final String SHUTTERSTOCK_SOURCE = "Shutterstock";
     private static final String LOCAL_SOURCE = "Local";
 
@@ -75,7 +77,6 @@ public class Main implements PropertyChangeListener {
     @Inject
     private ArchivePhotoContainer archivePhotoContainer;
     
-    @Inject
     private DirChooser dirChooser;
 
     @Inject
@@ -85,22 +86,29 @@ public class Main implements PropertyChangeListener {
     private PhotoUploader photoUploader;
 
     public void start() {
-        photoSourceRegistry.registerPhotoSource(LOCAL_SOURCE, archivePhotoContainer);
-        photoSourceRegistry.registerPhotoSource(SHUTTERSTOCK_SOURCE, stockPhotoContainer);
-        
+        registerPhotoSources();
+        dirChooser = new DirChooser(configReader.getProperty(DEFAULT_FOLDER_PROPERTY));
         initListeners();
         buildGraphics();
         dirChooser.init();
+        activateWindow();
+    }
 
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+	private void activateWindow() {
+		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setSize(1300, 800);
         frame.setVisible(true);
-    }
+	}
+
+	private void registerPhotoSources() {
+		photoSourceRegistry.registerPhotoSource(LOCAL_SOURCE, archivePhotoContainer);
+        photoSourceRegistry.registerPhotoSource(SHUTTERSTOCK_SOURCE, stockPhotoContainer);
+	}
     
     private void initListeners() {
         editablePhotoContainer.addPhotoObserver(photoMetaDataPanel);
         editablePhotoContainer.addPhotoObserver(photoManager);
-        dirChooser.addPropertyChangeListener("dir", this);
+        dirChooser.addPropertyChangeListener(DirChooser.DIR_PROPERTY, this);
         photoMetaDataPanel.addPropertyChangeListener(photoManager);
         sourcePhotoMetaDataPanel.addPropertyChangeListener(photoManager);
         stockPhotoContainer.addPhotoObserver(sourcePhotoMetaDataPanel);
@@ -140,16 +148,7 @@ public class Main implements PropertyChangeListener {
         sourcesPanel.setPreferredSize(UiConstants.PREVIEW_SIZE);
 
         final ButtonGroup bgroup = new ButtonGroup();
-        ActionListener l = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String sourceName = bgroup.getSelection().getActionCommand();
-                sourcesLayout.show(sourcesPanel, sourceName);
-                PhotoContainer<AbstractPhoto> photoContainer = (PhotoContainer<AbstractPhoto>) 
-                		photoSourceRegistry.getPhotoSource(sourceName);
-                sourcePhotoMetaDataPanel.setPhoto(photoContainer.getSelectedPhoto());
-            }
-        };
+        ActionListener l = new ChangePhotoListener(sourcesPanel, bgroup, sourcesLayout);
 
         JPanel buttonsPanel = new JPanel();
         BoxLayout buttonsLayout = new BoxLayout(buttonsPanel, BoxLayout.Y_AXIS);
@@ -195,7 +194,29 @@ public class Main implements PropertyChangeListener {
         }
     }
 
-    private class UploadStarter implements ActionListener {
+    private final class ChangePhotoListener implements ActionListener {
+		private final JPanel sourcesPanel;
+		private final ButtonGroup bgroup;
+		private final CardLayout sourcesLayout;
+
+		private ChangePhotoListener(JPanel sourcesPanel, ButtonGroup bgroup,
+				CardLayout sourcesLayout) {
+			this.sourcesPanel = sourcesPanel;
+			this.bgroup = bgroup;
+			this.sourcesLayout = sourcesLayout;
+		}
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+		    String sourceName = bgroup.getSelection().getActionCommand();
+		    sourcesLayout.show(sourcesPanel, sourceName);
+		    PhotoContainer<AbstractPhoto> photoContainer = (PhotoContainer<AbstractPhoto>) 
+		    		photoSourceRegistry.getPhotoSource(sourceName);
+		    sourcePhotoMetaDataPanel.setPhoto(photoContainer.getSelectedPhoto());
+		}
+	}
+
+	private class UploadStarter implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -209,7 +230,6 @@ public class Main implements PropertyChangeListener {
                 photoUploader.uploadPhotos(photos, uploadPanel);
             } catch (PhotoNotReadyException ex) {
                 JOptionPane.showMessageDialog(frame, "Cannot upload photos: " + ex.getPhotos());
-                
             }
         }
         

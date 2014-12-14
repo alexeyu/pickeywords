@@ -1,5 +1,7 @@
 package nl.alexeyu.photomate.model;
 
+import java.util.stream.Stream;
+
 public enum PhotoProperty {
 
 	DESCRIPTION("description"),
@@ -18,21 +20,15 @@ public enum PhotoProperty {
 	}
 	
 	public static boolean has(String s) {
-		for (PhotoProperty pp : values()) {
-			if (pp.propertyName.equals(s)) {
-				return true;
-			}
-		}
-		return false;
+		return Stream.of(values())
+				.anyMatch(val -> val.propertyName.equals(s));
 	}
 
 	public static PhotoProperty of(String s) {
-		for (PhotoProperty pp : values()) {
-			if (pp.propertyName.equals(s)) {
-				return pp;
-			}
-		}
-		throw new IllegalArgumentException("Not found: " + s);
+		return Stream.of(values())
+				.filter(val -> val.propertyName.equals(s))
+				.findFirst()
+				.orElseThrow(() -> new IllegalArgumentException("Not found: " + s));
 	}
 
 }

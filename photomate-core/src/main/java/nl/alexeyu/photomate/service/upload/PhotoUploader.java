@@ -39,12 +39,9 @@ public class PhotoUploader implements UploadPhotoListener {
 	}
 	
 	private void uploadPhoto(PhotoStock photoStock, EditablePhoto photo, int attemptsLeft) {
-		Runnable uploadTask;
-		if (Boolean.valueOf(configReader.getProperty("realUpload", "true"))) {
-		    uploadTask = new FtpUploadTask(photoStock, photo, attemptsLeft, listeners);
-		} else {
-            uploadTask = new FakeUploadTask(photoStock, photo, attemptsLeft, listeners);
-		}
+		Runnable uploadTask = Boolean.valueOf(configReader.getProperty("realUpload", "true"))
+		    ? new FtpUploadTask(photoStock, photo, attemptsLeft, listeners)
+            : new FakeUploadTask(photoStock, photo, attemptsLeft, listeners);
 		CompletableFuture.runAsync(uploadTask);
 	}
 
@@ -55,10 +52,9 @@ public class PhotoUploader implements UploadPhotoListener {
 	@Override
 	public void onSuccess(PhotoStock photoStock, EditablePhoto photo) {
 		if (archivedPhotos.put(photo, Boolean.TRUE) == null) {
-			if (archiveDir.isPresent()) {
-			    Runnable archivePhotoTask = new ArchivePhotoTask(photo, Paths.get(archiveDir.get()));
-			    CompletableFuture.runAsync(archivePhotoTask);
-			}
+			archiveDir.ifPresent(dir ->
+			    CompletableFuture.runAsync(new ArchivePhotoTask(photo, Paths.get(dir)))
+			);
 		}
 	}
 

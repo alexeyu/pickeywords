@@ -53,7 +53,7 @@ public abstract class AbstractPhoto implements Photo {
     public Optional<PhotoMetaData> metaData() {
         return Optional.ofNullable(metaData.get());
     }
-
+    
     public void addThumbnail(ImageIcon thumbnail) {
     	this.thumbnail.set(thumbnail);
         firePropertyChange(THUMBNAIL_PROPERTY, null, thumbnail);
