@@ -23,7 +23,7 @@ public class PhotoStock {
 		this.ftpPassword = ftpPassword;
 	}
 
-	public String getName() {
+	public String name() {
 		return name;
 	}
 

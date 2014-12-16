@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URLEncoder;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
@@ -48,14 +49,16 @@ public class ShutterPhotoStockApi implements PhotoApi<RemotePhoto>,
 
 	private HttpClient client;
 
-	private int resultsPerPage;
+	private int resultsPerPage = 10;
 
 	@Inject
 	public void init() {
-		String name = configReader.getProperty("stock.shutter.api.name", "");
-		String apiKey = configReader.getProperty("stock.shutter.api.key", "");
-		resultsPerPage = Integer.valueOf(configReader.getProperty(
-				"stock.shutter.api.resultsPerPage", "10"));
+		String name = configReader.getProperty("stock.shutter.api.name").orElse("");
+		String apiKey = configReader.getProperty("stock.shutter.api.key").orElse("");
+		Optional<String> resultsPerPageProperty = configReader.getProperty("stock.shutter.api.resultsPerPage");
+		if (resultsPerPageProperty.isPresent()) {
+			resultsPerPage = Integer.valueOf(resultsPerPageProperty.get());
+		}
 		this.client = createClient(name, apiKey);
 	}
 

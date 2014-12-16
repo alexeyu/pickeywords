@@ -23,27 +23,37 @@ public class ConfigReader {
 	
 	private static final Pattern PHOTO_STOCK_NAME = Pattern.compile("stock\\.([\\w]+)\\.name");
 	
-	private final Properties properties = new Properties();
+	private final Properties properties;
 	
 	private final List<PhotoStock> photoStocks;
 	
-	public ConfigReader() {
-		try (InputStream is = getStream()) {
-			properties.load(is);
-		} catch (IOException ex) {
-			throw new IllegalStateException(ex);
-		}
+	public ConfigReader(Properties props) {
+		this.properties = new Properties(props);
 		photoStocks = readPhotoStocks();
 	}
 
-	private InputStream getStream() throws IOException {
+	public static ConfigReader createDefault() {
 		String location = System.getProperty(CONFIG_LOCATION_SYS_PROP);
 		if (location == null) {
-			return getClass().getResourceAsStream(DEFAULT_CONFIG_FILE);
-		} 
-		return Files.newInputStream(Paths.get(location));
+			try (InputStream is = ConfigReader.class.getResourceAsStream(DEFAULT_CONFIG_FILE)) {
+				return from(is);
+			} catch (IOException ex) {
+				throw new IllegalStateException(ex);
+			}
+		}
+		try (InputStream is = Files.newInputStream(Paths.get(location))) {
+			return from(is);
+		} catch (IOException ex) {
+			throw new IllegalStateException(ex);
+		}
 	}
-
+	
+	public static ConfigReader from(InputStream is) throws IOException {
+		Properties props = new Properties();
+		props.load(is);
+		return new ConfigReader(props);
+	}
+	
 	private List<PhotoStock> readPhotoStocks() {
 		return properties.stringPropertyNames().stream()
 				.filter(prop -> isNotCommentedOut(prop))
@@ -57,23 +67,18 @@ public class ConfigReader {
 		return !prop.startsWith("#");
 	}
 
-	// TODO: builder
 	private PhotoStock readPhotoStock(String key) {
 		String prefix = "stock." + key + ".";
-		String name = getProperty(prefix + "name", "");
-		String icon = getProperty(prefix + "icon", "");
-		String ftpUrl = getProperty(prefix + "ftp.url", "");
-		String ftpUsername = getProperty(prefix + "ftp.username", "");
-		String ftpPassword = getProperty(prefix + "ftp.password", "");
+		String name = getProperty(prefix + "name").orElse("");
+		String icon = getProperty(prefix + "icon").orElse("");
+		String ftpUrl = getProperty(prefix + "ftp.url").orElse("");
+		String ftpUsername = getProperty(prefix + "ftp.username").orElse("");
+		String ftpPassword = getProperty(prefix + "ftp.password").orElse("");
 		return new PhotoStock(name, icon, ftpUrl, ftpUsername, ftpPassword);
 	}
 	
 	public List<PhotoStock> getPhotoStocks() {
 		return photoStocks;
-	}
-	
-	public String getProperty(String property, String defaultValue) {
-		return properties.getProperty(property, defaultValue);
 	}
 	
 	public Optional<String> getProperty(String property) {

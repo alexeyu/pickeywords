@@ -76,7 +76,7 @@ public class FtpUploadTask extends AbstractUploadTask implements CopyStreamListe
 				}
 			}
 			Thread.sleep(1000);
-			logger.info(photo.name() + "\t" + fileSize + "\t" + photoStock.getName());
+			logger.info(photo.name() + "\t" + fileSize + "\t" + photoStock.name());
 			notifySuccess();
 		} catch (Exception ex) {
 			logger.error("", ex);

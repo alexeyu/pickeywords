@@ -47,7 +47,7 @@ public class UploadTable extends JTable {
             label.setHorizontalAlignment(SwingConstants.CENTER);
             PhotoStock photoStock = getModel().getPhotoStock(column);
             if (photoStock.iconUrl().isEmpty()) {
-                label.setText(photoStock.getName());
+                label.setText(photoStock.name());
             } else {
                 URL url = getClass().getResource(photoStock.iconUrl());
                 label.setIcon(new ImageIcon(url));

@@ -39,7 +39,8 @@ public class PhotoUploader implements UploadPhotoListener {
 	}
 	
 	private void uploadPhoto(PhotoStock photoStock, EditablePhoto photo, int attemptsLeft) {
-		Runnable uploadTask = Boolean.valueOf(configReader.getProperty("realUpload", "true"))
+		String realUploadProperty = configReader.getProperty("realUpload").orElse("true");
+		Runnable uploadTask = Boolean.valueOf(realUploadProperty)
 		    ? new FtpUploadTask(photoStock, photo, attemptsLeft, listeners)
             : new FakeUploadTask(photoStock, photo, attemptsLeft, listeners);
 		CompletableFuture.runAsync(uploadTask);
