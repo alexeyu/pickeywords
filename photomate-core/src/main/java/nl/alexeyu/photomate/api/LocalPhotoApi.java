@@ -4,18 +4,15 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.swing.ImageIcon;
 
-import nl.alexeyu.photomate.model.DefaultPhotoMetaData;
+import nl.alexeyu.photomate.model.DefaultPhotoMetaDataBuilder;
 import nl.alexeyu.photomate.model.PhotoMetaData;
 import nl.alexeyu.photomate.model.PhotoProperty;
 import nl.alexeyu.photomate.service.metadata.PhotoMetadataProcessor;
@@ -59,30 +56,20 @@ public class LocalPhotoApi<P extends LocalPhoto> implements PhotoApi<P> {
     
     private void provideThumbnails(P photo) {
     	BufferedImage buf = bufferedImageProvider.toBufferedImage(photo.getPath());
-    	for (int i = 0; i < photo.getThumbnailCount(); i++) {
-    		photo.addThumbnail(new ImageIcon(getGenerator(i).getThumbnail(buf)));
-    	}
+    	photo.addThumbnail(new ImageIcon(thumbnailGenerator.getThumbnail(buf)));
+    	photo.addThumbnail(new ImageIcon(previewGenerator.getThumbnail(buf)));
     }
     
-    private ThumbnailProvider getGenerator(int index) {
-    	switch (index) {
-		case 0: return thumbnailGenerator;
-		case 1: return previewGenerator;
-		default: throw new IllegalArgumentException("This type of thumbnails is not supported");
-		}
-    }
-
     @Override
     public void provideMetadata(LocalPhoto photo) {
-    	CompletableFuture.supplyAsync(() -> metadataProcessor.read(photo.getPath())).thenAccept(m -> photo.setMetaData(m));
+    	CompletableFuture
+    		.supplyAsync(() -> metadataProcessor.read(photo.getPath()))
+    		.thenAccept(m -> photo.setMetaData(m));
     }
 
     public void updateProperty(LocalPhoto photo, String propertyName, Object propertyValue) {
-        Map<PhotoProperty, Object> newProps = new HashMap<>();
-        Stream.of(PhotoProperty.values()).
-        	forEach(pp -> newProps.put(pp, photo.metaData().get().getProperty(pp)));
-        newProps.put(PhotoProperty.of(propertyName), propertyValue);
-        PhotoMetaData metaData = new DefaultPhotoMetaData(newProps);
+    	DefaultPhotoMetaDataBuilder builder = new DefaultPhotoMetaDataBuilder(photo.metaData.get());
+        PhotoMetaData metaData = builder.set(PhotoProperty.of(propertyName), propertyValue).build();
         CompletableFuture
         	.runAsync(() -> metadataProcessor.update(photo.getPath(), photo.metaData().get(), metaData))
         	.thenRun(() -> photo.setMetaData(metaData));

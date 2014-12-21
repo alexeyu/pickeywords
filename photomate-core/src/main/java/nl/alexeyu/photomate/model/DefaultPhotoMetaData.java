@@ -25,7 +25,11 @@ public class DefaultPhotoMetaData implements PhotoMetaData {
     
 	@Override
 	public Object getProperty(PhotoProperty p) {
-		return properties.get(p);
+		if (p == PhotoProperty.KEYWORDS) {
+			return keywords();
+		}
+		Object result = properties.get(p);
+		return result == null ? "" : result.toString();
 	}
 
 	@Override

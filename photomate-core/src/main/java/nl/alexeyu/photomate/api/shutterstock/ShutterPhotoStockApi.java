@@ -37,8 +37,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.CharStreams;
 
-public class ShutterPhotoStockApi implements PhotoApi<RemotePhoto>,
-		PhotoStockApi {
+public class ShutterPhotoStockApi implements PhotoApi<RemotePhoto>,	PhotoStockApi {
 
 	private static final String BASE_URI = "http://api.shutterstock.com/images/";
 
