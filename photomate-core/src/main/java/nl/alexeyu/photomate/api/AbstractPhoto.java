@@ -12,6 +12,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.swing.ImageIcon;
 
+import com.google.common.base.Preconditions;
+
 import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.model.PhotoMetaData;
 
@@ -45,16 +47,12 @@ public abstract class AbstractPhoto implements Photo {
         return Optional.ofNullable(thumbnail.get());
     }
 
-    public int getThumbnailCount() {
-    	return 1;
-    }
-    
     @Override
     public Optional<PhotoMetaData> metaData() {
         return Optional.ofNullable(metaData.get());
     }
     
-    public void addThumbnail(ImageIcon thumbnail) {
+    protected void addThumbnail(ImageIcon thumbnail) {
     	this.thumbnail.set(thumbnail);
         firePropertyChange(THUMBNAIL_PROPERTY, null, thumbnail);
     }
@@ -65,6 +63,7 @@ public abstract class AbstractPhoto implements Photo {
     }
     
     public final Collection<String> keywords() {
+        Preconditions.checkNotNull(metaData.get());
     	return metaData.get().keywords();
     }
 

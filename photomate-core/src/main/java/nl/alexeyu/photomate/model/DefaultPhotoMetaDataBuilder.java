@@ -10,6 +10,10 @@ public class DefaultPhotoMetaDataBuilder {
 	
 	public DefaultPhotoMetaDataBuilder() {}
 	
+	public DefaultPhotoMetaDataBuilder(Map<PhotoProperty, String> properties) {
+	    this.properties.putAll(properties);
+	}
+	
 	public DefaultPhotoMetaDataBuilder(PhotoMetaData metaData) {
 		Stream.of(PhotoProperty.values()).
     		forEach(pp -> properties.put(pp, metaData.getProperty(pp)));

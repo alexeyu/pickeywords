@@ -1,6 +1,7 @@
 package nl.alexeyu.photomate.api.editable;
 
 import java.nio.file.Path;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.swing.ImageIcon;
@@ -29,27 +30,18 @@ public final class EditablePhoto extends LocalPhoto {
                 && m.keywords().size() <= 50;
     }
 
-    public ImageIcon getPreview() {
-        return preview.get();
+    public Optional<ImageIcon> preview() {
+        return Optional.ofNullable(preview.get());
     }
 
-    public void setPreview(ImageIcon thumbnail) {
-    	preview.set(thumbnail);
-        firePropertyChange(PREVIEW_PROPERTY, null, preview);
-    }
-    
 	@Override
 	public void addThumbnail(ImageIcon thumbnail) {
 		if (thumbnail().isPresent()) {
-			setPreview(thumbnail);
+	        preview.set(thumbnail);
+	        firePropertyChange(PREVIEW_PROPERTY, null, preview);
 		} else {
 			super.addThumbnail(thumbnail);
 		}
-	}
-
-	@Override
-	public int getThumbnailCount() {
-		return 2;
 	}
 
 }

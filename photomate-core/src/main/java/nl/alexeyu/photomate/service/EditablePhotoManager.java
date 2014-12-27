@@ -6,10 +6,10 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
@@ -19,6 +19,7 @@ import nl.alexeyu.photomate.api.editable.EditablePhoto;
 import nl.alexeyu.photomate.api.editable.EditablePhotoFactory;
 import nl.alexeyu.photomate.model.PhotoProperty;
 import nl.alexeyu.photomate.util.ConfigReader;
+import nl.alexeyu.photomate.util.ImageUtils;
 
 public class EditablePhotoManager implements PropertyChangeListener, PhotoObserver<EditablePhoto> {
 
@@ -36,13 +37,15 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
 
     @Inject
     public void postConstruct() {
-        photoCopyrightSetter = new PhotoCopyrightSetter();
+        Optional<String> creator = configReader.getProperty("copyright");
+        creator.ifPresent(c -> photoCopyrightSetter = new PhotoCopyrightSetter(c));
     }
     
     public List<EditablePhoto> createPhotos(Path dir) {
-        this.photos = photoApi.createPhotos(dir, new EditablePhotoFactory());
+        Stream<Path> paths = ImageUtils.getJpegImages(dir);
+        this.photos = photoApi.createPhotos(paths, new EditablePhotoFactory());
         photos.forEach(photo -> photo.addPropertyChangeListener(photoCopyrightSetter));
-        return Collections.unmodifiableList(photos);
+        return photos;
     }
 
     public List<EditablePhoto> validatePhotos() throws PhotoNotReadyException {
@@ -57,10 +60,10 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
     
     @Override
     public void propertyChange(PropertyChangeEvent e) {
-        if (!currentPhoto.isPresent() || !PhotoProperty.has(e.getPropertyName())) {
-            return;
+        if (currentPhoto.isPresent() && PhotoProperty.has(e.getPropertyName())) {
+            photoApi.updateProperty(currentPhoto.get(), 
+                    PhotoProperty.of(e.getPropertyName()), e.getNewValue());
         }
-       	photoApi.updateProperty(currentPhoto.get(), e.getPropertyName(), e.getNewValue());
     }
 
     @Override
@@ -70,10 +73,10 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
 
     private class PhotoCopyrightSetter implements PropertyChangeListener {
 
-        private final Optional<String> creator;
+        private final String creator;
 
-        public PhotoCopyrightSetter() {
-            creator = configReader.getProperty("copyright");
+        public PhotoCopyrightSetter(String creator) {
+            this.creator = creator;
         }
 
         @Override
@@ -81,7 +84,7 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
             if (e.getPropertyName().equals(METADATA_PROPERTY)) {
                 LocalPhoto photo = (LocalPhoto) e.getSource();
                 photo.removePropertyChangeListener(this);
-                creator.ifPresent(c -> photoApi.updateProperty(photo, "creator", c));
+                photoApi.updateProperty(photo, PhotoProperty.CREATOR, creator);
             }
         }
 

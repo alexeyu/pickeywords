@@ -1,6 +1,5 @@
 package nl.alexeyu.photomate.service.metadata;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
@@ -12,7 +11,9 @@ import java.util.stream.Stream;
 
 import javax.inject.Singleton;
 
+import nl.alexeyu.photomate.api.PhotoFileProcessor;
 import nl.alexeyu.photomate.model.DefaultPhotoMetaData;
+import nl.alexeyu.photomate.model.DefaultPhotoMetaDataBuilder;
 import nl.alexeyu.photomate.model.PhotoMetaData;
 import nl.alexeyu.photomate.model.PhotoProperty;
 import nl.alexeyu.photomate.util.CmdExecutor;
@@ -32,7 +33,6 @@ public class ExifPhotoMetadataProcessor implements PhotoMetadataProcessor {
     	PhotoProperty.KEYWORDS, Pattern.compile(".*(Keywords)\\s*\\:(.*)"),
     	PhotoProperty.CREATOR, Pattern.compile(".*(Creator)\\s*\\:(.*)"));
     
-    private static final String BACKUP_SUFFIX = "_original";
     private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
     private static final String CAPTION_ABSTRACT = "-Caption-Abstract";
@@ -42,7 +42,9 @@ public class ExifPhotoMetadataProcessor implements PhotoMetadataProcessor {
     private static final String CREATOR = "-Creator";
     private static final String COPYRIGHT = "-Copyright";
     
-    private CmdExecutor executor;
+    private final CmdExecutor executor;
+    
+    private final PhotoFileProcessor photoCleaner;
 
     private static final Map<PhotoProperty, List<String>> PHOTO_TO_EXIF_PROPERTIES = ImmutableMap.of(
    		PhotoProperty.CAPTION, Arrays.asList(CAPTION_ABSTRACT, OBJECT_NAME),
@@ -52,8 +54,9 @@ public class ExifPhotoMetadataProcessor implements PhotoMetadataProcessor {
     private static final String ADD_KEYWORD_COMMAND = KEYWORDS + "+=";
     private static final String REMOVE_KEYWORD_COMMAND = KEYWORDS + "-=";
     
-    public ExifPhotoMetadataProcessor(CmdExecutor executor) {
+    public ExifPhotoMetadataProcessor(CmdExecutor executor, PhotoFileProcessor photoCleaner) {
 		this.executor = executor;
+		this.photoCleaner = photoCleaner;
 	}
 
 	@Override
@@ -62,12 +65,15 @@ public class ExifPhotoMetadataProcessor implements PhotoMetadataProcessor {
         String[] cmdOutput = executor
         		.exec(photoPath, arguments)
         		.split(LINE_SEPARATOR);
-        Map<PhotoProperty, Object> properties = Stream.of(PhotoProperty.values())
+        Map<PhotoProperty, String> properties = Stream.of(PhotoProperty.values())
         		.collect(Collectors.toMap(
         				p -> p, 
         				p -> getPhotoProperty(cmdOutput, p)));
-        properties.put(PhotoProperty.KEYWORDS, preProcessKeywords(properties.get(PhotoProperty.KEYWORDS).toString()));
-        return new DefaultPhotoMetaData(properties);
+        
+        DefaultPhotoMetaDataBuilder builder = new DefaultPhotoMetaDataBuilder(properties);
+        List<String> keywords = preProcessKeywords(properties.get(PhotoProperty.KEYWORDS));
+        builder.set(PhotoProperty.KEYWORDS, keywords);
+        return builder.build();
     }
     
     private String getPhotoProperty(String[] cmdOutput, PhotoProperty property) {
@@ -89,14 +95,9 @@ public class ExifPhotoMetadataProcessor implements PhotoMetadataProcessor {
         List<String> arguments = getUpdateArguments(oldMetaData, newMetaData);
         if (arguments.size() > 0) {
             executor.exec(photoPath, arguments);
-            ensureBackupDeleted(photoPath);
+            photoCleaner.process(photoPath);
         }
     }
-
-	private void ensureBackupDeleted(Path photoPath) {
-		File backupFile = new File(photoPath.toString() + BACKUP_SUFFIX);
-		backupFile.deleteOnExit();
-	}
 
 	private Stream<String> args(PhotoMetaData newMetaData, PhotoProperty property) {
 		return PHOTO_TO_EXIF_PROPERTIES.get(property).stream()

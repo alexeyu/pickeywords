@@ -9,8 +9,8 @@ public abstract class AbstractUploadTask implements Runnable {
 
 	protected final PhotoStock photoStock;
 	protected final EditablePhoto photo;
-	protected final int attemptsLeft;
-	protected final Collection<UploadPhotoListener> uploadPhotoListeners;
+	private final int attemptsLeft;
+	private final Collection<UploadPhotoListener> uploadPhotoListeners;
 
 	public AbstractUploadTask(PhotoStock photoStock, EditablePhoto photo, int attemptsLeft, 
 			Collection<UploadPhotoListener> uploadPhotoListeners) {
@@ -32,4 +32,10 @@ public abstract class AbstractUploadTask implements Runnable {
 		uploadPhotoListeners.forEach(listener -> listener.onSuccess(photoStock, photo));
 	}
 
+   protected final void pause(int msec) {
+        try {
+            Thread.sleep(msec);
+        } catch (Exception ignored) {}
+    }
+   
 }

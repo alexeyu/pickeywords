@@ -15,17 +15,20 @@ import nl.alexeyu.photomate.service.PhotoObserver;
 
 public class EditablePhotoContainer extends PhotoContainer<EditablePhoto> implements PropertyChangeListener, PhotoObserver<EditablePhoto> {
     
+    private static final int COLUMN_COUNT = 1;
+    
 	private JLabel photoPreview = new JLabel();
 	
 	public EditablePhotoContainer() {
-	    super(1);
+	    super(COLUMN_COUNT);
 	    photoTable.addObserver(this);
         photoPreview.setPreferredSize(PREVIEW_SIZE);
 	}
 	
 	private void initPreview() {
 	    Optional<EditablePhoto> photo = photoTable.getSelectedPhoto();
-	    photoPreview.setIcon(photo.isPresent() ? photo.get().getPreview() : null);
+	    photoPreview.setIcon(photo.isPresent() && photo.get().preview().isPresent() 
+	            ? photo.get().preview().get() : null);
 	}
 	
     public void setPhotos(List<EditablePhoto> photos) {

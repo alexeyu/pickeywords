@@ -37,7 +37,7 @@ public class UploadPanel extends JPanel implements UploadPhotoListener {
 
     @Override
     public void onProgress(PhotoStock photoStock, EditablePhoto photo, long uploadedBytes) {
-        Integer percent = (int) (uploadedBytes * 100 / photo.getPath().toFile().length());
+        Integer percent = (int) (uploadedBytes * 100 / photo.fileSize());
         uploadTable.getModel().setStatus(photoStock, photo, percent);
         uploadTable.repaint();
     }

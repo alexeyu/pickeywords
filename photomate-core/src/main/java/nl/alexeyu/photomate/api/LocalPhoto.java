@@ -13,6 +13,10 @@ public abstract class LocalPhoto extends AbstractPhoto {
 	public Path getPath() {
 		return path;
 	}
+	
+	public long fileSize() {
+	    return path.toFile().length();
+	}
 
 	@Override
     public String name() {

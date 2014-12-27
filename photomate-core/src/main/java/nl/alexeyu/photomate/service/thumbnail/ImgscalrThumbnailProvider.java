@@ -15,7 +15,7 @@ public final class ImgscalrThumbnailProvider implements ThumbnailProvider {
 	}
 	
 	@Override
-	public Image getThumbnail(BufferedImage source) {
+	public Image scale(BufferedImage source) {
     	boolean portrait = source.getHeight() > source.getWidth();
     	Scalr.Mode fitMode = portrait ? Scalr.Mode.FIT_TO_HEIGHT : Scalr.Mode.FIT_TO_WIDTH;
 		return Scalr.resize(source, 

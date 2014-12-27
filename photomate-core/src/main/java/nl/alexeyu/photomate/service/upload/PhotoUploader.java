@@ -1,37 +1,28 @@
 package nl.alexeyu.photomate.service.upload;
 
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.inject.Inject;
 
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
 import nl.alexeyu.photomate.model.PhotoStock;
-import nl.alexeyu.photomate.service.ArchivePhotoTask;
 import nl.alexeyu.photomate.util.ConfigReader;
+
+import com.google.common.collect.Lists;
 
 public class PhotoUploader implements UploadPhotoListener {
 	
 	private static final int ATTEMPTS = 2;
 	
-	private ConcurrentHashMap<EditablePhoto, Boolean> archivedPhotos = new ConcurrentHashMap<>();
-	
-	private Optional<String> archiveDir;
-	
 	@Inject
 	private ConfigReader configReader;
 	
-	private Collection<UploadPhotoListener> listeners = new ArrayList<>(Arrays.asList( (UploadPhotoListener) this)); 
+	private Collection<UploadPhotoListener> listeners; 
 	
-	public void uploadPhotos(List<EditablePhoto> photos, UploadPhotoListener l) {
-	    listeners.add(l);
-        archiveDir = configReader.getProperty("archiveFolder");
+	public void uploadPhotos(List<EditablePhoto> photos, UploadPhotoListener... listeners) {
+	    this.listeners = Lists.asList(this, listeners);
 		List<PhotoStock> photoStocks = configReader.getPhotoStocks();
 		photos.forEach(photo ->
 			photoStocks.forEach(photoStock -> 
@@ -52,11 +43,6 @@ public class PhotoUploader implements UploadPhotoListener {
 
 	@Override
 	public void onSuccess(PhotoStock photoStock, EditablePhoto photo) {
-		if (archivedPhotos.put(photo, Boolean.TRUE) == null) {
-			archiveDir.ifPresent(dir ->
-			    CompletableFuture.runAsync(new ArchivePhotoTask(photo, Paths.get(dir)))
-			);
-		}
 	}
 
 	@Override

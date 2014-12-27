@@ -1,18 +1,17 @@
 package nl.alexeyu.photomate.model;
 
-import static nl.alexeyu.photomate.model.PhotoProperty.CAPTION;
-import static nl.alexeyu.photomate.model.PhotoProperty.DESCRIPTION;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.common.base.Strings;
+
 public class DefaultPhotoMetaData implements PhotoMetaData {
 	
     private final Map<PhotoProperty, Object> properties = new HashMap<>();
     
-    public DefaultPhotoMetaData(Map<PhotoProperty, Object> properties) {
+    DefaultPhotoMetaData(Map<PhotoProperty, Object> properties) {
     	this.properties.putAll(properties);
     }
 
@@ -28,18 +27,18 @@ public class DefaultPhotoMetaData implements PhotoMetaData {
 		if (p == PhotoProperty.KEYWORDS) {
 			return keywords();
 		}
-		Object result = properties.get(p);
-		return result == null ? "" : result.toString();
+		String result = (String) properties.get(p);
+		return Strings.nullToEmpty(result);
 	}
 
 	@Override
 	public String description() {
-		return properties.get(DESCRIPTION).toString();
+		return getProperty(PhotoProperty.DESCRIPTION).toString();
 	}
 
 	@Override
 	public String caption() {
-		return properties.get(CAPTION).toString();
+		return getProperty(PhotoProperty.CAPTION).toString();
 	}
 
 }

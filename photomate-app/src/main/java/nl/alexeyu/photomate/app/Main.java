@@ -30,6 +30,7 @@ import javax.swing.WindowConstants;
 import nl.alexeyu.photomate.api.AbstractPhoto;
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
 import nl.alexeyu.photomate.service.EditablePhotoManager;
+import nl.alexeyu.photomate.service.PhotoArchiver;
 import nl.alexeyu.photomate.service.PhotoNotReadyException;
 import nl.alexeyu.photomate.service.upload.PhotoUploader;
 import nl.alexeyu.photomate.ui.ArchivePhotoContainer;
@@ -65,25 +66,21 @@ public class Main implements PropertyChangeListener {
     
     private ExternalPhotoContainerRegistry photoSourceRegistry = new ExternalPhotoContainerRegistry();
 
-    @Inject
-    private EditablePhotoManager photoManager;
-
-    @Inject
-    private EditablePhotoContainer editablePhotoContainer;
-
-    @Inject
-    private StockPhotoContainer stockPhotoContainer;
-
-    @Inject
-    private ArchivePhotoContainer archivePhotoContainer;
-    
     private DirChooser dirChooser;
 
-    @Inject
-    private ConfigReader configReader;
+    @Inject  private EditablePhotoManager photoManager;
+
+    @Inject private EditablePhotoContainer editablePhotoContainer;
+
+    @Inject private StockPhotoContainer stockPhotoContainer;
+
+    @Inject private ArchivePhotoContainer archivePhotoContainer;
+
+    @Inject private ConfigReader configReader;
     
-    @Inject
-    private PhotoUploader photoUploader;
+    @Inject private PhotoArchiver photoArchiver;
+    
+    @Inject private PhotoUploader photoUploader;
 
     public void start() {
         registerPhotoSources();
@@ -227,7 +224,7 @@ public class Main implements PropertyChangeListener {
                 frame.getContentPane().add(new JScrollPane(uploadPanel));
                 frame.revalidate();
                 frame.repaint();
-                photoUploader.uploadPhotos(photos, uploadPanel);
+                photoUploader.uploadPhotos(photos, uploadPanel, photoArchiver);
             } catch (PhotoNotReadyException ex) {
                 JOptionPane.showMessageDialog(frame, "Cannot upload photos: " + ex.getPhotos());
             }

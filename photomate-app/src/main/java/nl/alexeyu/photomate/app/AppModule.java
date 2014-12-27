@@ -2,6 +2,7 @@ package nl.alexeyu.photomate.app;
 
 import static nl.alexeyu.photomate.ui.UiConstants.PREVIEW_SIZE;
 import static nl.alexeyu.photomate.ui.UiConstants.THUMBNAIL_SIZE;
+import nl.alexeyu.photomate.api.PhotoFileCleaner;
 import nl.alexeyu.photomate.api.PhotoStockApi;
 import nl.alexeyu.photomate.api.shutterstock.ShutterPhotoStockApi;
 import nl.alexeyu.photomate.service.metadata.ExifPhotoMetadataProcessor;
@@ -19,7 +20,9 @@ public class AppModule extends AbstractModule {
 	
 	@Override
 	protected void configure() {
-		ExifPhotoMetadataProcessor metadataProcessor = new ExifPhotoMetadataProcessor(new DefaultCmdExecutor("exiftool"));
+		ExifPhotoMetadataProcessor metadataProcessor = new ExifPhotoMetadataProcessor(
+		        new DefaultCmdExecutor("exiftool"),
+		        new PhotoFileCleaner("_original"));
 		bind(PhotoMetadataReader.class).toInstance(metadataProcessor);
 	    bind(PhotoMetadataProcessor.class).toInstance(metadataProcessor);
 		bind(PhotoStockApi.class).to(ShutterPhotoStockApi.class);

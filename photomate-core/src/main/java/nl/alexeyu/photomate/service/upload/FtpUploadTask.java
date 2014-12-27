@@ -17,6 +17,8 @@ import org.apache.commons.net.io.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
+
 public class FtpUploadTask extends AbstractUploadTask implements CopyStreamListener {
 	
 	private static final int KEEP_ALIVE_TIMEOUT = 120;
@@ -30,26 +32,16 @@ public class FtpUploadTask extends AbstractUploadTask implements CopyStreamListe
 	public FtpUploadTask(PhotoStock photoStock, EditablePhoto photo, int attemptsLeft, 
 			Collection<UploadPhotoListener> uploadPhotoListeners) {
 		super(photoStock, photo, attemptsLeft, uploadPhotoListeners);
-		client.setCopyStreamListener(this);
-		client.setControlKeepAliveTimeout(KEEP_ALIVE_TIMEOUT);
 	}
 
-	public void init() throws IOException {
+	private void init() throws IOException {
+        client.setCopyStreamListener(this);
+        client.setControlKeepAliveTimeout(KEEP_ALIVE_TIMEOUT);
 		client.connect(photoStock.ftpUrl());
 		if (!client.login(photoStock.ftpUsername(), photoStock.ftpPassword())) {
-			throw new IllegalStateException("Could not connect to " + photoStock);
+			throw new IOException("Could not connect to " + photoStock);
 		}
-	}
-	
-	public void destroy() {
-		try {
-			if (client.isConnected()) {
-				client.logout();
-				client.disconnect();
-			}
-		} catch (IOException ex) {
-			logger.error("Could not disconnect", ex);
-		}
+		client.setFileType(FTP.BINARY_FILE_TYPE);
 	}
 	
 	@Override
@@ -64,26 +56,38 @@ public class FtpUploadTask extends AbstractUploadTask implements CopyStreamListe
 		notifyProgress(0);
 		try (InputStream is = Files.newInputStream(photo.getPath())) {
 			init();
-			client.setFileType(FTP.BINARY_FILE_TYPE);
-			long fileSize = photo.getPath().toFile().length();
-			try (OutputStream os = client.storeFileStream(photo.name())) {
-				if (os == null) {
-					throw new IllegalStateException("Could not create file on a remote server");
-				}
-				long uploadedBytes = Util.copyStream(is, os, BUFFER_SIZE, fileSize, this, true);
-				if (fileSize != uploadedBytes) {
-					logger.warn(photoStock + ", " + photo + ": expected " + fileSize + ", uploaded " + uploadedBytes);
-				}
-			}
-			Thread.sleep(1000);
-			logger.info(photo.name() + "\t" + fileSize + "\t" + photoStock.name());
+			uploadFile(is);
+			pause(1000);
+			logger.info("%s\t%s\t%s", photo.name(), photo.fileSize(), photoStock.name());
 			notifySuccess();
-		} catch (Exception ex) {
+		} catch (IOException ex) {
 			logger.error("", ex);
 			notifyError(ex);
 		} finally {
 			destroy();
 		}
 	}
+
+    private void uploadFile(InputStream is) throws IOException {
+        try (OutputStream os = client.storeFileStream(photo.name())) {
+            long fileSize = photo.fileSize();
+            Preconditions.checkNotNull(os, "Could not create file on a remote server");
+        	long uploadedBytes = Util.copyStream(is, os, BUFFER_SIZE, fileSize, this, true);
+        	if (fileSize != uploadedBytes) {
+        		logger.warn("%s, %s: expected %s, uploaded %s", photoStock, photo, fileSize, uploadedBytes);
+        	}
+        }
+    }
+
+	private void destroy() {
+        try {
+            if (client.isConnected()) {
+                client.logout();
+                client.disconnect();
+            }
+        } catch (IOException ex) {
+            logger.error("Could not disconnect", ex);
+        }
+    }
 
 }
