@@ -33,10 +33,14 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.io.ByteStreams;
 
 public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, RemotePhoto>, PhotoStockApi {
+    
+    private final Logger logger = LoggerFactory.getLogger("ShutterPhotoStockApi");
 
 	private static final String QUERY_TEMPLATE = 
 	        "http://api.shutterstock.com/images/search.json?searchterm=%s&results_per_page=%s&search_group=photos";
@@ -77,7 +81,8 @@ public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, R
             ShutterSearchResult searchResult = client.execute(new HttpGet(requestUri),  new DefaultResponseHandler<>(searchResultReader));
             return createPhotos(searchResult.getPhotoDescriptions().stream(), new ShutterPhotoFactory());
         } catch (IOException ex) {
-            throw new IllegalStateException(ex);
+            logger.error("Cannot find photos", ex);
+            return Collections.emptyList();
         }
 	}
 	
@@ -152,7 +157,8 @@ public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, R
                                 new HttpGet(url), 
                                 new DefaultResponseHandler<>(responseReader));
             } catch (IOException ex) {
-                throw new IllegalStateException(ex);
+                logger.error("Cannot read url " + url, ex);
+                return null;
             }
         }
 	    

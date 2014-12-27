@@ -13,7 +13,8 @@ import javax.swing.JLabel;
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
 import nl.alexeyu.photomate.service.PhotoObserver;
 
-public class EditablePhotoContainer extends PhotoContainer<EditablePhoto> implements PropertyChangeListener, PhotoObserver<EditablePhoto> {
+public class EditablePhotoContainer extends PhotoContainer<EditablePhoto> 
+    implements PropertyChangeListener, PhotoObserver<EditablePhoto> {
     
     private static final int COLUMN_COUNT = 1;
     

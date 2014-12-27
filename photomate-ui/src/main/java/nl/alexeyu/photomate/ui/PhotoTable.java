@@ -20,7 +20,6 @@ import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.table.AbstractTableModel;
 
 import nl.alexeyu.photomate.api.AbstractPhoto;
 import nl.alexeyu.photomate.api.PhotoFileCleaner;
@@ -31,8 +30,6 @@ import nl.alexeyu.photomate.service.PhotoObserver;
 public class PhotoTable<P extends AbstractPhoto> extends JTable implements PropertyChangeListener {
     
     private static final int CELL_HEIGHT = UiConstants.THUMBNAIL_SIZE.height + 16;
-    
-    private final List<P> emptyPhotos = Collections.emptyList();
     
     private final int columnCount;
     
@@ -45,11 +42,11 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
 
     public PhotoTable(int columnCount, JComponent parent) {
     	this(columnCount);
-    	initParent(parent);
+    	injectIntoParent(parent);
     }
     
     private void init() {
-        setPhotos(emptyPhotos);
+        setPhotos(Collections.emptyList());
         setDefaultRenderer(Object.class, new PhotoCellRenderer());
         
         setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -62,7 +59,7 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
         setPreferredScrollableViewportSize(UiConstants.THUMBNAIL_SIZE);
     }
     
-    private void initParent(JComponent parent) {
+    private void injectIntoParent(JComponent parent) {
         JScrollPane sp = new JScrollPane();
         sp.setViewportView(this);
         sp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
@@ -81,10 +78,10 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
 
     public void setPhotos(List<P> photos) {
     	photos.forEach(photo -> photo.addPropertyChangeListener(this));
-        final StockPhotoTableModel model = new StockPhotoTableModel(photos); 
+        StockPhotoTableModel<P> model = new StockPhotoTableModel<>(photos, columnCount); 
         setModel(model);
         if (photos.size() > 0 && photos.get(0) instanceof ArchivePhoto) {
-    		addMouseListener(new DeleteArchivedPhotoListener(model));
+    		addMouseListener(new DeleteArchivedPhotoListener());
         }
     }
     
@@ -98,31 +95,35 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
     	return row  * getRowHeight(); 
     }
 
-    public Optional<P> getSelectedPhoto() {
-    	return getSelectedPhotoImpl();
-    }
-    
     @SuppressWarnings("unchecked")
-    private Optional<P> getSelectedPhotoImpl() {    	
-    	return ((StockPhotoTableModel) getModel()).getValueAt(getSelectedRow(), getSelectedColumn());
+    public StockPhotoTableModel<P> getModel() {
+        if (super.getModel() instanceof StockPhotoTableModel) {
+            return (StockPhotoTableModel<P>) super.getModel();
+        }
+        return null;
+    }
+
+    public Optional<P> getSelectedPhoto() {
+    	return getModel().getValueAt(getSelectedRow(), getSelectedColumn());
     }
     
-    private final class DeleteArchivedPhotoListener extends MouseAdapter {
-        private final PhotoTable<P>.StockPhotoTableModel model;
-        
-        private final PhotoFileProcessor cleaner = new PhotoFileCleaner();
+    @Override
+    public void propertyChange(PropertyChangeEvent e) {
+        repaint();
+    }
 
-        private DeleteArchivedPhotoListener(PhotoTable<P>.StockPhotoTableModel model) {
-            this.model = model;
-        }
+    private final class DeleteArchivedPhotoListener extends MouseAdapter {
+
+        private final PhotoFileProcessor cleaner = new PhotoFileCleaner();
 
         @Override
         public void mouseClicked(MouseEvent e) {
         	int row = rowAtPoint(e.getPoint());
         	int col = columnAtPoint(e.getPoint());
-        	if (getColumnRight(col) - e.getPoint().x < CLICKABLE_ICON_SIZE && e.getPoint().y - getRowTop(row) < CLICKABLE_ICON_SIZE) {
-        		Optional<P> photo = model.getValueAt(row, col);
-        		if (photo.isPresent() && photo.get().thumbnail().isPresent()) {
+        	if (getColumnRight(col) - e.getPoint().x < CLICKABLE_ICON_SIZE 
+        	        && e.getPoint().y - getRowTop(row) < CLICKABLE_ICON_SIZE) {
+        		Optional<P> photo = getModel().getValueAt(row, col);
+        		if (photo.isPresent()) {
         		    ArchivePhoto arcPhoto = (ArchivePhoto) photo.get();
         			arcPhoto.delete();
         			cleaner.process(arcPhoto.getPath());
@@ -135,51 +136,12 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
     private class SelectionListener implements ListSelectionListener {
 
         @Override
-        @SuppressWarnings("rawtypes")
+        @SuppressWarnings({"rawtypes", "unchecked"})
         public void valueChanged(ListSelectionEvent e) {
-        	Optional photo = getSelectedPhotoImpl();
+        	Optional photo = getSelectedPhoto();
             observers.forEach((observer) -> observer.photoSelected(photo));
         }
         
     }
-
-    @Override
-    public void propertyChange(PropertyChangeEvent e) {
-        repaint();
-    }
-
-    private class StockPhotoTableModel extends AbstractTableModel {
-        
-        private final List<P> photos;
-        
-        private final int rowCount;
-        
-        public StockPhotoTableModel(List<P> photos) {
-            this.photos = photos;
-            rowCount = Math.max(1, photos.size() / getColumnCount() + 
-                    (photos.size() % getColumnCount() == 0 ? 0 : 1));
-        }
-
-        @Override
-        public int getRowCount() {
-            return rowCount;
-        }
-
-        @Override
-        public int getColumnCount() {
-            return columnCount;
-        }
-
-        @Override
-        public Optional<P> getValueAt(int rowIndex, int columnIndex) {
-            int index = rowIndex * getColumnCount() + columnIndex; 
-            if (index < 0 || index >= photos.size()) {
-                return Optional.empty();
-            }
-            return Optional.of(photos.get(index));
-        }
-        
-    }
-
 
 }

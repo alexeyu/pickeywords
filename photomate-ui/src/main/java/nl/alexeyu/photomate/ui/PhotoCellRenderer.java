@@ -34,24 +34,30 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, 
             boolean isSelected, boolean hasFocus, int row, int column) {
-    	JComponent comp;
-    	if (value instanceof Optional) {
-    		value = ((Optional) value).isPresent() ? ((Optional) value).get() : null;
-    	}
-        if (value instanceof ArchivePhoto) {
-        	comp = new ArchivePhotoLabel((ArchivePhoto) value, table.getColumnModel().getColumn(column).getWidth()).getComponent();
-        } else if (value instanceof EditablePhoto) {
-        	comp = new EdiatablePhotoPanel((EditablePhoto) value).getComponent(); 
-        } else if (value instanceof Photo) {
-        	comp = new PhotoLabel<Photo>((Photo) value).getComponent();
-        } else if (value == null) {
-        	comp = new JPanel();
-        } else {
-        	throw new IllegalArgumentException("Value must be instance of Photo");
-        }
+    	JComponent comp = createComponent(table, value, column);
         comp.setBorder(isSelected ? LINE_BORDER : EMPTY_BORDER);
         comp.setBackground(BACKGROUND);
         return comp;
+    }
+
+    @SuppressWarnings("rawtypes")
+    private JComponent createComponent(JTable table, Object value, int column) {
+        if (value instanceof Optional) {
+            return ((Optional) value).isPresent() 
+                    ? createComponent(table, ((Optional) value).get(), column) 
+                    : createComponent(table, null, column);
+        }
+        if (value instanceof ArchivePhoto) {
+        	return new ArchivePhotoLabel((ArchivePhoto) value, table.getColumnModel().getColumn(column).getWidth()).getComponent();
+        } else if (value instanceof EditablePhoto) {
+            return new EdiatablePhotoPanel((EditablePhoto) value).getComponent(); 
+        } else if (value instanceof Photo) {
+            return new PhotoLabel<Photo>((Photo) value).getComponent();
+        } else if (value == null) {
+            return new JPanel();
+        } else {
+        	throw new IllegalArgumentException("Value must be instance of Photo");
+        }
     }
 
     private static class PhotoLabel<T extends Photo> {
