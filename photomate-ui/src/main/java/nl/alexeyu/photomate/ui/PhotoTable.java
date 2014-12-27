@@ -23,6 +23,8 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 
 import nl.alexeyu.photomate.api.AbstractPhoto;
+import nl.alexeyu.photomate.api.PhotoFileCleaner;
+import nl.alexeyu.photomate.api.PhotoFileProcessor;
 import nl.alexeyu.photomate.api.archive.ArchivePhoto;
 import nl.alexeyu.photomate.service.PhotoObserver;
 
@@ -82,23 +84,7 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
         final StockPhotoTableModel model = new StockPhotoTableModel(photos); 
         setModel(model);
         if (photos.size() > 0 && photos.get(0) instanceof ArchivePhoto) {
-    		addMouseListener(new MouseAdapter() {
-
-				@Override
-				public void mouseClicked(MouseEvent e) {
-					int row = rowAtPoint(e.getPoint());
-					int col = columnAtPoint(e.getPoint());
-					if (getColumnRight(col) - e.getPoint().x < CLICKABLE_ICON_SIZE && e.getPoint().y - getRowTop(row) < CLICKABLE_ICON_SIZE) {
-						Optional<P> photo = model.getValueAt(row, col);
-						if (photo.isPresent() && photo.get().thumbnail().isPresent()) {
-							((ArchivePhoto) photo.get()).delete();
-							repaint();
-						}
-					}
-				}
-    			
-			});
-        	
+    		addMouseListener(new DeleteArchivedPhotoListener(model));
         }
     }
     
@@ -121,6 +107,31 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
     	return ((StockPhotoTableModel) getModel()).getValueAt(getSelectedRow(), getSelectedColumn());
     }
     
+    private final class DeleteArchivedPhotoListener extends MouseAdapter {
+        private final PhotoTable<P>.StockPhotoTableModel model;
+        
+        private final PhotoFileProcessor cleaner = new PhotoFileCleaner();
+
+        private DeleteArchivedPhotoListener(PhotoTable<P>.StockPhotoTableModel model) {
+            this.model = model;
+        }
+
+        @Override
+        public void mouseClicked(MouseEvent e) {
+        	int row = rowAtPoint(e.getPoint());
+        	int col = columnAtPoint(e.getPoint());
+        	if (getColumnRight(col) - e.getPoint().x < CLICKABLE_ICON_SIZE && e.getPoint().y - getRowTop(row) < CLICKABLE_ICON_SIZE) {
+        		Optional<P> photo = model.getValueAt(row, col);
+        		if (photo.isPresent() && photo.get().thumbnail().isPresent()) {
+        		    ArchivePhoto arcPhoto = (ArchivePhoto) photo.get();
+        			arcPhoto.delete();
+        			cleaner.process(arcPhoto.getPath());
+        			repaint();
+        		}
+        	}
+        }
+    }
+
     private class SelectionListener implements ListSelectionListener {
 
         @Override

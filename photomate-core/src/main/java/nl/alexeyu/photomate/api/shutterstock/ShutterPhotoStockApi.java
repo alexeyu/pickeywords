@@ -1,13 +1,11 @@
 package nl.alexeyu.photomate.api.shutterstock;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import javax.inject.Inject;
@@ -37,15 +35,11 @@ import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.google.common.io.ByteStreams;
-import com.google.common.io.CharStreams;
 
 public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, RemotePhoto>, PhotoStockApi {
 
-	private static final JsonResponseHandler<ShutterSearchResult> PHOTO_RESPONSE_HANDLER = new JsonResponseHandler<>(ShutterSearchResult.class);
-
-    private static final String BASE_URI = "http://api.shutterstock.com/images/";
-
-	private static final String QUERY_TEMPLATE = "%ssearch.json?searchterm=%s&results_per_page=%s&search_group=photos";
+	private static final String QUERY_TEMPLATE = 
+	        "http://api.shutterstock.com/images/search.json?searchterm=%s&results_per_page=%s&search_group=photos";
 
 	@Inject
 	private ConfigReader configReader;
@@ -77,151 +71,91 @@ public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, R
 
 	@Override
 	public List<RemotePhoto> search(String keywords) {
-        String requestUri = String.format(QUERY_TEMPLATE, BASE_URI, encode(keywords), resultsPerPage);
-		ShutterSearchResult searchResult = doRequest(requestUri, PHOTO_RESPONSE_HANDLER);
-		return createPhotos(searchResult.getPhotoDescriptions().stream(), new ShutterPhotoFactory());
-	}
-
-	private String encode(String keywords) {
-		try {
-			return URLEncoder.encode(keywords, "UTF-8");
-		} catch (Exception ex) {
-			throw new IllegalArgumentException(keywords, ex);
-		}
+        try {
+            String requestUri = String.format(QUERY_TEMPLATE,  URLEncoder.encode(keywords, "UTF-8"), resultsPerPage);
+            JsonResponseReader<ShutterSearchResult> searchResultReader = new JsonResponseReader<>(ShutterSearchResult.class);
+            ShutterSearchResult searchResult = client.execute(new HttpGet(requestUri),  new DefaultResponseHandler<>(searchResultReader));
+            return createPhotos(searchResult.getPhotoDescriptions().stream(), new ShutterPhotoFactory());
+        } catch (IOException ex) {
+            throw new IllegalStateException(ex);
+        }
 	}
 	
-	
-
 	@Override
     public Supplier<PhotoMetaData> metaDataSupplier(RemotePhoto photo) {
-	    return new MetadataReader(photo);
+	    return new HttpResponseSupplier<>(
+	            photo.photoUrl() + ".json", 
+	            new JsonResponseReader<>(PhotoMetaData.class)); 
     }
 
     @Override
     public Supplier<List<ImageIcon>> thumbnailsSupplier(RemotePhoto photo) {
-        return new ThumbnailReader(photo);
+        return new HttpResponseSupplier<>(
+                photo.thumbnailUrl(), 
+                content -> Collections.singletonList(new ImageIcon(content)));
     }
 
-	private <T> T doRequest(String url, ResponseHandler<T> responseHandler) {
-		try {
-			return CompletableFuture.supplyAsync(
-					new SyncRestServiceCaller<>(url, responseHandler)).get();
-		} catch (InterruptedException | ExecutionException ex) {
-			throw new IllegalStateException(ex);
-		}
-	}
-
-	private static class JsonResponseHandler<T> implements ResponseHandler<T> {
-
-		private final ObjectMapper objectMapper = new ObjectMapper();
+    private static class DefaultResponseHandler<T> implements ResponseHandler<T> {
+        
+        private final Function<byte[], T> contentReader;
+        
+        DefaultResponseHandler(Function<byte[], T> contentReader) {
+            this.contentReader = contentReader;
+        }
+        
+        @Override
+        public T handleResponse(HttpResponse response) throws IOException {
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                HttpEntity entity = response.getEntity();
+                byte[] content = ByteStreams.toByteArray(entity.getContent());
+                EntityUtils.consume(entity);
+                return contentReader.apply(content);
+            } else {
+                throw new IOException(response.getStatusLine().getReasonPhrase());
+            }
+        }
+    }
+    
+	private static class JsonResponseReader<T> implements Function<byte[], T> {
 
 		private final Class<T> clazz;
+		
+		public JsonResponseReader(Class<T> clazz) {
+            this.clazz = clazz;
+        }
 
-		public JsonResponseHandler(Class<T> clazz) {
-			this.clazz = clazz;
-		}
-
-		@Override
-		public T handleResponse(HttpResponse response) throws IOException {
-			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-				HttpEntity entity = response.getEntity();
-				String result = CharStreams.toString(new InputStreamReader(entity.getContent()));
-				EntityUtils.consume(entity);
-				return objectMapper.readValue(result, clazz);
-			} else {
-                throw new IllegalStateException(response.getStatusLine().getReasonPhrase());
-			}
-		}
-
-	}
-
-	private static class ImageResponseHandler implements ResponseHandler<ImageIcon> {
-
-		@Override
-		public ImageIcon handleResponse(HttpResponse response)
-				throws IOException {
-			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-				HttpEntity entity = response.getEntity();
-				byte[] content = ByteStreams.toByteArray(entity.getContent());
-				EntityUtils.consume(entity);
-				return new ImageIcon(content);
-			} else {
-				throw new IllegalStateException(response.getStatusLine()
-						.getReasonPhrase());
-			}
-		}
-
-	}
-
-	private class ThumbnailReader implements Supplier<List<ImageIcon>> {
-
-		private final RemotePhoto photo;
-
-		private final ImageResponseHandler responseHandler;
-
-		public ThumbnailReader(RemotePhoto photo) {
-			this.photo = photo;
-			this.responseHandler = new ImageResponseHandler();
-		}
-
-		@Override
-		public List<ImageIcon> get() {
-			try {
-				HttpGet httpget = new HttpGet(photo.getThumbnailUrl());
-				return Collections.singletonList(client.execute(httpget, responseHandler));
+        @Override
+		public T apply(byte[] content) {
+		    try {
+				return new ObjectMapper().readValue(content, clazz);
 			} catch (IOException ex) {
-				throw new IllegalStateException(ex);
+			    throw new IllegalStateException(ex);
 			}
 		}
 
 	}
+	
+	private class HttpResponseSupplier<T> implements Supplier<T> {
+	    
+	    private final String url;
+	    private final Function<byte[], T> responseReader;
 
-	private class MetadataReader implements Supplier<PhotoMetaData> {
+        public HttpResponseSupplier(String url, Function<byte[], T> responseReader) {
+            this.url = url;
+            this.responseReader = responseReader;
+        }
 
-		private final RemotePhoto photo;
-
-		private final JsonResponseHandler<ShutterPhotoDetails> responseHandler;
-
-		public MetadataReader(RemotePhoto photo) {
-			this.photo = photo;
-			this.responseHandler = new JsonResponseHandler<>(
-					ShutterPhotoDetails.class);
-		}
-
-		@Override
-		public ShutterPhotoDetails get() {
-			try {
-				HttpGet httpget = new HttpGet(photo.getUrl() + ".json");
-				return client.execute(httpget, responseHandler);
-			} catch (IOException ex) {
-				throw new IllegalStateException(ex);
-			}
-		}
-
-	}
-
-	private class SyncRestServiceCaller<T> implements Supplier<T> {
-
-		private final String url;
-
-		private final ResponseHandler<T> responseHandler;
-
-		public SyncRestServiceCaller(String url,
-				ResponseHandler<T> responseHandler) {
-			this.url = url;
-			this.responseHandler = responseHandler;
-		}
-
-		@Override
-		public T get() {
-			try {
-				HttpGet httpget = new HttpGet(url);
-				return client.execute(httpget, responseHandler);
-			} catch (IOException ex) {
-				throw new IllegalStateException(ex);
-			}
-		}
-
+        @Override
+        public T get() {
+            try {
+                return client.execute(
+                                new HttpGet(url), 
+                                new DefaultResponseHandler<>(responseReader));
+            } catch (IOException ex) {
+                throw new IllegalStateException(ex);
+            }
+        }
+	    
 	}
 	
 	private static class ShutterPhotoFactory implements PhotoFactory<ShutterPhotoDescription, RemotePhoto> {

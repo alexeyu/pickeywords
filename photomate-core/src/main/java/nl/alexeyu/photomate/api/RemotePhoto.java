@@ -1,6 +1,5 @@
 package nl.alexeyu.photomate.api;
 
-
 public final class RemotePhoto extends AbstractPhoto {
     
     private final String url;
@@ -17,11 +16,11 @@ public final class RemotePhoto extends AbstractPhoto {
         return url;
     }
 
-    public String getThumbnailUrl() {
+    public String thumbnailUrl() {
         return thumbnailUrl;
     }
 
-    public String getUrl() {
+    public String photoUrl() {
         return url;
     }
 
