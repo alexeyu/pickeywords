@@ -31,20 +31,16 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
     @Inject
     private ConfigReader configReader;
 
-    private PhotoCopyrightSetter photoCopyrightSetter;
-    
     private Optional<EditablePhoto> currentPhoto = Optional.empty();
 
-    @Inject
-    public void postConstruct() {
-        Optional<String> creator = configReader.getProperty("copyright");
-        creator.ifPresent(c -> photoCopyrightSetter = new PhotoCopyrightSetter(c));
-    }
-    
     public List<EditablePhoto> createPhotos(Path dir) {
         Stream<Path> paths = ImageUtils.getJpegImages(dir);
         this.photos = photoApi.createPhotos(paths, new EditablePhotoFactory());
-        photos.forEach(photo -> photo.addPropertyChangeListener(photoCopyrightSetter));
+        Optional<String> creator = configReader.getProperty("copyright");
+        if (creator.isPresent()) {
+            PhotoCopyrightSetter photoCopyrightSetter = new PhotoCopyrightSetter(creator.get());
+            photos.forEach(photo -> photo.addPropertyChangeListener(photoCopyrightSetter));
+        }
         return photos;
     }
 

@@ -37,7 +37,6 @@ import nl.alexeyu.photomate.ui.ArchivePhotoContainer;
 import nl.alexeyu.photomate.ui.DirChooser;
 import nl.alexeyu.photomate.ui.EditablePhotoContainer;
 import nl.alexeyu.photomate.ui.EditablePhotoMetaDataPanel;
-import nl.alexeyu.photomate.ui.ExternalPhotoContainerRegistry;
 import nl.alexeyu.photomate.ui.PhotoContainer;
 import nl.alexeyu.photomate.ui.ReadonlyPhotoMetaDataPanel;
 import nl.alexeyu.photomate.ui.StockPhotoContainer;
@@ -68,7 +67,7 @@ public class Main implements PropertyChangeListener {
 
     private DirChooser dirChooser;
 
-    @Inject  private EditablePhotoManager photoManager;
+    @Inject private EditablePhotoManager photoManager;
 
     @Inject private EditablePhotoContainer editablePhotoContainer;
 
@@ -204,6 +203,7 @@ public class Main implements PropertyChangeListener {
 		}
 
 		@Override
+		@SuppressWarnings("unchecked")
 		public void actionPerformed(ActionEvent e) {
 		    String sourceName = bgroup.getSelection().getActionCommand();
 		    sourcesLayout.show(sourcesPanel, sourceName);

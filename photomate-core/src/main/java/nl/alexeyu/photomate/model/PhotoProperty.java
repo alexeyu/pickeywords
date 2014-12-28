@@ -15,7 +15,7 @@ public enum PhotoProperty {
 		this.propertyName = propertyName;
 	}
 
-	public String getPropertyName() {
+	public String propertyName() {
 		return propertyName;
 	}
 	

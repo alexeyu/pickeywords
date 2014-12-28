@@ -33,9 +33,9 @@ public abstract class AbstractPhotoMetaDataPanel<P extends AbstractPhoto>
 	    JPanel editorPanel = new JPanel();
 	    editorPanel.setLayout(new BoxLayout(editorPanel, BoxLayout.Y_AXIS));
 
-	    captionEditor = new HintedTextField("Caption", PhotoProperty.CAPTION.getPropertyName(), true);
+	    captionEditor = new HintedTextField("Caption", PhotoProperty.CAPTION.propertyName(), true);
 	    editorPanel.add(captionEditor);
-		descriptionEditor = new HintedTextField("Description", PhotoProperty.DESCRIPTION.getPropertyName(), true);
+		descriptionEditor = new HintedTextField("Description", PhotoProperty.DESCRIPTION.propertyName(), true);
 		editorPanel.add(descriptionEditor);
 
 		add(editorPanel, BorderLayout.NORTH);

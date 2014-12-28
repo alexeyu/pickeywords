@@ -78,7 +78,7 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
 
     public void setPhotos(List<P> photos) {
     	photos.forEach(photo -> photo.addPropertyChangeListener(this));
-        StockPhotoTableModel<P> model = new StockPhotoTableModel<>(photos, columnCount); 
+        PhotoTableModel<P> model = new PhotoTableModel<>(photos, columnCount); 
         setModel(model);
         if (photos.size() > 0 && photos.get(0) instanceof ArchivePhoto) {
     		addMouseListener(new DeleteArchivedPhotoListener());
@@ -96,9 +96,9 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
     }
 
     @SuppressWarnings("unchecked")
-    public StockPhotoTableModel<P> getModel() {
-        if (super.getModel() instanceof StockPhotoTableModel) {
-            return (StockPhotoTableModel<P>) super.getModel();
+    public PhotoTableModel<P> getModel() {
+        if (super.getModel() instanceof PhotoTableModel) {
+            return (PhotoTableModel<P>) super.getModel();
         }
         return null;
     }

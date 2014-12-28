@@ -95,9 +95,9 @@ public class ShutterPhotoDetails implements PhotoMetaData {
     @Override
 	public Object getProperty(PhotoProperty p) {
     	switch (p) {
-		case DESCRIPTION: return description();
-		case KEYWORDS:    return keywords();
-		default:          return "";
+    	    case DESCRIPTION: return description();
+    	    case KEYWORDS:    return keywords();
+    	    default:          return "";
 		}
 	}
 

@@ -40,7 +40,7 @@ import com.google.common.io.ByteStreams;
 
 public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, RemotePhoto>, PhotoStockApi {
     
-    private final Logger logger = LoggerFactory.getLogger("ShutterPhotoStockApi");
+    private static final Logger logger = LoggerFactory.getLogger("ShutterPhotoStockApi");
 
 	private static final String QUERY_TEMPLATE = 
 	        "http://api.shutterstock.com/images/search.json?searchterm=%s&results_per_page=%s&search_group=photos";
@@ -78,7 +78,9 @@ public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, R
         try {
             String requestUri = String.format(QUERY_TEMPLATE,  URLEncoder.encode(keywords, "UTF-8"), resultsPerPage);
             JsonResponseReader<ShutterSearchResult> searchResultReader = new JsonResponseReader<>(ShutterSearchResult.class);
-            ShutterSearchResult searchResult = client.execute(new HttpGet(requestUri),  new DefaultResponseHandler<>(searchResultReader));
+            ShutterSearchResult searchResult = client.execute(
+                    new HttpGet(requestUri),  
+                    new DefaultResponseHandler<>(searchResultReader));
             return createPhotos(searchResult.getPhotoDescriptions().stream(), new ShutterPhotoFactory());
         } catch (IOException ex) {
             logger.error("Cannot find photos", ex);
@@ -134,7 +136,8 @@ public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, R
 		    try {
 				return new ObjectMapper().readValue(content, clazz);
 			} catch (IOException ex) {
-			    throw new IllegalStateException(ex);
+			    logger.error("Cannot read content", ex); 
+			    return null;
 			}
 		}
 

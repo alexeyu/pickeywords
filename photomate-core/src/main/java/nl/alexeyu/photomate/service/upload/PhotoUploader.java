@@ -38,12 +38,10 @@ public class PhotoUploader implements UploadPhotoListener {
 	}
 
 	@Override
-	public void onProgress(PhotoStock photoStock, EditablePhoto photo, long bytesUploaded) {
-	}
+	public void onProgress(PhotoStock photoStock, EditablePhoto photo, long bytesUploaded) {}
 
 	@Override
-	public void onSuccess(PhotoStock photoStock, EditablePhoto photo) {
-	}
+	public void onSuccess(PhotoStock photoStock, EditablePhoto photo) {}
 
 	@Override
 	public void onError(PhotoStock photoStock, EditablePhoto photo, Exception ex, int attemptsLeft) {

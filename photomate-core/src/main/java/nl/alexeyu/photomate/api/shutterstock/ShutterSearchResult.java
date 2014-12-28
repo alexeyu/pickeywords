@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonProperty;
-import org.codehaus.jackson.map.ObjectMapper;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ShutterSearchResult {
@@ -17,6 +16,7 @@ public class ShutterSearchResult {
     public void setCount(int count) {
         this.count = count;
     }
+    
     @JsonProperty("results")
     public void setPhotoDescriptions(List<ShutterPhotoDescription> photoDescriptions) {
         this.photoDescriptions = photoDescriptions;
@@ -30,8 +30,4 @@ public class ShutterSearchResult {
         return photoDescriptions;
     }
 
-    public static void main(String[] args) throws Exception  {
-        System.out.println(new ObjectMapper().readValue("{\"count\": 10, \"results\": []}", ShutterSearchResult.class));
-        
-    }
 }

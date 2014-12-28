@@ -1,4 +1,4 @@
-package nl.alexeyu.photomate.ui;
+package nl.alexeyu.photomate.app;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;

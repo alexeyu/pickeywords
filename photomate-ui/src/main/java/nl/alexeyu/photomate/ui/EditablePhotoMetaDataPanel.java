@@ -27,19 +27,11 @@ public class EditablePhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<Edita
     private HintedTextField keywordToAddField;
 	
 	public EditablePhotoMetaDataPanel() {
-	    captionEditor.addPropertyChangeListener(CAPTION.getPropertyName(), this);
-		descriptionEditor.addPropertyChangeListener(DESCRIPTION.getPropertyName(), this);
+	    captionEditor.addPropertyChangeListener(CAPTION.propertyName(), this);
+		descriptionEditor.addPropertyChangeListener(DESCRIPTION.propertyName(), this);
 
-		keywordList.addKeyListener(new KeyAdapter() {
-            
-            @Override
-            public void keyTyped(KeyEvent e) {
-                if (e.getKeyChar() == KeyEvent.VK_DELETE) {
-                    removeKeywords(keywordList.getSelectedValuesList());
-                }
-            }
-		});
-		keywordList.addPropertyChangeListener(KEYWORDS.getPropertyName(), this);
+		keywordList.addKeyListener(new KeywordRemover());
+		keywordList.addPropertyChangeListener(KEYWORDS.propertyName(), this);
 		
 		keywordToAddField = new HintedTextField("Keyword to add", NEW_KEYWORD_PROPERTY, false);
 		add(keywordToAddField, BorderLayout.SOUTH);
@@ -62,7 +54,7 @@ public class EditablePhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<Edita
             List<String> reducedKeywords = currentKeywords.stream()
             		.filter(k -> !keywords.contains(k))
             		.collect(Collectors.toList());
-            firePropertyChange(KEYWORDS.getPropertyName(), currentKeywords, reducedKeywords);
+            firePropertyChange(KEYWORDS.propertyName(), currentKeywords, reducedKeywords);
         }
     }
     
@@ -70,27 +62,33 @@ public class EditablePhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<Edita
     	Collection<String> currentKeywords = photo.get().keywords();
     	Collection<String> extendedKeywords = new LinkedHashSet<>(currentKeywords);
     	extendedKeywords.addAll(keywords);
-        firePropertyChange(KEYWORDS.getPropertyName(), currentKeywords, extendedKeywords);
+        firePropertyChange(KEYWORDS.propertyName(), currentKeywords, extendedKeywords);
     }
 
     public DropTarget getDropTarget() {
-    	return new DropTarget(keywordList, 
-			new DropTargetAdapter() {
-				
-				@Override
-				public void drop(DropTargetDropEvent dtde) {
-					try {
-						DataFlavor dataFlavor = new DataFlavor("text/plain; class=java.lang.String");
-						String draggedValue = dtde.getTransferable().getTransferData(dataFlavor).toString();
-						String[] keywords = draggedValue.split(System.getProperty("line.separator"));
-						addKeywords(asList(keywords));
-					} catch (Exception ex) {
-						throw new IllegalStateException(ex);
-					}
-				}
-				
-			});
+    	return new DropTarget(keywordList, new KeywordDropTarget());
     }
 
+    private final class KeywordRemover extends KeyAdapter {
+        @Override
+        public void keyTyped(KeyEvent e) {
+            if (e.getKeyChar() == KeyEvent.VK_DELETE) {
+                removeKeywords(keywordList.getSelectedValuesList());
+            }
+        }
+    }
 
+    private final class KeywordDropTarget extends DropTargetAdapter {
+        @Override
+        public void drop(DropTargetDropEvent dtde) {
+            try {
+                DataFlavor dataFlavor = new DataFlavor("text/plain; class=java.lang.String");
+                String draggedValue = dtde.getTransferable().getTransferData(dataFlavor).toString();
+                String[] keywords = draggedValue.split(System.getProperty("line.separator"));
+                addKeywords(asList(keywords));
+            } catch (Exception ex) {
+                throw new IllegalStateException(ex);
+            }
+        }
+    }
 }

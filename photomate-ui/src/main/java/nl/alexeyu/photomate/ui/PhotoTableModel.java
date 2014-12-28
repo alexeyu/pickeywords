@@ -7,7 +7,7 @@ import javax.swing.table.AbstractTableModel;
 
 import nl.alexeyu.photomate.api.AbstractPhoto;
 
-class StockPhotoTableModel<P extends AbstractPhoto> extends AbstractTableModel {
+class PhotoTableModel<P extends AbstractPhoto> extends AbstractTableModel {
     
     private final List<P> photos;
     
@@ -15,7 +15,7 @@ class StockPhotoTableModel<P extends AbstractPhoto> extends AbstractTableModel {
     
     private final int columnCount;
     
-    public StockPhotoTableModel(List<P> photos, int tableCoumnCount) {
+    public PhotoTableModel(List<P> photos, int tableCoumnCount) {
         this.photos = photos;
         this.columnCount = tableCoumnCount;
         int adjustedCount = photos.size() / columnCount + 

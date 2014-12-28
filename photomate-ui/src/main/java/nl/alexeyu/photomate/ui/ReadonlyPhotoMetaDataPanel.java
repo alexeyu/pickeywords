@@ -21,7 +21,7 @@ public class ReadonlyPhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<Abstr
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (photo.isPresent() && e.getClickCount() >= 2) {
-                    firePropertyChange(CAPTION.getPropertyName(), null, captionEditor.getText());
+                    firePropertyChange(CAPTION.propertyName(), null, captionEditor.getText());
                 }
             }
         });
@@ -30,7 +30,7 @@ public class ReadonlyPhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<Abstr
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (photo.isPresent() && e.getClickCount() >= 2) {
-                    firePropertyChange(DESCRIPTION.getPropertyName(), null, descriptionEditor.getText());
+                    firePropertyChange(DESCRIPTION.propertyName(), null, descriptionEditor.getText());
                 }
             }
 	    });
@@ -44,7 +44,7 @@ public class ReadonlyPhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<Abstr
                     DefaultListModel<String> model = (DefaultListModel<String>) keywordList.getModel();
                     String[] values = new String[model.size()];
                     model.copyInto(values);
-                    firePropertyChange(PhotoProperty.KEYWORDS.getPropertyName(), null, Arrays.asList(values));
+                    firePropertyChange(PhotoProperty.KEYWORDS.propertyName(), null, Arrays.asList(values));
                 }
             }
         });

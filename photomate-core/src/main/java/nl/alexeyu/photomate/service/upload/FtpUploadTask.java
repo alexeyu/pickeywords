@@ -23,9 +23,9 @@ public class FtpUploadTask extends AbstractUploadTask implements CopyStreamListe
 	
 	private static final int KEEP_ALIVE_TIMEOUT = 120;
 
-	private int BUFFER_SIZE = 1024 * 50;
+	private static final int BUFFER_SIZE = 1024 * 50;
 
-	private final Logger logger = LoggerFactory.getLogger("UploadTask");
+	private static final Logger logger = LoggerFactory.getLogger("UploadTask");
 	
 	private final FTPClient client = new FTPClient();
 	

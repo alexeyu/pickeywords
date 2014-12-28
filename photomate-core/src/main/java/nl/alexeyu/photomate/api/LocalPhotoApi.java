@@ -50,10 +50,11 @@ public class LocalPhotoApi<P extends LocalPhoto> implements PhotoApi<Path, P> {
     }
 
     public void updateProperty(LocalPhoto photo, PhotoProperty property, Object propertyValue) {
-    	DefaultPhotoMetaDataBuilder builder = new DefaultPhotoMetaDataBuilder(photo.metaData.get());
+        PhotoMetaData oldMetaData = photo.metaData().get();
+    	DefaultPhotoMetaDataBuilder builder = new DefaultPhotoMetaDataBuilder(oldMetaData);
         PhotoMetaData metaData = builder.set(property, propertyValue).build();
         CompletableFuture
-        	.runAsync(() -> metadataProcessor.update(photo.getPath(), photo.metaData().get(), metaData))
+        	.runAsync(() -> metadataProcessor.update(photo.getPath(), oldMetaData, metaData))
         	.thenRun(() -> photo.setMetaData(metaData));
     }
 

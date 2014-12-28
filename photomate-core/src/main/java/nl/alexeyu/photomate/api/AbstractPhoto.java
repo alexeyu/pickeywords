@@ -23,11 +23,11 @@ public abstract class AbstractPhoto implements Photo {
 
     public static final String METADATA_PROPERTY = "metadata";
 
-    protected final AtomicReference<PhotoMetaData> metaData = new AtomicReference<>();
+    private final AtomicReference<PhotoMetaData> metaData = new AtomicReference<>();
     
     private final AtomicReference<ImageIcon> thumbnail = new AtomicReference<>();
     
-    protected List<WeakReference<PropertyChangeListener>> listeners = new CopyOnWriteArrayList<>();
+    private List<WeakReference<PropertyChangeListener>> listeners = new CopyOnWriteArrayList<>();
 
     public final void addPropertyChangeListener(PropertyChangeListener listener) {
         listeners.add(new WeakReference<PropertyChangeListener>(listener));

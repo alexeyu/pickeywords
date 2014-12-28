@@ -40,15 +40,15 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
         return comp;
     }
 
-    @SuppressWarnings("rawtypes")
     private JComponent createComponent(JTable table, Object value, int column) {
         if (value instanceof Optional) {
-            return ((Optional) value).isPresent() 
-                    ? createComponent(table, ((Optional) value).get(), column) 
+            return ((Optional<?>) value).isPresent() 
+                    ? createComponent(table, ((Optional<?>) value).get(), column) 
                     : createComponent(table, null, column);
         }
         if (value instanceof ArchivePhoto) {
-        	return new ArchivePhotoLabel((ArchivePhoto) value, table.getColumnModel().getColumn(column).getWidth()).getComponent();
+            int columnWidth = table.getColumnModel().getColumn(column).getWidth();
+        	return new ArchivePhotoLabel((ArchivePhoto) value, columnWidth).getComponent();
         } else if (value instanceof EditablePhoto) {
             return new EdiatablePhotoPanel((EditablePhoto) value).getComponent(); 
         } else if (value instanceof Photo) {
@@ -94,7 +94,6 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
     		super(photo);
     		this.columnWidth = columnWidth;
     	}
-
     	
 		@Override
 		protected JComponent createComponent() {

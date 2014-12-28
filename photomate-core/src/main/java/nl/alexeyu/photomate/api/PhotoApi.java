@@ -17,9 +17,11 @@ public interface PhotoApi<S, P extends AbstractPhoto> {
                 .map(s -> photoFactory.createPhoto(s))
                 .collect(Collectors.toList());
         photos.forEach(photo -> {
-            CompletableFuture.supplyAsync(metaDataSupplier(photo))
+            CompletableFuture
+                .supplyAsync(metaDataSupplier(photo))
                 .thenAccept(m -> photo.setMetaData(m));
-            CompletableFuture.supplyAsync(thumbnailsSupplier(photo))
+            CompletableFuture
+                .supplyAsync(thumbnailsSupplier(photo))
                 .thenAccept(thumbnails -> thumbnails.forEach(
                         t -> photo.addThumbnail(t)));
         });
