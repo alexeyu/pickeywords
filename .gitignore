@@ -1,6 +1,6 @@
 .*
 *.class
-config.properties
+photomate.properties
 
 # Package Files #
 *.jar
