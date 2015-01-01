@@ -28,7 +28,7 @@ public interface PhotoApi<S, P extends AbstractPhoto> {
         return photos;
     }
     
-    Supplier<PhotoMetaData> metaDataSupplier(P photo);
+    Supplier<? extends PhotoMetaData> metaDataSupplier(P photo);
     
     Supplier<List<ImageIcon>> thumbnailsSupplier(P photo);
     

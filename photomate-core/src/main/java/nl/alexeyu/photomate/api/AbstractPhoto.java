@@ -39,7 +39,10 @@ public abstract class AbstractPhoto implements Photo {
 
     protected final void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
         PropertyChangeEvent event = new PropertyChangeEvent(this, propertyName, oldValue, newValue);
-        listeners.forEach(ref -> ref.get().propertyChange(event)); 
+        listeners.stream()
+            .map(ref -> ref.get())
+            .filter(listener -> listener != null)
+            .forEach(listener -> listener.propertyChange(event)); 
     }
 
     @Override

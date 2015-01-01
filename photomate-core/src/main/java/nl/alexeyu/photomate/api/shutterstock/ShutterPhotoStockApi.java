@@ -15,7 +15,6 @@ import nl.alexeyu.photomate.api.PhotoApi;
 import nl.alexeyu.photomate.api.PhotoFactory;
 import nl.alexeyu.photomate.api.PhotoStockApi;
 import nl.alexeyu.photomate.api.RemotePhoto;
-import nl.alexeyu.photomate.model.PhotoMetaData;
 import nl.alexeyu.photomate.util.ConfigReader;
 
 import org.apache.http.HttpEntity;
@@ -89,10 +88,10 @@ public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, R
 	}
 	
 	@Override
-    public Supplier<PhotoMetaData> metaDataSupplier(RemotePhoto photo) {
+    public Supplier<ShutterPhotoDetails> metaDataSupplier(RemotePhoto photo) {
 	    return new HttpResponseSupplier<>(
 	            photo.photoUrl() + ".json", 
-	            new JsonResponseReader<>(PhotoMetaData.class)); 
+	            new JsonResponseReader<>(ShutterPhotoDetails.class)); 
     }
 
     @Override
