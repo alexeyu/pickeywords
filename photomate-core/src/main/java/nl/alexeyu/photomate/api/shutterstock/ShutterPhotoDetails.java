@@ -2,11 +2,11 @@ package nl.alexeyu.photomate.api.shutterstock;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import nl.alexeyu.photomate.model.PhotoMetaData;
 import nl.alexeyu.photomate.model.PhotoProperty;
-
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
-import org.codehaus.jackson.annotate.JsonProperty;
 
 /*{
    "illustration":1,

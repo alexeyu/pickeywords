@@ -11,12 +11,6 @@ import java.util.function.Supplier;
 import javax.inject.Inject;
 import javax.swing.ImageIcon;
 
-import nl.alexeyu.photomate.api.PhotoApi;
-import nl.alexeyu.photomate.api.PhotoFactory;
-import nl.alexeyu.photomate.api.PhotoStockApi;
-import nl.alexeyu.photomate.api.RemotePhoto;
-import nl.alexeyu.photomate.util.ConfigReader;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -31,11 +25,17 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.ByteStreams;
+
+import nl.alexeyu.photomate.api.PhotoApi;
+import nl.alexeyu.photomate.api.PhotoFactory;
+import nl.alexeyu.photomate.api.PhotoStockApi;
+import nl.alexeyu.photomate.api.RemotePhoto;
+import nl.alexeyu.photomate.util.ConfigReader;
 
 public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, RemotePhoto>, PhotoStockApi {
     
