@@ -27,6 +27,10 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.WindowConstants;
 
+import com.google.common.eventbus.EventBus;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+
 import nl.alexeyu.photomate.api.AbstractPhoto;
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
 import nl.alexeyu.photomate.service.EditablePhotoManager;
@@ -44,15 +48,12 @@ import nl.alexeyu.photomate.ui.UiConstants;
 import nl.alexeyu.photomate.ui.UploadPanel;
 import nl.alexeyu.photomate.util.ConfigReader;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-
 public class Main implements PropertyChangeListener {
 
     private JFrame frame = new JFrame("Your Photo Mate");
-    
+
     private static final String DEFAULT_FOLDER_PROPERTY = "defaultFolder";
-    
+
     private static final String SHUTTERSTOCK_SOURCE = "Shutterstock";
     private static final String LOCAL_SOURCE = "Local";
 
@@ -60,26 +61,33 @@ public class Main implements PropertyChangeListener {
 
     private EditablePhotoMetaDataPanel photoMetaDataPanel = new EditablePhotoMetaDataPanel();
 
-    private ReadonlyPhotoMetaDataPanel sourcePhotoMetaDataPanel = 
-    		new ReadonlyPhotoMetaDataPanel(photoMetaDataPanel.getDropTarget());
-    
+    private ReadonlyPhotoMetaDataPanel sourcePhotoMetaDataPanel = new ReadonlyPhotoMetaDataPanel(
+            photoMetaDataPanel.getDropTarget());
+
     private ExternalPhotoContainerRegistry photoSourceRegistry = new ExternalPhotoContainerRegistry();
 
     private DirChooser dirChooser;
 
-    @Inject private EditablePhotoManager photoManager;
+    @Inject
+    private EditablePhotoManager photoManager;
 
-    @Inject private EditablePhotoContainer editablePhotoContainer;
+    @Inject
+    private EditablePhotoContainer editablePhotoContainer;
 
-    @Inject private StockPhotoContainer stockPhotoContainer;
+    @Inject
+    private StockPhotoContainer stockPhotoContainer;
 
-    @Inject private ArchivePhotoContainer archivePhotoContainer;
+    @Inject
+    private ArchivePhotoContainer archivePhotoContainer;
 
-    @Inject private ConfigReader configReader;
-    
-    @Inject private PhotoArchiver photoArchiver;
-    
-    @Inject private PhotoUploader photoUploader;
+    @Inject
+    private ConfigReader configReader;
+
+    @Inject
+    private PhotoUploader photoUploader;
+
+    @Inject
+    private EventBus eventBus;
 
     public void start() {
         registerPhotoSources();
@@ -90,17 +98,17 @@ public class Main implements PropertyChangeListener {
         activateWindow();
     }
 
-	private void activateWindow() {
-		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+    private void activateWindow() {
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setSize(1300, 800);
         frame.setVisible(true);
-	}
+    }
 
-	private void registerPhotoSources() {
-		photoSourceRegistry.registerPhotoSource(LOCAL_SOURCE, archivePhotoContainer);
+    private void registerPhotoSources() {
+        photoSourceRegistry.registerPhotoSource(LOCAL_SOURCE, archivePhotoContainer);
         photoSourceRegistry.registerPhotoSource(SHUTTERSTOCK_SOURCE, stockPhotoContainer);
-	}
-    
+    }
+
     private void initListeners() {
         editablePhotoContainer.addPhotoObserver(photoMetaDataPanel);
         editablePhotoContainer.addPhotoObserver(photoManager);
@@ -120,14 +128,14 @@ public class Main implements PropertyChangeListener {
         frame.getContentPane().add(prepareLocalPhotosPanel(), BorderLayout.WEST);
         frame.getContentPane().add(centerPanel, BorderLayout.CENTER);
     }
-    
+
     private JComponent prepareLocalPhotosPanel() {
         JPanel p = new JPanel(new BorderLayout());
         p.add(dirChooser, BorderLayout.NORTH);
         p.add(editablePhotoContainer, BorderLayout.CENTER);
         return p;
     }
-    
+
     private JComponent prepareCurrentPhotoPanel() {
         JPanel p = new JPanel(new BorderLayout());
         p.setBorder(UiConstants.EMPTY_BORDER);
@@ -135,7 +143,7 @@ public class Main implements PropertyChangeListener {
         p.add(photoMetaDataPanel, BorderLayout.CENTER);
         return p;
     }
-    
+
     private JComponent prepareSourcePhotosPanel() {
         JPanel p = new JPanel(new BorderLayout());
         p.setBorder(UiConstants.EMPTY_BORDER);
@@ -150,7 +158,7 @@ public class Main implements PropertyChangeListener {
         BoxLayout buttonsLayout = new BoxLayout(buttonsPanel, BoxLayout.Y_AXIS);
         buttonsPanel.setLayout(buttonsLayout);
         buttonsPanel.setBorder(UiConstants.EMPTY_BORDER);
-        
+
         buttonsPanel.add(new JLabel("Source:"));
         buttonsPanel.add(Box.createVerticalStrut(5));
         for (String sourceName : photoSourceRegistry.getSourceNames()) {
@@ -171,17 +179,17 @@ public class Main implements PropertyChangeListener {
         JPanel centerPanel = new JPanel(new BorderLayout(BORDER_WIDTH, BORDER_WIDTH));
         centerPanel.add(sourcePhotoMetaDataPanel, BorderLayout.WEST);
         centerPanel.add(buttonsPanel, BorderLayout.CENTER);
-        
+
         p.add(sourcesPanel, BorderLayout.NORTH);
         p.add(centerPanel, BorderLayout.CENTER);
         return p;
     }
-    
+
     @Override
     public void propertyChange(PropertyChangeEvent e) {
-    	if (e.getNewValue() == null) {
-    		return;
-    	}
+        if (e.getNewValue() == null) {
+            return;
+        }
         Path dir = Paths.get(e.getNewValue().toString());
         if (Files.exists(dir)) {
             List<EditablePhoto> photos = photoManager.createPhotos(dir);
@@ -191,49 +199,52 @@ public class Main implements PropertyChangeListener {
     }
 
     private final class ChangePhotoListener implements ActionListener {
-		private final JPanel sourcesPanel;
-		private final ButtonGroup bgroup;
-		private final CardLayout sourcesLayout;
+        private final JPanel sourcesPanel;
+        private final ButtonGroup bgroup;
+        private final CardLayout sourcesLayout;
 
-		private ChangePhotoListener(JPanel sourcesPanel, ButtonGroup bgroup,
-				CardLayout sourcesLayout) {
-			this.sourcesPanel = sourcesPanel;
-			this.bgroup = bgroup;
-			this.sourcesLayout = sourcesLayout;
-		}
+        private ChangePhotoListener(JPanel sourcesPanel, ButtonGroup bgroup, CardLayout sourcesLayout) {
+            this.sourcesPanel = sourcesPanel;
+            this.bgroup = bgroup;
+            this.sourcesLayout = sourcesLayout;
+        }
 
-		@Override
-		@SuppressWarnings("unchecked")
-		public void actionPerformed(ActionEvent e) {
-		    String sourceName = bgroup.getSelection().getActionCommand();
-		    sourcesLayout.show(sourcesPanel, sourceName);
-		    PhotoContainer<AbstractPhoto> photoContainer = (PhotoContainer<AbstractPhoto>) 
-		    		photoSourceRegistry.getPhotoSource(sourceName);
-		    sourcePhotoMetaDataPanel.setPhoto(photoContainer.getSelectedPhoto());
-		}
-	}
+        @Override
+        @SuppressWarnings("unchecked")
+        public void actionPerformed(ActionEvent e) {
+            String sourceName = bgroup.getSelection().getActionCommand();
+            sourcesLayout.show(sourcesPanel, sourceName);
+            PhotoContainer<AbstractPhoto> photoContainer = (PhotoContainer<AbstractPhoto>) photoSourceRegistry
+                    .getPhotoSource(sourceName);
+            sourcePhotoMetaDataPanel.setPhoto(photoContainer.getSelectedPhoto());
+        }
+    }
 
-	private class UploadStarter implements ActionListener {
+    private class UploadStarter implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
             try {
                 List<EditablePhoto> photos = photoManager.validatePhotos();
                 UploadPanel uploadPanel = new UploadPanel(photos, configReader.getPhotoStocks());
+                eventBus.register(uploadPanel);
                 frame.getContentPane().removeAll();
                 frame.getContentPane().add(new JScrollPane(uploadPanel));
                 frame.revalidate();
                 frame.repaint();
-                photoUploader.uploadPhotos(photos, uploadPanel, photoArchiver);
+                photoUploader.uploadPhotos(photos);
             } catch (PhotoNotReadyException ex) {
                 JOptionPane.showMessageDialog(frame, "Cannot upload photos: " + ex.getPhotos());
             }
         }
-        
+
     }
 
     public static void main(String[] args) throws Exception {
         Injector injector = Guice.createInjector(new AppModule());
+        PhotoArchiver photoArchiver = new PhotoArchiver();
+        injector.injectMembers(photoArchiver);
+        injector.getInstance(EventBus.class).register(photoArchiver);
         injector.getInstance(Main.class).start();
     }
 

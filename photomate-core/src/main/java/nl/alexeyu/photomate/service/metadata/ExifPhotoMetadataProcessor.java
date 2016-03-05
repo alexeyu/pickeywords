@@ -24,15 +24,15 @@ import com.google.common.collect.Lists;
 
 @Singleton
 public class ExifPhotoMetadataProcessor implements PhotoMetadataProcessor {
-    
+
     private static final Splitter KEYWORD_SPLITTER = Splitter.on(',').omitEmptyStrings().trimResults();
-    
-    private static final Map<PhotoProperty, Pattern> PROPERTY_PATTERN = ImmutableMap.of(
-    	PhotoProperty.DESCRIPTION, Pattern.compile(".*(Image Description)\\s*\\:(.*)"),
-    	PhotoProperty.CAPTION, Pattern.compile(".*(Caption-Abstract)\\s*\\:(.*)"),
-    	PhotoProperty.KEYWORDS, Pattern.compile(".*(Keywords)\\s*\\:(.*)"),
-    	PhotoProperty.CREATOR, Pattern.compile(".*(Creator)\\s*\\:(.*)"));
-    
+
+    private static final Map<PhotoProperty, Pattern> PROPERTY_PATTERN = ImmutableMap.of(PhotoProperty.DESCRIPTION,
+            Pattern.compile(".*(Image Description)\\s*\\:(.*)"), PhotoProperty.CAPTION,
+            Pattern.compile(".*(Caption-Abstract)\\s*\\:(.*)"), PhotoProperty.KEYWORDS,
+            Pattern.compile(".*(Keywords)\\s*\\:(.*)"), PhotoProperty.CREATOR,
+            Pattern.compile(".*(Creator)\\s*\\:(.*)"));
+
     private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
     private static final String CAPTION_ABSTRACT = "-Caption-Abstract";
@@ -41,51 +41,42 @@ public class ExifPhotoMetadataProcessor implements PhotoMetadataProcessor {
     private static final String KEYWORDS = "-keywords";
     private static final String CREATOR = "-Creator";
     private static final String COPYRIGHT = "-Copyright";
-    
+
     private final CmdExecutor executor;
-    
+
     private final PhotoFileProcessor photoCleaner;
 
     private static final Map<PhotoProperty, List<String>> PHOTO_TO_EXIF_PROPERTIES = ImmutableMap.of(
-   		PhotoProperty.CAPTION, Arrays.asList(CAPTION_ABSTRACT, OBJECT_NAME),
-   		PhotoProperty.DESCRIPTION, Arrays.asList(IMAGE_DESCRIPTION),
-   		PhotoProperty.CREATOR, Arrays.asList(CREATOR, COPYRIGHT));
+            PhotoProperty.CAPTION, Arrays.asList(CAPTION_ABSTRACT, OBJECT_NAME), PhotoProperty.DESCRIPTION,
+            Arrays.asList(IMAGE_DESCRIPTION), PhotoProperty.CREATOR, Arrays.asList(CREATOR, COPYRIGHT));
 
     private static final String ADD_KEYWORD_COMMAND = KEYWORDS + "+=";
     private static final String REMOVE_KEYWORD_COMMAND = KEYWORDS + "-=";
-    
-    public ExifPhotoMetadataProcessor(CmdExecutor executor, PhotoFileProcessor photoCleaner) {
-		this.executor = executor;
-		this.photoCleaner = photoCleaner;
-	}
 
-	@Override
+    public ExifPhotoMetadataProcessor(CmdExecutor executor, PhotoFileProcessor photoCleaner) {
+        this.executor = executor;
+        this.photoCleaner = photoCleaner;
+    }
+
+    @Override
     public DefaultPhotoMetaData read(Path photoPath) {
-    	List<String> arguments = Arrays.asList(IMAGE_DESCRIPTION, CAPTION_ABSTRACT, CREATOR, KEYWORDS);
-        String[] cmdOutput = executor
-        		.exec(photoPath, arguments)
-        		.split(LINE_SEPARATOR);
+        List<String> arguments = Arrays.asList(IMAGE_DESCRIPTION, CAPTION_ABSTRACT, CREATOR, KEYWORDS);
+        String[] cmdOutput = executor.exec(photoPath, arguments).split(LINE_SEPARATOR);
         Map<PhotoProperty, String> properties = Stream.of(PhotoProperty.values())
-        		.collect(Collectors.toMap(
-        				p -> p, 
-        				p -> getPhotoProperty(cmdOutput, p)));
-        
+                .collect(Collectors.toMap(p -> p, p -> getPhotoProperty(cmdOutput, p)));
+
         DefaultPhotoMetaDataBuilder builder = new DefaultPhotoMetaDataBuilder(properties);
         List<String> keywords = preProcessKeywords(properties.get(PhotoProperty.KEYWORDS));
         builder.set(PhotoProperty.KEYWORDS, keywords);
         return builder.build();
     }
-    
+
     private String getPhotoProperty(String[] cmdOutput, PhotoProperty property) {
-    	Pattern pattern = PROPERTY_PATTERN.get(property);
-    	return Stream.of(cmdOutput)
-    		.map(line -> pattern.matcher(line))
-    		.filter(m -> m.matches())
-    		.map(m -> m.group(2).trim())
-    		.findFirst()
-    		.orElse("");
+        Pattern pattern = PROPERTY_PATTERN.get(property);
+        return Stream.of(cmdOutput).map(line -> pattern.matcher(line)).filter(m -> m.matches())
+                .map(m -> m.group(2).trim()).findFirst().orElse("");
     }
-    
+
     private List<String> preProcessKeywords(String keywordsLine) {
         return Lists.newArrayList(KEYWORD_SPLITTER.split(keywordsLine.trim()));
     }
@@ -99,27 +90,23 @@ public class ExifPhotoMetadataProcessor implements PhotoMetadataProcessor {
         }
     }
 
-	private Stream<String> args(PhotoMetaData newMetaData, PhotoProperty property) {
-		return PHOTO_TO_EXIF_PROPERTIES.get(property).stream()
-				.map(p -> p + "=" + newMetaData.getProperty(property));
-	}
-
-	private List<String> getUpdateArguments(PhotoMetaData oldMetaData, PhotoMetaData newMetaData) {
-        Stream<String> arguments = PHOTO_TO_EXIF_PROPERTIES.keySet().stream()
-        		.filter(p -> !oldMetaData.getProperty(p).equals(newMetaData.getProperty(p)))
-        		.flatMap(p -> args(newMetaData, p));
-
-    	Stream<String> changedKeywords = Stream.concat(
-    		diff(newMetaData.keywords(), oldMetaData.keywords())
-    			.map(kw -> ADD_KEYWORD_COMMAND + kw.trim()),
-    		diff(oldMetaData.keywords(), newMetaData.keywords())
-        		.map(kw -> REMOVE_KEYWORD_COMMAND + kw.trim()));
-    	return Stream.concat(arguments, changedKeywords)
-    			.collect(Collectors.toList());
+    private Stream<String> args(PhotoMetaData newMetaData, PhotoProperty property) {
+        return PHOTO_TO_EXIF_PROPERTIES.get(property).stream().map(p -> p + "=" + newMetaData.getProperty(property));
     }
-	
-	private Stream<String> diff(Collection<String> a, Collection<String> b) {
-		return a.stream().filter(element -> !b.contains(element));
-	}
-    
+
+    private List<String> getUpdateArguments(PhotoMetaData oldMetaData, PhotoMetaData newMetaData) {
+        Stream<String> arguments = PHOTO_TO_EXIF_PROPERTIES.keySet().stream()
+                .filter(p -> !oldMetaData.getProperty(p).equals(newMetaData.getProperty(p)))
+                .flatMap(p -> args(newMetaData, p));
+
+        Stream<String> changedKeywords = Stream.concat(
+                diff(newMetaData.keywords(), oldMetaData.keywords()).map(kw -> ADD_KEYWORD_COMMAND + kw.trim()),
+                diff(oldMetaData.keywords(), newMetaData.keywords()).map(kw -> REMOVE_KEYWORD_COMMAND + kw.trim()));
+        return Stream.concat(arguments, changedKeywords).collect(Collectors.toList());
+    }
+
+    private Stream<String> diff(Collection<String> a, Collection<String> b) {
+        return a.stream().filter(element -> !b.contains(element));
+    }
+
 }

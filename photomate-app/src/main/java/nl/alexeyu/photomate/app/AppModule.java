@@ -3,6 +3,7 @@ package nl.alexeyu.photomate.app;
 import static nl.alexeyu.photomate.ui.UiConstants.PREVIEW_SIZE;
 import static nl.alexeyu.photomate.ui.UiConstants.THUMBNAIL_SIZE;
 
+import com.google.common.eventbus.EventBus;
 import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
 
@@ -18,21 +19,21 @@ import nl.alexeyu.photomate.util.ConfigReader;
 import nl.alexeyu.photomate.util.DefaultCmdExecutor;
 
 public class AppModule extends AbstractModule {
-	
-	@Override
-	protected void configure() {
-		ExifPhotoMetadataProcessor metadataProcessor = new ExifPhotoMetadataProcessor(
-		        new DefaultCmdExecutor("exiftool"),
-		        new PhotoFileCleaner("_original"));
-		bind(PhotoMetadataReader.class).toInstance(metadataProcessor);
-	    bind(PhotoMetadataProcessor.class).toInstance(metadataProcessor);
-		bind(PhotoStockApi.class).to(ShutterPhotoStockApi.class);
-		bind(ConfigReader.class).toInstance(ConfigReader.createDefault());
 
-		bind(ThumbnailProvider.class).annotatedWith(Names.named("thumbnail")).toInstance(
-				new ThumbnailatorProvider(THUMBNAIL_SIZE));
-		bind(ThumbnailProvider.class).annotatedWith(Names.named("preview")).toInstance(
-				new ThumbnailatorProvider(PREVIEW_SIZE));
-	}
+    @Override
+    protected void configure() {
+        ExifPhotoMetadataProcessor metadataProcessor = new ExifPhotoMetadataProcessor(
+                new DefaultCmdExecutor("exiftool"), new PhotoFileCleaner("_original"));
+        bind(PhotoMetadataReader.class).toInstance(metadataProcessor);
+        bind(PhotoMetadataProcessor.class).toInstance(metadataProcessor);
+        bind(PhotoStockApi.class).to(ShutterPhotoStockApi.class);
+        bind(ConfigReader.class).toInstance(ConfigReader.createDefault());
+
+        bind(ThumbnailProvider.class).annotatedWith(Names.named("thumbnail"))
+                .toInstance(new ThumbnailatorProvider(THUMBNAIL_SIZE));
+        bind(ThumbnailProvider.class).annotatedWith(Names.named("preview"))
+                .toInstance(new ThumbnailatorProvider(PREVIEW_SIZE));
+        bind(EventBus.class).toInstance(new EventBus());
+    }
 
 }

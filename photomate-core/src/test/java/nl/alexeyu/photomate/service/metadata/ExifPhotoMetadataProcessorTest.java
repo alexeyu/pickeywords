@@ -23,140 +23,131 @@ import nl.alexeyu.photomate.util.CmdExecutor;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Sets;
 
 public class ExifPhotoMetadataProcessorTest {
 
-	private static final List<String> DEFAULT_RESPONSE = Arrays.asList(
-			"Image Description               : Coolpic",
-			"Caption-Abstract:My Photo", "Creator        : Me",
-			"Keywords  : landscape, evening, summer");
-	
-	private static final Joiner JOINER = Joiner.on("\n");
+    private static final List<String> DEFAULT_RESPONSE = Arrays.asList("Image Description               : Coolpic",
+            "Caption-Abstract:My Photo", "Creator        : Me", "Keywords  : landscape, evening, summer");
 
-	private ExifPhotoMetadataProcessor processor;
+    private static final Joiner JOINER = Joiner.on(System.getProperty("line.separator"));
 
-	private CmdExecutor executor;
+    private ExifPhotoMetadataProcessor processor;
 
-	private Path testPath = Paths.get(".");
-	
-	private PhotoFileProcessor backupCleaner;
+    private CmdExecutor executor;
 
-	private ArgumentCaptor<Path> pathCaptor;
+    private Path testPath = Paths.get(".");
 
-	@SuppressWarnings({ "rawtypes" })
-	private ArgumentCaptor<List> argsCaptor;
+    private PhotoFileProcessor backupCleaner;
 
-	@Before
-	public void setUp() {
-		executor = mock(CmdExecutor.class);
-		backupCleaner = mock(PhotoFileProcessor.class);
-		processor = new ExifPhotoMetadataProcessor(executor, backupCleaner);
-		pathCaptor = ArgumentCaptor.forClass(Path.class);
-		argsCaptor = ArgumentCaptor.forClass(List.class);
-	}
+    private ArgumentCaptor<Path> pathCaptor;
 
-	@Test
-	@SuppressWarnings({ "unchecked" })
-	public void read() {
-		when(executor.exec(eq(testPath), anyList())).thenReturn(
-				JOINER.join(DEFAULT_RESPONSE));
-		PhotoMetaData metaData = processor.read(testPath);
+    @SuppressWarnings({ "rawtypes" })
+    private ArgumentCaptor<List> argsCaptor;
 
-		verify(executor).exec(pathCaptor.capture(), argsCaptor.capture());
-		verifyZeroInteractions(backupCleaner);
-		assertEquals(testPath, pathCaptor.getValue());
-		assertEquals(Sets.newHashSet("-ImageDescription", "-Caption-Abstract",
-				"-Creator", "-keywords"),
-				Sets.newHashSet(argsCaptor.getValue()));
+    @Before
+    public void setUp() {
+        executor = mock(CmdExecutor.class);
+        backupCleaner = mock(PhotoFileProcessor.class);
+        processor = new ExifPhotoMetadataProcessor(executor, backupCleaner);
+        pathCaptor = ArgumentCaptor.forClass(Path.class);
+        argsCaptor = ArgumentCaptor.forClass(List.class);
+    }
 
-		assertEquals("Coolpic", metaData.description());
-		assertEquals("My Photo", metaData.caption());
-		assertEquals("Me", metaData.getProperty(PhotoProperty.CREATOR));
-		assertEquals(Arrays.asList("landscape", "evening", "summer"),
-				metaData.keywords());
-	}
+    @Test
+    @SuppressWarnings({ "unchecked" })
+    public void read() {
+        when(executor.exec(Mockito.any(Path.class), anyList())).thenReturn(JOINER.join(DEFAULT_RESPONSE));
 
-	@Test
-	@SuppressWarnings({ "unchecked" })
-	public void readEmptyResponse() {
-		when(executor.exec(eq(testPath), anyList())).thenReturn("");
-		verifyZeroInteractions(backupCleaner);
-		PhotoMetaData metaData = processor.read(testPath);
+        PhotoMetaData metaData = processor.read(testPath);
 
-		assertEquals("", metaData.description());
-		assertEquals("", metaData.caption());
-		assertEquals("", metaData.getProperty(PhotoProperty.CREATOR));
-		assertTrue(metaData.keywords().isEmpty());
-	}
+        verify(executor).exec(pathCaptor.capture(), argsCaptor.capture());
+        verifyZeroInteractions(backupCleaner);
+        assertEquals(testPath, pathCaptor.getValue());
+        assertEquals(Sets.newHashSet("-ImageDescription", "-Caption-Abstract", "-Creator", "-keywords"),
+                Sets.newHashSet(argsCaptor.getValue()));
 
-	@Test
-	@SuppressWarnings({ "unchecked" })
-	public void changeCaption() {
-		PhotoMetaData oldMetaData = new DefaultPhotoMetaDataBuilder().build();
-		PhotoMetaData newMetaData = new DefaultPhotoMetaDataBuilder().set(
-				PhotoProperty.CAPTION, "New Caption").build();
-		processor.update(testPath, oldMetaData, newMetaData);
+        assertEquals("Coolpic", metaData.description());
+        assertEquals("My Photo", metaData.caption());
+        assertEquals("Me", metaData.getProperty(PhotoProperty.CREATOR));
+        assertEquals(Arrays.asList("landscape", "evening", "summer"), metaData.keywords());
+    }
 
-		verify(executor).exec(pathCaptor.capture(), argsCaptor.capture());
-		verify(backupCleaner).process(pathCaptor.getValue());
-		assertEquals(testPath, pathCaptor.getValue());
+    @Test
+    @SuppressWarnings({ "unchecked" })
+    public void readEmptyResponse() {
+        when(executor.exec(eq(testPath), anyList())).thenReturn("");
+        verifyZeroInteractions(backupCleaner);
+        PhotoMetaData metaData = processor.read(testPath);
 
-		List<String> args = argsCaptor.getValue();
-		assertEquals(2, args.size());
-		assertTrue(args.contains("-Caption-Abstract=New Caption"));
-		assertTrue(args.contains("-ObjectName=New Caption"));
-	}
-	
-	@Test
-	@SuppressWarnings({ "unchecked" })
-	public void changeCreator() {
-		PhotoMetaData oldMetaData = new DefaultPhotoMetaDataBuilder().build();
-		PhotoMetaData newMetaData = new DefaultPhotoMetaDataBuilder().set(
-				PhotoProperty.CREATOR, "Me").build();
-		processor.update(testPath, oldMetaData, newMetaData);
+        assertEquals("", metaData.description());
+        assertEquals("", metaData.caption());
+        assertEquals("", metaData.getProperty(PhotoProperty.CREATOR));
+        assertTrue(metaData.keywords().isEmpty());
+    }
 
-		verify(executor).exec(pathCaptor.capture(), argsCaptor.capture());
-		verify(backupCleaner).process(pathCaptor.getValue());
-		assertEquals(testPath, pathCaptor.getValue());
+    @Test
+    @SuppressWarnings({ "unchecked" })
+    public void changeCaption() {
+        PhotoMetaData oldMetaData = new DefaultPhotoMetaDataBuilder().build();
+        PhotoMetaData newMetaData = new DefaultPhotoMetaDataBuilder().set(PhotoProperty.CAPTION, "New Caption").build();
+        processor.update(testPath, oldMetaData, newMetaData);
 
-		List<String> args = argsCaptor.getValue();
-		assertEquals(2, args.size());
-		assertTrue(args.contains("-Creator=Me"));
-		assertTrue(args.contains("-Copyright=Me"));
-	}
+        verify(executor).exec(pathCaptor.capture(), argsCaptor.capture());
+        verify(backupCleaner).process(pathCaptor.getValue());
+        assertEquals(testPath, pathCaptor.getValue());
 
-	@Test
-	public void dontCallExifIfMetadataNotChanged() {
-		PhotoMetaData oldMetaData = new DefaultPhotoMetaDataBuilder().set(
-				PhotoProperty.CAPTION, "Caption").build();
-		PhotoMetaData newMetaData = new DefaultPhotoMetaDataBuilder().set(
-				PhotoProperty.CAPTION, "Caption").build();
-		processor.update(testPath, oldMetaData, newMetaData);
-		verifyZeroInteractions(executor);
-		verifyZeroInteractions(backupCleaner);
-	}
+        List<String> args = argsCaptor.getValue();
+        assertEquals(2, args.size());
+        assertTrue(args.contains("-Caption-Abstract=New Caption"));
+        assertTrue(args.contains("-ObjectName=New Caption"));
+    }
 
-	@Test
-	@SuppressWarnings({ "unchecked" })
-	public void changeKeywords() {
-		PhotoMetaData oldMetaData = new DefaultPhotoMetaDataBuilder().set(
-				PhotoProperty.KEYWORDS, Arrays.asList("summer", "evening"))
-				.build();
-		PhotoMetaData newMetaData = new DefaultPhotoMetaDataBuilder().set(
-				PhotoProperty.KEYWORDS, Arrays.asList("landscape", "summer"))
-				.build();
-		processor.update(testPath, oldMetaData, newMetaData);
+    @Test
+    @SuppressWarnings({ "unchecked" })
+    public void changeCreator() {
+        PhotoMetaData oldMetaData = new DefaultPhotoMetaDataBuilder().build();
+        PhotoMetaData newMetaData = new DefaultPhotoMetaDataBuilder().set(PhotoProperty.CREATOR, "Me").build();
+        processor.update(testPath, oldMetaData, newMetaData);
 
-		verify(executor).exec(pathCaptor.capture(), argsCaptor.capture());
-		verify(backupCleaner).process(pathCaptor.getValue());
-		assertEquals(testPath, pathCaptor.getValue());
+        verify(executor).exec(pathCaptor.capture(), argsCaptor.capture());
+        verify(backupCleaner).process(pathCaptor.getValue());
+        assertEquals(testPath, pathCaptor.getValue());
 
-		List<String> args = argsCaptor.getValue();
-		assertEquals(2, args.size());
-		assertTrue(args.contains("-keywords+=landscape"));
-		assertTrue(args.contains("-keywords-=evening"));
-	}
+        List<String> args = argsCaptor.getValue();
+        assertEquals(2, args.size());
+        assertTrue(args.contains("-Creator=Me"));
+        assertTrue(args.contains("-Copyright=Me"));
+    }
+
+    @Test
+    public void dontCallExifIfMetadataNotChanged() {
+        PhotoMetaData oldMetaData = new DefaultPhotoMetaDataBuilder().set(PhotoProperty.CAPTION, "Caption").build();
+        PhotoMetaData newMetaData = new DefaultPhotoMetaDataBuilder().set(PhotoProperty.CAPTION, "Caption").build();
+        processor.update(testPath, oldMetaData, newMetaData);
+        verifyZeroInteractions(executor);
+        verifyZeroInteractions(backupCleaner);
+    }
+
+    @Test
+    @SuppressWarnings({ "unchecked" })
+    public void changeKeywords() {
+        PhotoMetaData oldMetaData = new DefaultPhotoMetaDataBuilder()
+                .set(PhotoProperty.KEYWORDS, Arrays.asList("summer", "evening")).build();
+        PhotoMetaData newMetaData = new DefaultPhotoMetaDataBuilder()
+                .set(PhotoProperty.KEYWORDS, Arrays.asList("landscape", "summer")).build();
+        processor.update(testPath, oldMetaData, newMetaData);
+
+        verify(executor).exec(pathCaptor.capture(), argsCaptor.capture());
+        verify(backupCleaner).process(pathCaptor.getValue());
+        assertEquals(testPath, pathCaptor.getValue());
+
+        List<String> args = argsCaptor.getValue();
+        assertEquals(2, args.size());
+        assertTrue(args.contains("-keywords+=landscape"));
+        assertTrue(args.contains("-keywords-=evening"));
+    }
 }

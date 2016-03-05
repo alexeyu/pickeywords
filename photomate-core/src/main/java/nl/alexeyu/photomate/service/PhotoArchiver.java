@@ -10,51 +10,43 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.inject.Inject;
 
-import nl.alexeyu.photomate.api.PhotoFileProcessor;
-import nl.alexeyu.photomate.api.editable.EditablePhoto;
-import nl.alexeyu.photomate.model.PhotoStock;
-import nl.alexeyu.photomate.service.upload.UploadPhotoListener;
-import nl.alexeyu.photomate.util.ConfigReader;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PhotoArchiver implements PhotoFileProcessor, UploadPhotoListener {
+import com.google.common.eventbus.Subscribe;
+
+import nl.alexeyu.photomate.api.PhotoFileProcessor;
+import nl.alexeyu.photomate.service.upload.UploadSuccessEvent;
+import nl.alexeyu.photomate.util.ConfigReader;
+
+public class PhotoArchiver implements PhotoFileProcessor {
 
     private Optional<String> archiveDir;
-    
+
     @Inject
     private ConfigReader configReader;
-    
+
     private ConcurrentHashMap<String, Boolean> archivedPhotos = new ConcurrentHashMap<>();
-    
+
     @Override
     public void process(Path photoPath) {
         archiveDir = configReader.getProperty("archiveFolder");
         if (archivedPhotos.put(photoPath.toString(), Boolean.TRUE) == null) {
-            archiveDir.ifPresent(dir ->
-                CompletableFuture.runAsync(new ArchivePhotoTask(photoPath, Paths.get(dir)))
-            );
+            archiveDir.ifPresent(dir -> CompletableFuture.runAsync(new ArchivePhotoTask(photoPath, Paths.get(dir))));
         }
     }
-    
-    @Override
-    public void onProgress(PhotoStock photoStock, EditablePhoto photo, long bytesUploaded) {}
 
-    @Override
-    public void onError(PhotoStock photoStock, EditablePhoto photo, Exception ex, int attemptsLeft) {}
-
-    @Override
-    public void onSuccess(PhotoStock photoStock, EditablePhoto photo) {
-        process(photo.getPath());
+    @Subscribe
+    public void onSuccess(UploadSuccessEvent ev) {
+        process(ev.getPhoto().getPath());
     }
 
     private static class ArchivePhotoTask implements Runnable {
 
         private final Logger logger = LoggerFactory.getLogger("ArchivePhotoTask");
-        
+
         private final Path photoPath;
-        
+
         private final Path directory;
 
         public ArchivePhotoTask(Path photoPath, Path directory) {

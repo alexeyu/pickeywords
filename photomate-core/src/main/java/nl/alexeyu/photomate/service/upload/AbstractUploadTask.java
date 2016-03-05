@@ -1,41 +1,45 @@
 package nl.alexeyu.photomate.service.upload;
 
-import java.util.Collection;
+import com.google.common.eventbus.EventBus;
 
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
 import nl.alexeyu.photomate.model.PhotoStock;
 
 public abstract class AbstractUploadTask implements Runnable {
 
-	protected final PhotoStock photoStock;
-	protected final EditablePhoto photo;
-	private final int attemptsLeft;
-	private final Collection<UploadPhotoListener> uploadPhotoListeners;
+    protected final PhotoStock photoStock;
+    protected final EditablePhoto photo;
+    private final int attemptsLeft;
 
-	public AbstractUploadTask(PhotoStock photoStock, EditablePhoto photo, int attemptsLeft, 
-			Collection<UploadPhotoListener> uploadPhotoListeners) {
-		this.photoStock = photoStock;
-		this.photo = photo;
-		this.attemptsLeft = attemptsLeft;
-		this.uploadPhotoListeners = uploadPhotoListeners;
-	}
+    private EventBus eventBus;
 
-	protected final void notifyProgress(long bytes) {
-		uploadPhotoListeners.forEach(listener -> listener.onProgress(photoStock, photo, bytes));
-	}
+    public AbstractUploadTask(PhotoStock photoStock, EditablePhoto photo, int attemptsLeft) {
+        this.photoStock = photoStock;
+        this.photo = photo;
+        this.attemptsLeft = attemptsLeft;
+    }
 
-	protected final void notifyError(Exception ex) {
-		uploadPhotoListeners.forEach(listener -> listener.onError(photoStock, photo, ex, attemptsLeft));
-	}
-	
-	protected final void notifySuccess() {
-		uploadPhotoListeners.forEach(listener -> listener.onSuccess(photoStock, photo));
-	}
+    public void setEventBus(EventBus eventBus) {
+        this.eventBus = eventBus;
+    }
 
-   protected final void pause(int msec) {
+    protected final void notifyProgress(long bytes) {
+        eventBus.post(new UploadProgressEvent(photo, photoStock, bytes));
+    }
+
+    protected final void notifyError(Exception ex) {
+        eventBus.post(new UploadErrorEvent(photo, photoStock, ex, attemptsLeft));
+    }
+
+    protected final void notifySuccess() {
+        eventBus.post(new UploadSuccessEvent(photo, photoStock));
+    }
+
+    protected final void pause(int msec) {
         try {
             Thread.sleep(msec);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
-   
+
 }
