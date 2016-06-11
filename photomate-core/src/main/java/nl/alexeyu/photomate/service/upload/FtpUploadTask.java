@@ -11,9 +11,6 @@ import org.apache.commons.net.io.CopyStreamListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import nl.alexeyu.photomate.api.editable.EditablePhoto;
-import nl.alexeyu.photomate.model.PhotoStock;
-
 public class FtpUploadTask extends AbstractUploadTask implements CopyStreamListener {
 
     private static final int KEEP_ALIVE_TIMEOUT = 120;
@@ -22,16 +19,16 @@ public class FtpUploadTask extends AbstractUploadTask implements CopyStreamListe
 
     private final FTPClient client = new FTPClient();
 
-    public FtpUploadTask(PhotoStock photoStock, EditablePhoto photo, int attemptsLeft) {
-        super(photoStock, photo, attemptsLeft);
+    public FtpUploadTask(PhotoToStock photoToStock, int attemptsLeft) {
+        super(photoToStock, attemptsLeft);
     }
 
     private void init() throws IOException {
         client.setCopyStreamListener(this);
         client.setControlKeepAliveTimeout(KEEP_ALIVE_TIMEOUT);
-        client.connect(photoStock.ftpUrl());
-        if (!client.login(photoStock.ftpUsername(), photoStock.ftpPassword())) {
-            throw new IOException("Could not connect to " + photoStock);
+        client.connect(photoToStock.getPhotoStock().ftpUrl());
+        if (!client.login(photoToStock.getPhotoStock().ftpUsername(), photoToStock.getPhotoStock().ftpPassword())) {
+            throw new IOException("Could not connect to " + photoToStock.getPhotoStock());
         }
         client.enterLocalPassiveMode();
         client.setFileType(FTP.BINARY_FILE_TYPE);
@@ -49,18 +46,18 @@ public class FtpUploadTask extends AbstractUploadTask implements CopyStreamListe
     @Override
     public void run() {
         notifyProgress(0);
-        try (InputStream is = Files.newInputStream(photo.getPath())) {
+        try (InputStream is = Files.newInputStream(photoToStock.getPhoto().getPath())) {
             init();
-            boolean stored = client.storeFile(photo.name(), is);
+            boolean stored = client.storeFile(photoToStock.getPhoto().name(), is);
             boolean ack = client.completePendingCommand();
             if (stored && ack) {
-                logger.info("%s\t has been uploaded to \t%s", photo.name(), photoStock.name());
+                logger.info("Uploaded successful: %s", photoToStock);
                 notifySuccess();
             } else {
                 throw new IOException();
             }
         } catch (IOException ex) {
-            logger.error("Could not upload %s to %s", photo.name(), photoStock.name(), ex);
+            logger.error("Could not upload %s", photoToStock, ex);
             notifyError(ex);
         } finally {
             destroy();

@@ -29,14 +29,14 @@ public class HintedTextField extends JTextField {
         });
 
         if (reactOnFocus) {
-	        addFocusListener(new FocusAdapter() {
+            addFocusListener(new FocusAdapter() {
 
-	            @Override
-	            public void focusLost(FocusEvent e) {
-	            	firePropertyChanged();
-	            }
-	            
-	        });
+                @Override
+                public void focusLost(FocusEvent e) {
+                    firePropertyChanged();
+                }
+
+            });
         }
     }
 
@@ -46,5 +46,5 @@ public class HintedTextField extends JTextField {
             firePropertyChange(propertyName, null, value);
         }
     }
-    
+
 }

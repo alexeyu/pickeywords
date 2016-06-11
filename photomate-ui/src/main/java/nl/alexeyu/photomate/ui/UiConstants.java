@@ -9,16 +9,16 @@ import javax.swing.border.LineBorder;
 
 public interface UiConstants {
 
-	int BORDER_WIDTH = 2;
-	
+    int BORDER_WIDTH = 2;
+
     Dimension THUMBNAIL_SIZE = new Dimension(160, 112);
-	
-	Dimension PREVIEW_SIZE = new Dimension(450, 325);
-	
-	Border EMPTY_BORDER = new EmptyBorder(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
-	
-	Border LINE_BORDER = new LineBorder(Color.GRAY, BORDER_WIDTH );
-	
-	int CLICKABLE_ICON_SIZE = 32;
+
+    Dimension PREVIEW_SIZE = new Dimension(450, 325);
+
+    Border EMPTY_BORDER = new EmptyBorder(BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH, BORDER_WIDTH);
+
+    Border LINE_BORDER = new LineBorder(Color.GRAY, BORDER_WIDTH);
+
+    int CLICKABLE_ICON_SIZE = 32;
 
 }

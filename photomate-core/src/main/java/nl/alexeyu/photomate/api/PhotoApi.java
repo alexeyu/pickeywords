@@ -14,16 +14,15 @@ public interface PhotoApi<S, P extends AbstractPhoto> {
     
     default List<P> createPhotos(Stream<S> sources, PhotoFactory<S, P> photoFactory) {
         List<P> photos = sources
-                .map(s -> photoFactory.createPhoto(s))
+                .map(photoFactory::createPhoto)
                 .collect(Collectors.toList());
         photos.forEach(photo -> {
             CompletableFuture
                 .supplyAsync(metaDataSupplier(photo))
-                .thenAccept(m -> photo.setMetaData(m));
+                .thenAccept(photo::setMetaData);
             CompletableFuture
                 .supplyAsync(thumbnailsSupplier(photo))
-                .thenAccept(thumbnails -> thumbnails.forEach(
-                        t -> photo.addThumbnail(t)));
+                .thenAccept(thumbnails -> thumbnails.forEach(photo::addThumbnail));
         });
         return photos;
     }

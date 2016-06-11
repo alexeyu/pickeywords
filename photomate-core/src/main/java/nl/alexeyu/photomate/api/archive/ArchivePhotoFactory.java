@@ -5,10 +5,10 @@ import java.nio.file.Path;
 import nl.alexeyu.photomate.api.PhotoFactory;
 
 public final class ArchivePhotoFactory implements PhotoFactory<Path, ArchivePhoto> {
-    
-	@Override
-	public ArchivePhoto createPhoto(Path path) {
-		return new ArchivePhoto(path);
-	}
+
+    @Override
+    public ArchivePhoto createPhoto(Path path) {
+        return new ArchivePhoto(path);
+    }
 
 }

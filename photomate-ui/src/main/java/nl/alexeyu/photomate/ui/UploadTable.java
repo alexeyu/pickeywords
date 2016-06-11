@@ -17,31 +17,31 @@ import nl.alexeyu.photomate.model.PhotoStock;
 import nl.alexeyu.photomate.util.ImageUtils;
 
 public class UploadTable extends JTable {
-	
-	private static final int PHOTO_STOCK_ROW_HEIGHT = 40;
 
-	public UploadTable(UploadTableModel model, JTable sourceTable) {
+    private static final int PHOTO_STOCK_ROW_HEIGHT = 40;
+
+    public UploadTable(UploadTableModel model, JTable sourceTable) {
         super(model);
-        
+
         setRowHeight(sourceTable.getRowHeight());
 
         setDefaultRenderer(Object.class, new UploadTableRenderer());
-	    
-	    JTableHeader header = getTableHeader();
-	    header.setDefaultRenderer(new HeaderRenderer());
-	    header.setPreferredSize(new Dimension(1, PHOTO_STOCK_ROW_HEIGHT));
-	    header.setBackground(Color.WHITE);
-	}
 
-	public UploadTableModel getModel() {
-	    return (UploadTableModel) super.getModel();
-	}
+        JTableHeader header = getTableHeader();
+        header.setDefaultRenderer(new HeaderRenderer());
+        header.setPreferredSize(new Dimension(1, PHOTO_STOCK_ROW_HEIGHT));
+        header.setBackground(Color.WHITE);
+    }
+
+    public UploadTableModel getModel() {
+        return (UploadTableModel) super.getModel();
+    }
 
     private class HeaderRenderer extends DefaultTableCellRenderer {
 
         @Override
-        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
-                boolean hasFocus, int row, int column) {
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
+                int row, int column) {
             JLabel label = new JLabel();
             label.setBorder(new LineBorder(Color.LIGHT_GRAY));
             label.setHorizontalAlignment(SwingConstants.CENTER);
@@ -54,31 +54,31 @@ public class UploadTable extends JTable {
             }
             return label;
         }
-        
+
     }
 
-	private class UploadTableRenderer extends DefaultTableCellRenderer {
+    private class UploadTableRenderer extends DefaultTableCellRenderer {
 
-		@Override
-		public Component getTableCellRendererComponent(JTable table, Object value, 
-				boolean isSelected, boolean hasFocus, int row, int column) {
-		    JLabel label = new JLabel();
-		    label.setHorizontalAlignment(SwingConstants.CENTER);
-			if (value instanceof Exception) {
-				label.setIcon(ImageUtils.getImage("error.png"));
-				Exception ex = (Exception) value;
-				label.setToolTipText(ex.getMessage());
-			} else  if (value instanceof Integer) {
-				Integer progress = (Integer) value;
-				label.setText(progress + "%");
-			} else  if (value instanceof String) {
-				label.setIcon(ImageUtils.getImage("ok.png"));
-			} else {
-			    label.setIcon(ImageUtils.getImage("queue.png"));
-			}
-			return label;
-		}
-		
-	}
-	
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
+                int row, int column) {
+            JLabel label = new JLabel();
+            label.setHorizontalAlignment(SwingConstants.CENTER);
+            if (value instanceof Exception) {
+                label.setIcon(ImageUtils.getImage("error.png"));
+                Exception ex = (Exception) value;
+                label.setToolTipText(ex.getMessage());
+            } else if (value instanceof Integer) {
+                Integer progress = (Integer) value;
+                label.setText(progress + "%");
+            } else if (value instanceof String) {
+                label.setIcon(ImageUtils.getImage("ok.png"));
+            } else {
+                label.setIcon(ImageUtils.getImage("queue.png"));
+            }
+            return label;
+        }
+
+    }
+
 }

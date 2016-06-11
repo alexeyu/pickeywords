@@ -38,77 +38,72 @@ import nl.alexeyu.photomate.api.RemotePhoto;
 import nl.alexeyu.photomate.util.ConfigReader;
 
 public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, RemotePhoto>, PhotoStockApi {
-    
+
     private static final Logger logger = LoggerFactory.getLogger("ShutterPhotoStockApi");
 
-	private static final String QUERY_TEMPLATE = 
-	        "http://api.shutterstock.com/images/search.json?searchterm=%s&results_per_page=%s&search_group=photos";
+    private static final String QUERY_TEMPLATE = "http://api.shutterstock.com/images/search.json?searchterm=%s&results_per_page=%s&search_group=photos";
 
-	@Inject
-	private ConfigReader configReader;
+    @Inject
+    private ConfigReader configReader;
 
-	private HttpClient client;
+    private HttpClient client;
 
-	private int resultsPerPage = 10;
+    private int resultsPerPage = 10;
 
-	@Inject
-	public void init() {
-		String name = configReader.getProperty("stock.shutter.api.name").orElse("");
-		String apiKey = configReader.getProperty("stock.shutter.api.key").orElse("");
-		Optional<String> resultsPerPageProperty = configReader.getProperty("stock.shutter.api.resultsPerPage");
-		if (resultsPerPageProperty.isPresent()) {
-			resultsPerPage = Integer.valueOf(resultsPerPageProperty.get());
-		}
-		this.client = createClient(name, apiKey);
-	}
+    @Inject
+    public void init() {
+        String name = configReader.getProperty("stock.shutter.api.name").orElse("");
+        String apiKey = configReader.getProperty("stock.shutter.api.key").orElse("");
+        Optional<String> resultsPerPageProperty = configReader.getProperty("stock.shutter.api.resultsPerPage");
+        if (resultsPerPageProperty.isPresent()) {
+            resultsPerPage = Integer.valueOf(resultsPerPageProperty.get());
+        }
+        this.client = createClient(name, apiKey);
+    }
 
-	private HttpClient createClient(String name, String apiKey) {
-		Credentials credentials = new UsernamePasswordCredentials(name, apiKey);
-		CredentialsProvider credProvider = new BasicCredentialsProvider();
-		credProvider.setCredentials(AuthScope.ANY, credentials);
-		return HttpClientBuilder.create()
-				.setDefaultCredentialsProvider(credProvider)
-				.setConnectionManager(new PoolingHttpClientConnectionManager())
-				.build();
-	}
+    private HttpClient createClient(String name, String apiKey) {
+        Credentials credentials = new UsernamePasswordCredentials(name, apiKey);
+        CredentialsProvider credProvider = new BasicCredentialsProvider();
+        credProvider.setCredentials(AuthScope.ANY, credentials);
+        return HttpClientBuilder.create().setDefaultCredentialsProvider(credProvider)
+                .setConnectionManager(new PoolingHttpClientConnectionManager()).build();
+    }
 
-	@Override
-	public List<RemotePhoto> search(String keywords) {
+    @Override
+    public List<RemotePhoto> search(String keywords) {
         try {
-            String requestUri = String.format(QUERY_TEMPLATE,  URLEncoder.encode(keywords, "UTF-8"), resultsPerPage);
-            JsonResponseReader<ShutterSearchResult> searchResultReader = new JsonResponseReader<>(ShutterSearchResult.class);
-            ShutterSearchResult searchResult = client.execute(
-                    new HttpGet(requestUri),  
+            String requestUri = String.format(QUERY_TEMPLATE, URLEncoder.encode(keywords, "UTF-8"), resultsPerPage);
+            JsonResponseReader<ShutterSearchResult> searchResultReader = new JsonResponseReader<>(
+                    ShutterSearchResult.class);
+            ShutterSearchResult searchResult = client.execute(new HttpGet(requestUri),
                     new DefaultResponseHandler<>(searchResultReader));
             return createPhotos(searchResult.getPhotoDescriptions().stream(), new ShutterPhotoFactory());
         } catch (IOException ex) {
             logger.error("Cannot find photos", ex);
             return Collections.emptyList();
         }
-	}
-	
-	@Override
+    }
+
+    @Override
     public Supplier<ShutterPhotoDetails> metaDataSupplier(RemotePhoto photo) {
-	    return new HttpResponseSupplier<>(
-	            photo.photoUrl() + ".json", 
-	            new JsonResponseReader<>(ShutterPhotoDetails.class)); 
+        return new HttpResponseSupplier<>(photo.photoUrl() + ".json",
+                new JsonResponseReader<>(ShutterPhotoDetails.class));
     }
 
     @Override
     public Supplier<List<ImageIcon>> thumbnailsSupplier(RemotePhoto photo) {
-        return new HttpResponseSupplier<>(
-                photo.thumbnailUrl(), 
+        return new HttpResponseSupplier<>(photo.thumbnailUrl(),
                 content -> Collections.singletonList(new ImageIcon(content)));
     }
 
     private static class DefaultResponseHandler<T> implements ResponseHandler<T> {
-        
+
         private final Function<byte[], T> contentReader;
-        
+
         DefaultResponseHandler(Function<byte[], T> contentReader) {
             this.contentReader = contentReader;
         }
-        
+
         @Override
         public T handleResponse(HttpResponse response) throws IOException {
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
@@ -116,36 +111,35 @@ public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, R
                 byte[] content = ByteStreams.toByteArray(entity.getContent());
                 EntityUtils.consume(entity);
                 return contentReader.apply(content);
-            } else {
-                throw new IOException(response.getStatusLine().getReasonPhrase());
             }
+            throw new IOException(response.getStatusLine().getReasonPhrase());
         }
     }
-    
-	private static class JsonResponseReader<T> implements Function<byte[], T> {
 
-		private final Class<T> clazz;
-		
-		public JsonResponseReader(Class<T> clazz) {
+    private static class JsonResponseReader<T> implements Function<byte[], T> {
+
+        private final Class<T> clazz;
+
+        public JsonResponseReader(Class<T> clazz) {
             this.clazz = clazz;
         }
 
         @Override
-		public T apply(byte[] content) {
-		    try {
-				return new ObjectMapper().readValue(content, clazz);
-			} catch (IOException ex) {
-			    logger.error("Cannot read content", ex); 
-			    return null;
-			}
-		}
+        public T apply(byte[] content) {
+            try {
+                return new ObjectMapper().readValue(content, clazz);
+            } catch (IOException ex) {
+                logger.error("Cannot read content", ex);
+                return null;
+            }
+        }
 
-	}
-	
-	private class HttpResponseSupplier<T> implements Supplier<T> {
-	    
-	    private final String url;
-	    private final Function<byte[], T> responseReader;
+    }
+
+    private class HttpResponseSupplier<T> implements Supplier<T> {
+
+        private final String url;
+        private final Function<byte[], T> responseReader;
 
         public HttpResponseSupplier(String url, Function<byte[], T> responseReader) {
             this.url = url;
@@ -155,24 +149,22 @@ public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, R
         @Override
         public T get() {
             try {
-                return client.execute(
-                                new HttpGet(url), 
-                                new DefaultResponseHandler<>(responseReader));
+                return client.execute(new HttpGet(url), new DefaultResponseHandler<>(responseReader));
             } catch (IOException ex) {
                 logger.error("Cannot read url " + url, ex);
                 return null;
             }
         }
-	    
-	}
-	
-	private static class ShutterPhotoFactory implements PhotoFactory<ShutterPhotoDescription, RemotePhoto> {
 
-	    @Override
-	    public RemotePhoto createPhoto(ShutterPhotoDescription source) {
-	        return new RemotePhoto(source.getUrl(), source.getThumbailUrl());
-	    }
+    }
 
-	}
+    private static class ShutterPhotoFactory implements PhotoFactory<ShutterPhotoDescription, RemotePhoto> {
+
+        @Override
+        public RemotePhoto createPhoto(ShutterPhotoDescription source) {
+            return new RemotePhoto(source.getUrl(), source.getThumbailUrl());
+        }
+
+    }
 
 }

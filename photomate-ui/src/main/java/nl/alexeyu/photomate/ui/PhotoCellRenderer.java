@@ -29,7 +29,7 @@ import nl.alexeyu.photomate.util.ImageUtils;
 
 public class PhotoCellRenderer extends DefaultTableCellRenderer {
 	
-	private static final Color BACKGROUND = new JPanel().getBackground();
+    private static final Color BACKGROUND = new JPanel().getBackground();
     
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, 
@@ -61,26 +61,24 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
     }
 
     private static class PhotoLabel<T extends Photo> {
-    	
-    	protected final T photo;
-    	
-    	protected final JComponent component;
-    	
-    	public PhotoLabel(T photo) {
-    		this.photo = photo;
-    		component = createComponent();
-    	}
-    	
-    	protected JComponent createComponent() {
-			Optional<ImageIcon> thumbnail = photo.thumbnail();
-			return thumbnail.isPresent()
-				? new JLabel(thumbnail.get())
-				: new JLabel("Loading...");
-    	}
-    	
-    	public final JComponent getComponent() {
-    		return component;
-    	}
+
+        protected final T photo;
+
+        protected final JComponent component;
+
+        public PhotoLabel(T photo) {
+            this.photo = photo;
+            component = createComponent();
+        }
+
+        protected JComponent createComponent() {
+            Optional<ImageIcon> thumbnail = photo.thumbnail();
+            return thumbnail.isPresent() ? new JLabel(thumbnail.get()) : new JLabel("Loading...");
+        }
+
+        public final JComponent getComponent() {
+            return component;
+        }
 
     }
     
@@ -95,61 +93,61 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
     		this.columnWidth = columnWidth;
     	}
     	
-		@Override
-		protected JComponent createComponent() {
-			Optional<ImageIcon> thumbnail = photo.thumbnail();
-			if (!thumbnail.isPresent()) {
-				return super.createComponent();
-			}
-			return new JLabel(thumbnail.get()) {
-				@Override
-				protected void paintComponent(Graphics g) {
-					if (photo.isDeleted()) {
-						 super.paintComponent(g);
-						 Graphics2D g2d = (Graphics2D) g;
-						 g2d.setStroke(new BasicStroke(5));
-						 g2d.setPaint(Color.red);
-						 g2d.drawLine(0, 0, columnWidth, UiConstants.THUMBNAIL_SIZE.height);
-					} else {
-						super.paintComponent(g);
-						g.drawImage(DELETE_IMAGE, columnWidth - CLICKABLE_ICON_SIZE - BORDER_WIDTH * 2, 
-								BORDER_WIDTH, CLICKABLE_ICON_SIZE, CLICKABLE_ICON_SIZE, null);
-						
-					}
-				}
+        @Override
+        protected JComponent createComponent() {
+            Optional<ImageIcon> thumbnail = photo.thumbnail();
+            if (!thumbnail.isPresent()) {
+                return super.createComponent();
+            }
+            return new JLabel(thumbnail.get()) {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    if (photo.isDeleted()) {
+                        super.paintComponent(g);
+                        Graphics2D g2d = (Graphics2D) g;
+                        g2d.setStroke(new BasicStroke(5));
+                        g2d.setPaint(Color.red);
+                        g2d.drawLine(0, 0, columnWidth, UiConstants.THUMBNAIL_SIZE.height);
+                    } else {
+                        super.paintComponent(g);
+                        g.drawImage(DELETE_IMAGE, columnWidth - CLICKABLE_ICON_SIZE - BORDER_WIDTH * 2, BORDER_WIDTH,
+                                CLICKABLE_ICON_SIZE, CLICKABLE_ICON_SIZE, null);
 
-			};
-		}
+                    }
+                }
+
+            };
+        }
     }
 
     private static class EdiatablePhotoPanel extends PhotoLabel<EditablePhoto> {
 
-		public EdiatablePhotoPanel(EditablePhoto photo) {
-			super(photo);
-		}
+        public EdiatablePhotoPanel(EditablePhoto photo) {
+            super(photo);
+        }
 
-		@Override
-		protected JComponent createComponent() {
-	        JPanel panel = new JPanel(new BorderLayout());
-			JComponent label = super.createComponent();
-			panel.add(createTitle(photo), BorderLayout.NORTH);
-	        panel.add(label, BorderLayout.CENTER);
-	        return panel;
-		}
+        @Override
+        protected JComponent createComponent() {
+            JPanel panel = new JPanel(new BorderLayout());
+            JComponent label = super.createComponent();
+            panel.add(createTitle(photo), BorderLayout.NORTH);
+            panel.add(label, BorderLayout.CENTER);
+            return panel;
+        }
 
-	    private JComponent createTitle(EditablePhoto photo) {
-	        String title = photo.name();
-	        Optional<PhotoMetaData> metadata = photo.metaData();
-	        if (metadata.isPresent()) {
-	            title += " [" + metadata.get().keywords().size() + "]";
-	        }
-	        JLabel nameLabel = new JLabel(title);
-	        if (!photo.isReadyToUpload()) {
-	            nameLabel.setIcon(ImageUtils.getImage("error.png"));
-	        }
-	        nameLabel.setForeground(Color.GRAY);
-	        return nameLabel;
-	    }
+        private JComponent createTitle(EditablePhoto photo) {
+            String title = photo.name();
+            Optional<PhotoMetaData> metadata = photo.metaData();
+            if (metadata.isPresent()) {
+                title += " [" + metadata.get().keywords().size() + "]";
+            }
+            JLabel nameLabel = new JLabel(title);
+            if (!photo.isReadyToUpload()) {
+                nameLabel.setIcon(ImageUtils.getImage("error.png"));
+            }
+            nameLabel.setForeground(Color.GRAY);
+            return nameLabel;
+        }
 
     }
     

@@ -14,10 +14,10 @@ import nl.alexeyu.photomate.api.AbstractPhoto;
 import nl.alexeyu.photomate.model.PhotoProperty;
 
 public class ReadonlyPhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<AbstractPhoto> {
-	
-	public ReadonlyPhotoMetaDataPanel(DropTarget dropTarget) {
-	    captionEditor.setEditable(false);
-	    captionEditor.addMouseListener(new MouseAdapter() {
+
+    public ReadonlyPhotoMetaDataPanel(DropTarget dropTarget) {
+        captionEditor.setEditable(false);
+        captionEditor.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (photo.isPresent() && e.getClickCount() >= 2) {
@@ -25,18 +25,18 @@ public class ReadonlyPhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<Abstr
                 }
             }
         });
-	    descriptionEditor.setEditable(false);
-	    descriptionEditor.addMouseListener(new MouseAdapter() {
+        descriptionEditor.setEditable(false);
+        descriptionEditor.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (photo.isPresent() && e.getClickCount() >= 2) {
                     firePropertyChange(DESCRIPTION.propertyName(), null, descriptionEditor.getText());
                 }
             }
-	    });
+        });
 
-	    keywordList.setDragEnabled(true);
-	    keywordList.setDropTarget(dropTarget);
+        keywordList.setDragEnabled(true);
+        keywordList.setDropTarget(dropTarget);
         keywordList.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -48,7 +48,7 @@ public class ReadonlyPhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<Abstr
                 }
             }
         });
-        
-	}
-	
+
+    }
+
 }

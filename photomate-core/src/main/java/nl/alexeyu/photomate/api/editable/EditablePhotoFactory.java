@@ -6,9 +6,9 @@ import nl.alexeyu.photomate.api.PhotoFactory;
 
 public final class EditablePhotoFactory implements PhotoFactory<Path, EditablePhoto> {
 
-	@Override
-	public EditablePhoto createPhoto(Path path) {
-		return new EditablePhoto(path);
-	}
+    @Override
+    public EditablePhoto createPhoto(Path path) {
+        return new EditablePhoto(path);
+    }
 
 }

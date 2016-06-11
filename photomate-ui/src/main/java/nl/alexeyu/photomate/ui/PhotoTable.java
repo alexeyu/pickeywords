@@ -118,18 +118,18 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
 
         @Override
         public void mouseClicked(MouseEvent e) {
-        	int row = rowAtPoint(e.getPoint());
-        	int col = columnAtPoint(e.getPoint());
-        	if (getColumnRight(col) - e.getPoint().x < CLICKABLE_ICON_SIZE 
-        	        && e.getPoint().y - getRowTop(row) < CLICKABLE_ICON_SIZE) {
-        		Optional<P> photo = getModel().getValueAt(row, col);
-        		if (photo.isPresent()) {
-        		    ArchivePhoto arcPhoto = (ArchivePhoto) photo.get();
-        			arcPhoto.delete();
-        			cleaner.process(arcPhoto.getPath());
-        			repaint();
-        		}
-        	}
+            int row = rowAtPoint(e.getPoint());
+            int col = columnAtPoint(e.getPoint());
+            if (getColumnRight(col) - e.getPoint().x < CLICKABLE_ICON_SIZE
+                    && e.getPoint().y - getRowTop(row) < CLICKABLE_ICON_SIZE) {
+                Optional<P> photo = getModel().getValueAt(row, col);
+                if (photo.isPresent()) {
+                    ArchivePhoto arcPhoto = (ArchivePhoto) photo.get();
+                    arcPhoto.delete();
+                    cleaner.process(arcPhoto.getPath());
+                    repaint();
+                }
+            }
         }
     }
 

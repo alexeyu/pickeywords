@@ -21,52 +21,51 @@ import java.util.stream.Collectors;
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
 
 public class EditablePhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<EditablePhoto> {
-	
+
     private static final String NEW_KEYWORD_PROPERTY = "newKeyword";
 
     private HintedTextField keywordToAddField;
-	
-	public EditablePhotoMetaDataPanel() {
-	    captionEditor.addPropertyChangeListener(CAPTION.propertyName(), this);
-		descriptionEditor.addPropertyChangeListener(DESCRIPTION.propertyName(), this);
 
-		keywordList.addKeyListener(new KeywordRemover());
-		keywordList.addPropertyChangeListener(KEYWORDS.propertyName(), this);
-		
-		keywordToAddField = new HintedTextField("Keyword to add", NEW_KEYWORD_PROPERTY, false);
-		add(keywordToAddField, BorderLayout.SOUTH);
-		keywordToAddField.addPropertyChangeListener(this);
-	}
-	
+    public EditablePhotoMetaDataPanel() {
+        captionEditor.addPropertyChangeListener(CAPTION.propertyName(), this);
+        descriptionEditor.addPropertyChangeListener(DESCRIPTION.propertyName(), this);
+
+        keywordList.addKeyListener(new KeywordRemover());
+        keywordList.addPropertyChangeListener(KEYWORDS.propertyName(), this);
+
+        keywordToAddField = new HintedTextField("Keyword to add", NEW_KEYWORD_PROPERTY, false);
+        add(keywordToAddField, BorderLayout.SOUTH);
+        keywordToAddField.addPropertyChangeListener(this);
+    }
+
     @Override
     public void propertyChange(PropertyChangeEvent e) {
         if (NEW_KEYWORD_PROPERTY.equals(e.getPropertyName())) {
-        	addKeywords(asList(e.getNewValue().toString()));
+            addKeywords(asList(e.getNewValue().toString()));
             keywordToAddField.setText("");
         } else {
             super.propertyChange(e);
         }
     }
-    
+
     private void removeKeywords(List<String> keywords) {
         if (keywords.size() > 0) {
-        	Collection<String> currentKeywords = photo.get().keywords();
-            List<String> reducedKeywords = currentKeywords.stream()
-            		.filter(k -> !keywords.contains(k))
-            		.collect(Collectors.toList());
+            Collection<String> currentKeywords = photo.get().keywords();
+            List<String> reducedKeywords = currentKeywords.stream().filter(k -> !keywords.contains(k))
+                    .collect(Collectors.toList());
             firePropertyChange(KEYWORDS.propertyName(), currentKeywords, reducedKeywords);
         }
     }
-    
+
     private void addKeywords(List<String> keywords) {
-    	Collection<String> currentKeywords = photo.get().keywords();
-    	Collection<String> extendedKeywords = new LinkedHashSet<>(currentKeywords);
-    	extendedKeywords.addAll(keywords);
+        Collection<String> currentKeywords = photo.get().keywords();
+        Collection<String> extendedKeywords = new LinkedHashSet<>(currentKeywords);
+        extendedKeywords.addAll(keywords);
         firePropertyChange(KEYWORDS.propertyName(), currentKeywords, extendedKeywords);
     }
 
     public DropTarget getDropTarget() {
-    	return new DropTarget(keywordList, new KeywordDropTarget());
+        return new DropTarget(keywordList, new KeywordDropTarget());
     }
 
     private final class KeywordRemover extends KeyAdapter {

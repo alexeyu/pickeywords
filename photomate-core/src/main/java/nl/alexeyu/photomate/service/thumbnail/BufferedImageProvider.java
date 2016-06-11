@@ -10,10 +10,10 @@ public final class BufferedImageProvider {
 
     public BufferedImage toBufferedImage(Path photoFile) {
         try {
-        	return ImageIO.read(photoFile.toFile());
+            return ImageIO.read(photoFile.toFile());
         } catch (IOException ex) {
             throw new IllegalStateException("Could not read image " + photoFile, ex);
         }
-	}
+    }
 
 }
