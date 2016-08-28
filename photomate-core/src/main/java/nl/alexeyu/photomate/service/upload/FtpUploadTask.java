@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 
 public class FtpUploadTask extends AbstractUploadTask implements CopyStreamListener {
 
-    private static final int KEEP_ALIVE_TIMEOUT = 120;
+    private static final int KEEP_ALIVE_TIMEOUT = 10;
 
     private static final Logger logger = LoggerFactory.getLogger("UploadTask");
 
@@ -48,9 +48,9 @@ public class FtpUploadTask extends AbstractUploadTask implements CopyStreamListe
         notifyProgress(0);
         try (InputStream is = Files.newInputStream(photoToStock.getPhoto().getPath())) {
             init();
+            client.deleteFile(photoToStock.getPhoto().name());
             boolean stored = client.storeFile(photoToStock.getPhoto().name(), is);
-            boolean ack = client.completePendingCommand();
-            if (stored && ack) {
+            if (stored) {
                 logger.info("Uploaded successful: %s", photoToStock);
                 notifySuccess();
             } else {
