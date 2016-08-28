@@ -18,6 +18,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -109,7 +110,7 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
     
     @Override
     public void propertyChange(PropertyChangeEvent e) {
-        repaint();
+    	SwingUtilities.invokeLater(() -> repaint());
     }
 
     private final class DeleteArchivedPhotoListener extends MouseAdapter {
