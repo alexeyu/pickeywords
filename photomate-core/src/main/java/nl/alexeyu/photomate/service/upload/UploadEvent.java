@@ -5,18 +5,18 @@ import nl.alexeyu.photomate.model.PhotoStock;
 
 public abstract class UploadEvent {
 
-    private final PhotoToStock photoToStock;
+    protected final UploadAttempt uploadAttempt;
 
-    public UploadEvent(PhotoToStock photoToStock) {
-        this.photoToStock = photoToStock;
+    public UploadEvent(UploadAttempt uploadAttempt) {
+        this.uploadAttempt = uploadAttempt;
     }
 
     public EditablePhoto getPhoto() {
-        return photoToStock.getPhoto();
+        return uploadAttempt.getPhoto();
     }
 
     public PhotoStock getPhotoStock() {
-        return photoToStock.getPhotoStock();
+        return uploadAttempt.getPhotoStock();
     }
 
 }

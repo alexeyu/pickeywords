@@ -1,23 +1,22 @@
 package nl.alexeyu.photomate.service.upload;
 
+import java.util.Optional;
+
 public class UploadErrorEvent extends UploadEvent {
 
     private final Exception exception;
 
-    private final int attemptsLeft;
-
-    public UploadErrorEvent(PhotoToStock photoToStock, Exception ex, int attemptsLeft) {
-        super(photoToStock);
+    public UploadErrorEvent(UploadAttempt uploadAttempt, Exception ex) {
+        super(uploadAttempt);
         this.exception = ex;
-        this.attemptsLeft = attemptsLeft;
     }
 
     public Exception getException() {
         return exception;
     }
 
-    public int getAttemptsLeft() {
-        return attemptsLeft;
+    public Optional<UploadAttempt> nextAttempt() {
+        return uploadAttempt.next();
     }
 
 }

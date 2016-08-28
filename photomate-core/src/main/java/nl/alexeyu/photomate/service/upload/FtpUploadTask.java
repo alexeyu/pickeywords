@@ -11,24 +11,29 @@ import org.apache.commons.net.io.CopyStreamListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FtpUploadTask extends AbstractUploadTask implements CopyStreamListener {
+public class FtpUploadTask implements Runnable, CopyStreamListener {
 
     private static final int KEEP_ALIVE_TIMEOUT = 10;
 
     private static final Logger logger = LoggerFactory.getLogger("UploadTask");
 
     private final FTPClient client = new FTPClient();
+    
+    private final UploadAttempt uploadAttempt;
+    
+    private final UploadNotifier notifier;
 
-    public FtpUploadTask(PhotoToStock photoToStock, int attemptsLeft) {
-        super(photoToStock, attemptsLeft);
+    public FtpUploadTask(UploadAttempt uploadAttempt, UploadNotifier notifier) {
+    	this.uploadAttempt = uploadAttempt;
+    	this.notifier = notifier;
     }
 
     private void init() throws IOException {
         client.setCopyStreamListener(this);
         client.setControlKeepAliveTimeout(KEEP_ALIVE_TIMEOUT);
-        client.connect(photoToStock.getPhotoStock().ftpUrl());
-        if (!client.login(photoToStock.getPhotoStock().ftpUsername(), photoToStock.getPhotoStock().ftpPassword())) {
-            throw new IOException("Could not connect to " + photoToStock.getPhotoStock());
+        client.connect(uploadAttempt.getPhotoStock().ftpUrl());
+        if (!client.login(uploadAttempt.getPhotoStock().ftpUsername(), uploadAttempt.getPhotoStock().ftpPassword())) {
+            throw new IOException("Could not connect to " + uploadAttempt.getPhotoStock());
         }
         client.enterLocalPassiveMode();
         client.setFileType(FTP.BINARY_FILE_TYPE);
@@ -36,7 +41,7 @@ public class FtpUploadTask extends AbstractUploadTask implements CopyStreamListe
 
     @Override
     public void bytesTransferred(long totalBytesTransferred, int bytesTransferred, long streamSize) {
-        notifyProgress(totalBytesTransferred);
+    	notifier.notifyProgress(uploadAttempt, totalBytesTransferred);
     }
 
     @Override
@@ -45,26 +50,23 @@ public class FtpUploadTask extends AbstractUploadTask implements CopyStreamListe
 
     @Override
     public void run() {
-        notifyProgress(0);
-        try (InputStream is = Files.newInputStream(photoToStock.getPhoto().getPath())) {
+        try (InputStream is = Files.newInputStream(uploadAttempt.getPhoto().getPath())) {
             init();
-            client.deleteFile(photoToStock.getPhoto().name());
-            boolean stored = client.storeFile(photoToStock.getPhoto().name(), is);
+            client.deleteFile(uploadAttempt.getPhoto().name());
+            boolean stored = client.storeFile(uploadAttempt.getPhoto().name(), is);
             if (stored) {
-                logger.info("Uploaded successful: %s", photoToStock);
-                notifySuccess();
+                logger.info("Uploaded successful: %s", uploadAttempt);
             } else {
-                throw new IOException();
+                throw new UploadException();
             }
         } catch (IOException ex) {
-            logger.error("Could not upload %s", photoToStock, ex);
-            notifyError(ex);
+        	throw new UploadException(ex);
         } finally {
             destroy();
         }
     }
 
-    private void destroy() {
+	private void destroy() {
         try {
             if (client.isConnected()) {
                 client.logout();

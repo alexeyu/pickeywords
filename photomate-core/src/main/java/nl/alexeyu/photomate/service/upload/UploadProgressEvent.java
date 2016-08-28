@@ -4,7 +4,7 @@ public class UploadProgressEvent extends UploadEvent {
 
     private final long bytesUploaded;
 
-    public UploadProgressEvent(PhotoToStock photoToStock, long bytesUploaded) {
+    public UploadProgressEvent(UploadAttempt photoToStock, long bytesUploaded) {
         super(photoToStock);
         this.bytesUploaded = bytesUploaded;
     }
