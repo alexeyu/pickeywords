@@ -28,9 +28,8 @@ public class EditablePhotoContainer extends PhotoContainer<EditablePhoto>
 
     private void initPreview() {
         Optional<EditablePhoto> photo = photoTable.getSelectedPhoto();
-        photoPreview
-                .setIcon(photo.isPresent() && photo.get().preview().isPresent()
-                        ? photo.get().preview().get() : null);
+        photoPreview.setIcon(photo.isPresent()
+                        ? photo.get().preview() : null);
     }
 
     public void setPhotos(List<EditablePhoto> photos) {

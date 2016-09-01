@@ -6,7 +6,6 @@ import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -23,9 +22,9 @@ public abstract class AbstractPhoto implements Photo {
 
     public static final String METADATA_PROPERTY = "metadata";
 
-    private final AtomicReference<PhotoMetaData> metaData = new AtomicReference<>();
+    private final AtomicReference<PhotoMetaData> metaData = new AtomicReference<>(PhotoMetaData.EMPTY);
     
-    private final AtomicReference<ImageIcon> thumbnail = new AtomicReference<>();
+    private final AtomicReference<ImageIcon> thumbnail = new AtomicReference<>(new ImageIcon());
     
     private List<WeakReference<PropertyChangeListener>> listeners = new CopyOnWriteArrayList<>();
 
@@ -46,13 +45,13 @@ public abstract class AbstractPhoto implements Photo {
     }
 
     @Override
-    public Optional<ImageIcon> thumbnail() {
-        return Optional.ofNullable(thumbnail.get());
+    public ImageIcon thumbnail() {
+        return thumbnail.get();
     }
 
     @Override
-    public Optional<PhotoMetaData> metaData() {
-        return Optional.ofNullable(metaData.get());
+    public PhotoMetaData metaData() {
+        return metaData.get();
     }
     
     protected void addThumbnail(ImageIcon thumbnail) {

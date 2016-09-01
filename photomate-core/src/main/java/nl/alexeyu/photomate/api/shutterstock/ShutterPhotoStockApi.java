@@ -29,10 +29,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
 
 import nl.alexeyu.photomate.api.PhotoApi;
-import nl.alexeyu.photomate.api.PhotoFactory;
 import nl.alexeyu.photomate.api.PhotoStockApi;
 import nl.alexeyu.photomate.api.RemotePhoto;
 import nl.alexeyu.photomate.util.ConfigReader;
@@ -72,12 +72,14 @@ public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, R
     @Override
     public List<RemotePhoto> search(String keywords) {
         try {
-            String requestUri = String.format(QUERY_TEMPLATE, URLEncoder.encode(keywords, "UTF-8"), resultsPerPage);
+            String requestUri = String.format(QUERY_TEMPLATE, 
+            		URLEncoder.encode(keywords, Charsets.UTF_8.toString()), resultsPerPage);
             JsonResponseReader<ShutterSearchResult> searchResultReader = new JsonResponseReader<>(
                     ShutterSearchResult.class);
             ShutterSearchResult searchResult = client.execute(new HttpGet(requestUri),
                     new DefaultResponseHandler<>(searchResultReader));
-            return createPhotos(searchResult.getPhotoDescriptions().stream(), new ShutterPhotoFactory());
+            return createPhotos(searchResult.getPhotoDescriptions().stream(), 
+            		source -> new RemotePhoto(source.getUrl(), source.getThumbailUrl()));
         } catch (IOException ex) {
             logger.error("Cannot find photos", ex);
             return Collections.emptyList();
@@ -154,15 +156,6 @@ public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, R
                 logger.error("Cannot read url " + url, ex);
                 return null;
             }
-        }
-
-    }
-
-    private static class ShutterPhotoFactory implements PhotoFactory<ShutterPhotoDescription, RemotePhoto> {
-
-        @Override
-        public RemotePhoto createPhoto(ShutterPhotoDescription source) {
-            return new RemotePhoto(source.getUrl(), source.getThumbailUrl());
         }
 
     }

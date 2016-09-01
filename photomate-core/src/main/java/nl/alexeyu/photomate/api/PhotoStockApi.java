@@ -4,6 +4,6 @@ import java.util.List;
 
 public interface PhotoStockApi {
 
-    List<RemotePhoto> search(String string);
+    List<RemotePhoto> search(String keywords);
 
 }

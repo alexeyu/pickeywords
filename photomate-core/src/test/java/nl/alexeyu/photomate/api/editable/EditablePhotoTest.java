@@ -1,31 +1,30 @@
 package nl.alexeyu.photomate.api.editable;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
-import java.io.File;
-import java.nio.file.Path;
-import java.util.Arrays;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import javax.swing.ImageIcon;
 
+import org.junit.Before;
+import org.junit.Test;
+
 import nl.alexeyu.photomate.model.DefaultPhotoMetaDataBuilder;
 import nl.alexeyu.photomate.model.PhotoMetaData;
 import nl.alexeyu.photomate.model.PhotoProperty;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
 
 public class EditablePhotoTest {
     
     private EditablePhoto photo;
     
-    private PhotoMetaData metaData;
+    private PhotoMetaData metaDataWithCreator;
     
     private ImageIcon thumbnail;
     
@@ -33,59 +32,81 @@ public class EditablePhotoTest {
     
     @Before
     public void setUp() {
-        Path photoPath = Mockito.mock(Path.class);
-        File photoFile = Mockito.mock(File.class);
-        Mockito.when(photoPath.toFile()).thenReturn(photoFile); 
-        photo = new EditablePhoto(photoPath);
+        photo = new EditablePhoto(Paths.get("."));
         
-        thumbnail = Mockito.mock(ImageIcon.class);
-        preview = Mockito.mock(ImageIcon.class);
-        metaData = new DefaultPhotoMetaDataBuilder()
+        thumbnail = new ImageIcon(new byte[] {});
+        preview = new ImageIcon(new byte[] {});
+        metaDataWithCreator = new DefaultPhotoMetaDataBuilder()
             .set(PhotoProperty.CREATOR, "Genius")
             .build();
     }
     
     @Test
     public void emptyPhoto() {
-        assertFalse(photo.thumbnail().isPresent());
-        assertFalse(photo.preview().isPresent());
-        assertFalse(photo.metaData().isPresent());
+        assertNull(photo.thumbnail().getImage());
+        assertNull(photo.preview().getImage());
+        assertTrue(photo.metaData().isEmpty());
     }
 
     @Test
     public void thumbnails() {
         photo.addThumbnail(thumbnail);
         photo.addThumbnail(preview);
-        assertSame(thumbnail, photo.thumbnail().get());
-        assertSame(preview, photo.preview().get());
+        assertSame(thumbnail, photo.thumbnail());
+        assertSame(preview, photo.preview());
     }
 
     @Test
     public void metaData() {
-        photo.setMetaData(metaData);
-        assertSame(metaData, photo.metaData().get());
+        photo.setMetaData(metaDataWithCreator);
+        assertSame(metaDataWithCreator, photo.metaData());
     }
     
     @Test
-    public void readyToUpload() {
+    public void cannotUploadEmptyPhoto() {
         assertFalse(photo.isReadyToUpload());
-        
+    }
+
+    @Test
+    public void cannotUploadPhotoWithThumbailOnly() {
         photo.addThumbnail(thumbnail);
         assertFalse("Cannot upload - metadata is not set", photo.isReadyToUpload());
-        
-        photo.setMetaData(metaData);
+    }
+
+    @Test
+    public void notReadyToUploadPhotoWithoutCaption() {
+        photo.addThumbnail(thumbnail);        
+        photo.setMetaData(metaDataWithCreator);
         assertFalse("Cannot upload - no caption", photo.isReadyToUpload());
-        
-        PhotoMetaData metaDataWithCaption = new DefaultPhotoMetaDataBuilder(metaData).
+    }
+
+    @Test
+    public void cannotUploadWithoutDescription() {
+        photo.addThumbnail(thumbnail);
+        PhotoMetaData metaDataWithCaption = new DefaultPhotoMetaDataBuilder(metaDataWithCreator).
                 set(PhotoProperty.CAPTION, "Masterpeace").build();
         photo.setMetaData(metaDataWithCaption);
         assertFalse("Cannot upload - no description", photo.isReadyToUpload());
-        
-        PhotoMetaData metaDataWithDescription = new DefaultPhotoMetaDataBuilder(metaDataWithCaption).
-                set(PhotoProperty.DESCRIPTION, "No need").build();
+    }
+
+    @Test
+    public void cannotUploadWithoutKeywords() {
+        photo.addThumbnail(thumbnail);
+        PhotoMetaData metaDataWithDescription = new DefaultPhotoMetaDataBuilder(metaDataWithCreator)
+                .set(PhotoProperty.CAPTION, "Masterpeace")
+                .set(PhotoProperty.DESCRIPTION, "No need")
+                .build();
         photo.setMetaData(metaDataWithDescription);
         assertFalse("Cannot upload - no keywords", photo.isReadyToUpload());
-        
+    }
+
+    @Test
+    public void cannotUploadWithTooManyKeywords() {
+        photo.addThumbnail(thumbnail);
+        PhotoMetaData metaDataWithDescription = new DefaultPhotoMetaDataBuilder(metaDataWithCreator)
+                .set(PhotoProperty.CAPTION, "Masterpeace")
+                .set(PhotoProperty.DESCRIPTION, "No need")
+                .build();
         List<String> keywords = IntStream.rangeClosed(0, 51)
                 .mapToObj(i -> String.valueOf(i))
                 .collect(Collectors.toList());
@@ -93,9 +114,15 @@ public class EditablePhotoTest {
             .set(PhotoProperty.KEYWORDS, keywords).build();
         photo.setMetaData(metaDataWithTooManyKeywords);
         assertFalse("Cannot upload - too many keywords", photo.isReadyToUpload());
-        
-        PhotoMetaData metaDataWithKeywords = new DefaultPhotoMetaDataBuilder(metaDataWithDescription).
-                set(PhotoProperty.KEYWORDS, Arrays.asList("summer", "smoke")).build();
+    }
+
+    @Test
+    public void readyToUpload() {
+        photo.addThumbnail(thumbnail);
+        PhotoMetaData metaDataWithKeywords = new DefaultPhotoMetaDataBuilder()
+        		.set(PhotoProperty.CAPTION, "Caption")
+        		.set(PhotoProperty.DESCRIPTION, "Description")
+        		.set(PhotoProperty.KEYWORDS, asList("summer", "smoke")).build();
         photo.setMetaData(metaDataWithKeywords);
         assertTrue(photo.isReadyToUpload());
     }

@@ -72,8 +72,8 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
         }
 
         protected JComponent createComponent() {
-            Optional<ImageIcon> thumbnail = photo.thumbnail();
-            return thumbnail.isPresent() ? new JLabel(thumbnail.get()) : new JLabel("Loading...");
+            ImageIcon thumbnail = photo.thumbnail();
+            return thumbnail.getImage() != null ? new JLabel(thumbnail) : new JLabel("Loading...");
         }
 
         public final JComponent getComponent() {
@@ -95,11 +95,11 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
     	
         @Override
         protected JComponent createComponent() {
-            Optional<ImageIcon> thumbnail = photo.thumbnail();
-            if (!thumbnail.isPresent()) {
+            ImageIcon thumbnail = photo.thumbnail();
+            if (thumbnail.getImage() == null) {
                 return super.createComponent();
             }
-            return new JLabel(thumbnail.get()) {
+            return new JLabel(thumbnail) {
                 @Override
                 protected void paintComponent(Graphics g) {
                     if (photo.isDeleted()) {
@@ -137,9 +137,9 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
 
         private JComponent createTitle(EditablePhoto photo) {
             String title = photo.name();
-            Optional<PhotoMetaData> metadata = photo.metaData();
-            if (metadata.isPresent()) {
-                title += " [" + metadata.get().keywords().size() + "]";
+            PhotoMetaData metadata = photo.metaData();
+            if (!metadata.isEmpty()) {
+                title += " [" + metadata.keywords().size() + "]";
             }
             JLabel nameLabel = new JLabel(title);
             if (!photo.isReadyToUpload()) {

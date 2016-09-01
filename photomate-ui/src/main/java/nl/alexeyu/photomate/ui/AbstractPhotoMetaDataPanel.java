@@ -52,9 +52,9 @@ public abstract class AbstractPhotoMetaDataPanel<P extends AbstractPhoto> extend
     }
 
     private void updateComponentsWithPhotoMetaData() {
-        boolean isNull = !photo.isPresent() || !photo.get().metaData().isPresent();
-        captionEditor.setText(isNull ? "" : photo.get().metaData().get().caption());
-        descriptionEditor.setText(isNull ? "" : photo.get().metaData().get().description());
+        boolean isNull = !photo.isPresent() || photo.get().metaData().isEmpty();
+        captionEditor.setText(isNull ? "" : photo.get().metaData().caption());
+        descriptionEditor.setText(isNull ? "" : photo.get().metaData().description());
         DefaultListModel<String> listModel = new DefaultListModel<>();
         if (!isNull) {
             photo.get().keywords().forEach(listModel::addElement);
