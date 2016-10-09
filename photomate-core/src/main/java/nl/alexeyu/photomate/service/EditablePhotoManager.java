@@ -16,7 +16,6 @@ import javax.inject.Inject;
 import nl.alexeyu.photomate.api.LocalPhoto;
 import nl.alexeyu.photomate.api.LocalPhotoApi;
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
-import nl.alexeyu.photomate.api.editable.EditablePhotoFactory;
 import nl.alexeyu.photomate.model.PhotoProperty;
 import nl.alexeyu.photomate.util.ConfigReader;
 import nl.alexeyu.photomate.util.ImageUtils;
@@ -35,7 +34,7 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
 
     public List<EditablePhoto> createPhotos(Path dir) {
         Stream<Path> paths = ImageUtils.getJpegImages(dir);
-        this.photos = photoApi.createPhotos(paths, new EditablePhotoFactory());
+        this.photos = photoApi.createPhotos(paths, path -> new EditablePhoto(path));
         Optional<String> creator = configReader.getProperty("copyright");
         if (creator.isPresent()) {
             PhotoCopyrightSetter photoCopyrightSetter = new PhotoCopyrightSetter(creator.get());

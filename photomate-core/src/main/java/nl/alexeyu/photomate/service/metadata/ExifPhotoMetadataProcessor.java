@@ -5,22 +5,22 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.inject.Singleton;
 
-import nl.alexeyu.photomate.api.PhotoFileProcessor;
+import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+
 import nl.alexeyu.photomate.model.DefaultPhotoMetaData;
 import nl.alexeyu.photomate.model.DefaultPhotoMetaDataBuilder;
 import nl.alexeyu.photomate.model.PhotoMetaData;
 import nl.alexeyu.photomate.model.PhotoProperty;
 import nl.alexeyu.photomate.util.CmdExecutor;
-
-import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 
 @Singleton
 public class ExifPhotoMetadataProcessor implements PhotoMetadataProcessor {
@@ -44,7 +44,7 @@ public class ExifPhotoMetadataProcessor implements PhotoMetadataProcessor {
 
     private final CmdExecutor executor;
 
-    private final PhotoFileProcessor photoCleaner;
+    private final Consumer<Path> photoCleaner;
 
     private static final Map<PhotoProperty, List<String>> PHOTO_TO_EXIF_PROPERTIES = ImmutableMap.of(
             PhotoProperty.CAPTION, Arrays.asList(CAPTION_ABSTRACT, OBJECT_NAME), PhotoProperty.DESCRIPTION,
@@ -53,7 +53,7 @@ public class ExifPhotoMetadataProcessor implements PhotoMetadataProcessor {
     private static final String ADD_KEYWORD_COMMAND = KEYWORDS + "+=";
     private static final String REMOVE_KEYWORD_COMMAND = KEYWORDS + "-=";
 
-    public ExifPhotoMetadataProcessor(CmdExecutor executor, PhotoFileProcessor photoCleaner) {
+    public ExifPhotoMetadataProcessor(CmdExecutor executor, Consumer<Path> photoCleaner) {
         this.executor = executor;
         this.photoCleaner = photoCleaner;
     }
@@ -86,7 +86,7 @@ public class ExifPhotoMetadataProcessor implements PhotoMetadataProcessor {
         List<String> arguments = getUpdateArguments(oldMetaData, newMetaData);
         if (arguments.size() > 0) {
             executor.exec(photoPath, arguments);
-            photoCleaner.process(photoPath);
+            photoCleaner.accept(photoPath);
         }
     }
 

@@ -13,8 +13,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 
-import nl.alexeyu.photomate.api.PhotoFileProcessor;
 import nl.alexeyu.photomate.model.DefaultPhotoMetaDataBuilder;
 import nl.alexeyu.photomate.model.PhotoMetaData;
 import nl.alexeyu.photomate.model.PhotoProperty;
@@ -41,7 +41,7 @@ public class ExifPhotoMetadataProcessorTest {
 
     private Path testPath = Paths.get(".");
 
-    private PhotoFileProcessor backupCleaner;
+    private Consumer<Path> backupCleaner;
 
     private ArgumentCaptor<Path> pathCaptor;
 
@@ -49,9 +49,10 @@ public class ExifPhotoMetadataProcessorTest {
     private ArgumentCaptor<List> argsCaptor;
 
     @Before
+    @SuppressWarnings({ "unchecked" })
     public void setUp() {
         executor = mock(CmdExecutor.class);
-        backupCleaner = mock(PhotoFileProcessor.class);
+        backupCleaner = mock(Consumer.class);
         processor = new ExifPhotoMetadataProcessor(executor, backupCleaner);
         pathCaptor = ArgumentCaptor.forClass(Path.class);
         argsCaptor = ArgumentCaptor.forClass(List.class);
@@ -97,7 +98,7 @@ public class ExifPhotoMetadataProcessorTest {
         processor.update(testPath, oldMetaData, newMetaData);
 
         verify(executor).exec(pathCaptor.capture(), argsCaptor.capture());
-        verify(backupCleaner).process(pathCaptor.getValue());
+        verify(backupCleaner).accept(pathCaptor.getValue());
         assertEquals(testPath, pathCaptor.getValue());
 
         List<String> args = argsCaptor.getValue();
@@ -114,7 +115,7 @@ public class ExifPhotoMetadataProcessorTest {
         processor.update(testPath, oldMetaData, newMetaData);
 
         verify(executor).exec(pathCaptor.capture(), argsCaptor.capture());
-        verify(backupCleaner).process(pathCaptor.getValue());
+        verify(backupCleaner).accept(pathCaptor.getValue());
         assertEquals(testPath, pathCaptor.getValue());
 
         List<String> args = argsCaptor.getValue();
@@ -142,7 +143,7 @@ public class ExifPhotoMetadataProcessorTest {
         processor.update(testPath, oldMetaData, newMetaData);
 
         verify(executor).exec(pathCaptor.capture(), argsCaptor.capture());
-        verify(backupCleaner).process(pathCaptor.getValue());
+        verify(backupCleaner).accept(pathCaptor.getValue());
         assertEquals(testPath, pathCaptor.getValue());
 
         List<String> args = argsCaptor.getValue();

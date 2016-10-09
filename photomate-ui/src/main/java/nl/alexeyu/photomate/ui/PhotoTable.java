@@ -1,17 +1,12 @@
 package nl.alexeyu.photomate.ui;
 
-import static nl.alexeyu.photomate.ui.UiConstants.CLICKABLE_ICON_SIZE;
-
 import java.awt.Dimension;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.IntStream;
 
 import javax.swing.JComponent;
 import javax.swing.JScrollPane;
@@ -23,9 +18,6 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import nl.alexeyu.photomate.api.AbstractPhoto;
-import nl.alexeyu.photomate.api.PhotoFileCleaner;
-import nl.alexeyu.photomate.api.PhotoFileProcessor;
-import nl.alexeyu.photomate.api.archive.ArchivePhoto;
 import nl.alexeyu.photomate.service.PhotoObserver;
 
 public class PhotoTable<P extends AbstractPhoto> extends JTable implements PropertyChangeListener {
@@ -81,21 +73,8 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
     	photos.forEach(photo -> photo.addPropertyChangeListener(this));
         PhotoTableModel<P> model = new PhotoTableModel<>(photos, columnCount); 
         setModel(model);
-        if (photos.size() > 0 && photos.get(0) instanceof ArchivePhoto) {
-    		addMouseListener(new DeleteArchivedPhotoListener());
-        }
     }
     
-    private int getColumnRight(int col) {
-    	return IntStream.range(0, col + 1)
-    			.map(index -> getColumnModel().getColumn(index).getWidth())
-    			.sum();
-    }
-    
-    private int getRowTop(int row) {
-    	return row  * getRowHeight(); 
-    }
-
     @SuppressWarnings("unchecked")
     public PhotoTableModel<P> getModel() {
         if (super.getModel() instanceof PhotoTableModel) {
@@ -111,27 +90,6 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
     @Override
     public void propertyChange(PropertyChangeEvent e) {
     	SwingUtilities.invokeLater(() -> repaint());
-    }
-
-    private final class DeleteArchivedPhotoListener extends MouseAdapter {
-
-        private final PhotoFileProcessor cleaner = new PhotoFileCleaner();
-
-        @Override
-        public void mouseClicked(MouseEvent e) {
-            int row = rowAtPoint(e.getPoint());
-            int col = columnAtPoint(e.getPoint());
-            if (getColumnRight(col) - e.getPoint().x < CLICKABLE_ICON_SIZE
-                    && e.getPoint().y - getRowTop(row) < CLICKABLE_ICON_SIZE) {
-                Optional<P> photo = getModel().getValueAt(row, col);
-                if (photo.isPresent()) {
-                    ArchivePhoto arcPhoto = (ArchivePhoto) photo.get();
-                    arcPhoto.delete();
-                    cleaner.process(arcPhoto.getPath());
-                    repaint();
-                }
-            }
-        }
     }
 
     private class SelectionListener implements ListSelectionListener {

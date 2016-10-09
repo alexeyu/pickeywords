@@ -14,7 +14,11 @@ public abstract class PhotoContainer<P extends AbstractPhoto> extends JPanel {
     
     public PhotoContainer(int columnCount) {
         super(new BorderLayout());
-        photoTable = new PhotoTable<>(columnCount, this);
+        photoTable = createPhotoTable(columnCount);
+    }
+    
+    protected PhotoTable<P> createPhotoTable(int columnCount) {
+    	return new PhotoTable<>(columnCount, this);
     }
     
     public void addPhotoObserver(PhotoObserver<? super P> photoObserver) {

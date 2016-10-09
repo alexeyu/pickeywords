@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 import javax.inject.Inject;
 
@@ -15,11 +16,10 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
 
-import nl.alexeyu.photomate.api.PhotoFileProcessor;
 import nl.alexeyu.photomate.service.upload.UploadSuccessEvent;
 import nl.alexeyu.photomate.util.ConfigReader;
 
-public class PhotoArchiver implements PhotoFileProcessor {
+public class PhotoArchiver implements Consumer<Path> {
 
     private Optional<String> archiveDir;
 
@@ -29,7 +29,7 @@ public class PhotoArchiver implements PhotoFileProcessor {
     private ConcurrentHashMap<String, Boolean> archivedPhotos = new ConcurrentHashMap<>();
 
     @Override
-    public void process(Path photoPath) {
+    public void accept(Path photoPath) {
         archiveDir = configReader.getProperty("archiveFolder");
         if (archivedPhotos.put(photoPath.toString(), Boolean.TRUE) == null) {
             archiveDir.ifPresent(dir -> CompletableFuture.runAsync(new ArchivePhotoTask(photoPath, Paths.get(dir))));
@@ -38,7 +38,7 @@ public class PhotoArchiver implements PhotoFileProcessor {
 
     @Subscribe
     public void onSuccess(UploadSuccessEvent ev) {
-        process(ev.getPhoto().getPath());
+        accept(ev.getPhoto().getPath());
     }
 
     private static class ArchivePhotoTask implements Runnable {

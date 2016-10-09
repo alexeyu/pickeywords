@@ -52,12 +52,14 @@ public abstract class AbstractPhotoMetaDataPanel<P extends AbstractPhoto> extend
     }
 
     private void updateComponentsWithPhotoMetaData() {
-        boolean isNull = !photo.isPresent() || photo.get().metaData().isEmpty();
-        captionEditor.setText(isNull ? "" : photo.get().metaData().caption());
-        descriptionEditor.setText(isNull ? "" : photo.get().metaData().description());
-        DefaultListModel<String> listModel = new DefaultListModel<>();
-        if (!isNull) {
-            photo.get().keywords().forEach(listModel::addElement);
+    	DefaultListModel<String> listModel = new DefaultListModel<>();
+    	if (photo.isPresent()) {
+    		captionEditor.setText(photo.get().metaData().caption());
+    		descriptionEditor.setText(photo.get().metaData().description());
+        	photo.get().keywords().forEach(listModel::addElement);
+        } else {
+        	captionEditor.setText("");
+        	descriptionEditor.setText("");
         }
         keywordList.setModel(listModel);
     }

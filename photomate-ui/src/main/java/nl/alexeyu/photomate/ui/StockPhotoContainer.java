@@ -16,7 +16,7 @@ public class StockPhotoContainer extends PhotoContainer<RemotePhoto> implements 
     
     private static final String KEYWORD_SEARCH = "keyword_search";
 
-    private HintedTextField keywordsToSearch;
+    private final HintedTextField keywordsToSearch;
 
     @Inject
     private PhotoStockApi photoStockApi;
@@ -32,8 +32,9 @@ public class StockPhotoContainer extends PhotoContainer<RemotePhoto> implements 
     @Override
     public void propertyChange(PropertyChangeEvent e) {
         if (e.getPropertyName().equals(KEYWORD_SEARCH)) {
+        	String searchString = e.getNewValue().toString();
             CompletableFuture
-                .supplyAsync(() -> photoStockApi.search(e.getNewValue().toString()))
+                .supplyAsync(() -> photoStockApi.search(searchString))
                 .thenAccept(photoTable::setPhotos);
         }
     }

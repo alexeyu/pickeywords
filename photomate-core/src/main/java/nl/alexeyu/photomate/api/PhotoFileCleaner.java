@@ -2,8 +2,9 @@ package nl.alexeyu.photomate.api;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.function.Consumer;
 
-public final class PhotoFileCleaner implements PhotoFileProcessor {
+public final class PhotoFileCleaner implements Consumer<Path> {
     
     private final String suffix;
     
@@ -16,7 +17,7 @@ public final class PhotoFileCleaner implements PhotoFileProcessor {
     }
 
     @Override
-    public void process(Path photoPath) {
+    public void accept(Path photoPath) {
         new File(photoPath.toString() + suffix).deleteOnExit();
     }
 
