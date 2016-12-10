@@ -3,6 +3,7 @@ package nl.alexeyu.photomate.service.upload;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
@@ -10,6 +11,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
+import nl.alexeyu.photomate.model.FtpEndpoint;
 import nl.alexeyu.photomate.model.PhotoStock;
 import nl.alexeyu.photomate.util.ConfigReader;
 
@@ -36,11 +38,12 @@ public final class PhotoUploader {
     }
 
     public void uploadPhotos(List<EditablePhoto> photos) {
-        List<PhotoStock> photoStocks = configReader.getPhotoStocks();
+        Stream<FtpEndpoint> endpoints = configReader.getPhotoStocks().stream()
+        		.map(PhotoStock::ftpEndpoint);
         int initialAttemptLeft = Integer.valueOf(configReader.getProperty("uploadAttempts").orElse("" + DEFAULT_UPLOAD_ATTEMPTS));
         photos.forEach(photo -> 
-        	photoStocks.forEach(photoStock -> 
-        		uploadPhoto(new UploadAttempt(photo, photoStock, initialAttemptLeft))));
+        	endpoints.forEach(endpoint -> 
+        		uploadPhoto(new UploadAttempt(photo, endpoint, initialAttemptLeft))));
     }
 
     private void uploadPhoto(UploadAttempt uploadAttempt) {

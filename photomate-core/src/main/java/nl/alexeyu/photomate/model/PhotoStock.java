@@ -8,19 +8,12 @@ public class PhotoStock {
 	
 	private final String iconUrl;
 	
-	private final String ftpUrl;
+	private final FtpEndpoint ftpEndpoint;
 	
-	private final String ftpUsername;
-	
-	private final String ftpPassword;
-
-	public PhotoStock(String name, String iconUrl, String ftpUrl,
-			String ftpUsername, String ftpPassword) {
+	public PhotoStock(String name, String iconUrl, FtpEndpoint ftpEndpoint) {
 		this.name = name;
 		this.iconUrl = iconUrl;
-		this.ftpUrl = ftpUrl;
-		this.ftpUsername = ftpUsername;
-		this.ftpPassword = ftpPassword;
+		this.ftpEndpoint = ftpEndpoint;
 	}
 
 	public String name() {
@@ -31,16 +24,8 @@ public class PhotoStock {
 		return iconUrl;
 	}
 
-	public String ftpUrl() {
-		return ftpUrl;
-	}
-
-	public String ftpUsername() {
-		return ftpUsername;
-	}
-
-	public String ftpPassword() {
-		return ftpPassword;
+	public FtpEndpoint ftpEndpoint() {
+		return ftpEndpoint;
 	}
 
 	@Override

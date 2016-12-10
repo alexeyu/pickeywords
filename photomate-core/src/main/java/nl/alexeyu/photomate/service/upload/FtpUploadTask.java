@@ -31,9 +31,9 @@ public class FtpUploadTask implements Runnable, CopyStreamListener {
     private void init() throws IOException {
         client.setCopyStreamListener(this);
         client.setControlKeepAliveTimeout(KEEP_ALIVE_TIMEOUT);
-        client.connect(uploadAttempt.getPhotoStock().ftpUrl());
-        if (!client.login(uploadAttempt.getPhotoStock().ftpUsername(), uploadAttempt.getPhotoStock().ftpPassword())) {
-            throw new IOException("Could not connect to " + uploadAttempt.getPhotoStock());
+        client.connect(uploadAttempt.getEndpoint().url());
+        if (!client.login(uploadAttempt.getEndpoint().username(), uploadAttempt.getEndpoint().password())) {
+            throw new IOException("Could not connect to " + uploadAttempt.getEndpoint());
         }
         client.enterLocalPassiveMode();
         client.setFileType(FTP.BINARY_FILE_TYPE);

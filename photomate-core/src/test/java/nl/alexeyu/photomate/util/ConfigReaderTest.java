@@ -43,11 +43,12 @@ public class ConfigReaderTest {
 	public void readPhotoStock() {
 		List<PhotoStock> stocks = configReader.getPhotoStocks();
 		assertEquals("Must read one stock", 1, stocks.size());
-		assertEquals("test-stock", stocks.get(0).name());
-		assertEquals("http://test.com/stock.gif", stocks.get(0).iconUrl());
-		assertEquals("ftp://test.com", stocks.get(0).ftpUrl());
-		assertEquals("photographer", stocks.get(0).ftpUsername());
-		assertEquals("#12", stocks.get(0).ftpPassword());
+		PhotoStock stock = stocks.get(0);
+		assertEquals("test-stock", stock.name());
+		assertEquals("http://test.com/stock.gif", stock.iconUrl());
+		assertEquals("ftp://test.com", stock.ftpEndpoint().url());
+		assertEquals("photographer", stock.ftpEndpoint().username());
+		assertEquals("#12", stock.ftpEndpoint().password());
 	}
 	
 	@Test

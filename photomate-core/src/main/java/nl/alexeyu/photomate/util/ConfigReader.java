@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 import javax.inject.Singleton;
 
+import nl.alexeyu.photomate.model.FtpEndpoint;
 import nl.alexeyu.photomate.model.PhotoStock;
 
 @Singleton
@@ -74,7 +75,8 @@ public class ConfigReader {
 		String ftpUrl = getProperty(prefix + "ftp.url").orElse("");
 		String ftpUsername = getProperty(prefix + "ftp.username").orElse("");
 		String ftpPassword = getProperty(prefix + "ftp.password").orElse("");
-		return new PhotoStock(name, icon, ftpUrl, ftpUsername, ftpPassword);
+		return new PhotoStock(name, icon, 
+				new FtpEndpoint(ftpUrl, ftpUsername, ftpPassword));
 	}
 	
 	public List<PhotoStock> getPhotoStocks() {

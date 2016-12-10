@@ -1,7 +1,7 @@
 package nl.alexeyu.photomate.service.upload;
 
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
-import nl.alexeyu.photomate.model.PhotoStock;
+import nl.alexeyu.photomate.model.FtpEndpoint;
 
 public abstract class UploadEvent {
 
@@ -15,8 +15,8 @@ public abstract class UploadEvent {
         return uploadAttempt.getPhoto();
     }
 
-    public PhotoStock getPhotoStock() {
-        return uploadAttempt.getPhotoStock();
+    public FtpEndpoint getEndpoint() {
+        return uploadAttempt.getEndpoint();
     }
 
 }

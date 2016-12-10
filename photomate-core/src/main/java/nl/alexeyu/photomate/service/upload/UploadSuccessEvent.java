@@ -2,8 +2,8 @@ package nl.alexeyu.photomate.service.upload;
 
 public class UploadSuccessEvent extends UploadEvent {
 
-    public UploadSuccessEvent(UploadAttempt photoToStock) {
-        super(photoToStock);
+    public UploadSuccessEvent(UploadAttempt attempt) {
+        super(attempt);
     }
 
 }

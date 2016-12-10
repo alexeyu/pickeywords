@@ -14,7 +14,7 @@ import org.junit.Test;
 import com.google.common.io.Resources;
 
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
-import nl.alexeyu.photomate.model.PhotoStock;
+import nl.alexeyu.photomate.model.FtpEndpoint;
 
 public class FtpUploadTaskSystemTest {
 	
@@ -26,8 +26,8 @@ public class FtpUploadTaskSystemTest {
 	public void setUp() throws Exception {
 		Path sourcePhotoPath = Paths.get(Resources.getResource("test.jpg").toURI());
 		EditablePhoto  photo = new EditablePhoto(sourcePhotoPath);
-		PhotoStock stock = new PhotoStock("test", "", "localhost", "ftptest", "ftptest");
-		UploadAttempt photoToStock = new UploadAttempt(photo, stock, 1);
+		FtpEndpoint endpoint = new FtpEndpoint("localhost", "ftptest", "ftptest");
+		UploadAttempt photoToStock = new UploadAttempt(photo, endpoint, 1);
 		task = new FtpUploadTask(photoToStock, new NoopUploadNotifier());
 	}
 	

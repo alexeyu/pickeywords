@@ -42,19 +42,19 @@ public class UploadPanel extends JPanel {
     @Subscribe
     public void onProgress(UploadProgressEvent ev) {
         Integer percent = (int) (ev.getBytesUploaded() * 100 / ev.getPhoto().fileSize());
-        uploadTable.getModel().setStatus(ev.getPhotoStock(), ev.getPhoto(), percent);
+        uploadTable.getModel().setStatus(ev.getEndpoint(), ev.getPhoto(), percent);
         uploadTable.repaint();
     }
 
     @Subscribe
     public void onSuccess(UploadSuccessEvent ev) {
-        uploadTable.getModel().setStatus(ev.getPhotoStock(), ev.getPhoto(), "");
+        uploadTable.getModel().setStatus(ev.getEndpoint(), ev.getPhoto(), "");
         uploadTable.repaint();
     }
 
     @Subscribe
     public void onError(UploadErrorEvent ev) {
-        uploadTable.getModel().setStatus(ev.getPhotoStock(), ev.getPhoto(), ev.getException());
+        uploadTable.getModel().setStatus(ev.getEndpoint(), ev.getPhoto(), ev.getException());
         uploadTable.repaint();
     }
 

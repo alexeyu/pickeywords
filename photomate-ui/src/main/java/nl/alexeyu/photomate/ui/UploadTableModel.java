@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.swing.table.AbstractTableModel;
 
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
+import nl.alexeyu.photomate.model.FtpEndpoint;
 import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.model.PhotoStock;
 
@@ -23,13 +24,13 @@ public class UploadTableModel extends AbstractTableModel {
         this.photoStocks = photoStocks;
     }
 
-    public void setStatus(PhotoStock photoStock, Photo photo, Object status) {
-        String key = getKey(photoStock, photo);
+    public void setStatus(FtpEndpoint endpoint, Photo photo, Object status) {
+        String key = getKey(endpoint, photo);
         statuses.put(key, status);
     }
 
-    private String getKey(PhotoStock photoStock, Photo photo) {
-        return photoStock.name() + "-" + photo.name();
+    private String getKey(FtpEndpoint endpoint, Photo photo) {
+        return photo.name() + "-" + endpoint.url();
     }
 
     public int getRowCount() {
@@ -41,7 +42,7 @@ public class UploadTableModel extends AbstractTableModel {
     }
 
     public Object getValueAt(int rowIndex, int columnIndex) {
-        String key = getKey(photoStocks.get(columnIndex), photos.get(rowIndex));
+        String key = getKey(photoStocks.get(columnIndex).ftpEndpoint(), photos.get(rowIndex));
         return statuses.get(key);
     }
 

@@ -18,7 +18,7 @@ public class ImageUtils {
     public static Stream<Path> getJpegImages(Path dir) {
         try {
             return Files.list(dir)
-                    .filter(path -> ImageUtils.isJpeg(path));
+                    .filter(path -> isJpeg(path));
         } catch (IOException ex) {
             throw new IllegalStateException(ex);
         }
@@ -28,7 +28,7 @@ public class ImageUtils {
         String fileName = path.getFileName()
                 .toString()
                 .toLowerCase();
-        return fileName.endsWith("jpg") || fileName.endsWith("jpeg");
+        return fileName.endsWith(".jpg") || fileName.endsWith(".jpeg");
     }
 
 }
