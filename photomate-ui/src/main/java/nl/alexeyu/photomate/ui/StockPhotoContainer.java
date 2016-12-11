@@ -5,8 +5,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.concurrent.CompletableFuture;
 
-import nl.alexeyu.photomate.api.PhotoStockApi;
-import nl.alexeyu.photomate.api.RemotePhoto;
+import nl.alexeyu.photomate.search.api.PhotoStockApi;
+import nl.alexeyu.photomate.search.api.RemotePhoto;
 
 import com.google.inject.Inject;
 

@@ -1,4 +1,4 @@
-package nl.alexeyu.photomate.api.shutterstock;
+package nl.alexeyu.photomate.search.shutterstock;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -33,8 +33,8 @@ import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
 
 import nl.alexeyu.photomate.api.PhotoApi;
-import nl.alexeyu.photomate.api.PhotoStockApi;
-import nl.alexeyu.photomate.api.RemotePhoto;
+import nl.alexeyu.photomate.search.api.PhotoStockApi;
+import nl.alexeyu.photomate.search.api.RemotePhoto;
 import nl.alexeyu.photomate.util.ConfigReader;
 
 public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, RemotePhoto>, PhotoStockApi {

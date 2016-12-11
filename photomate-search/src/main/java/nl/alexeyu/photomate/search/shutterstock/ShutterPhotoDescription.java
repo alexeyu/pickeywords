@@ -1,4 +1,4 @@
-package nl.alexeyu.photomate.api.shutterstock;
+package nl.alexeyu.photomate.search.shutterstock;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

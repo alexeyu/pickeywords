@@ -1,4 +1,6 @@
-package nl.alexeyu.photomate.api;
+package nl.alexeyu.photomate.search.api;
+
+import nl.alexeyu.photomate.api.AbstractPhoto;
 
 public final class RemotePhoto extends AbstractPhoto {
     

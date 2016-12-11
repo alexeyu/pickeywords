@@ -87,6 +87,11 @@
 			</dependency>
 			<dependency>
 				<groupId>nl.alexeyu</groupId>
+				<artifactId>photomate-search</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>nl.alexeyu</groupId>
 				<artifactId>photomate-ui</artifactId>
 				<version>${project.version}</version>
 			</dependency>
@@ -106,6 +111,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-eclipse-plugin</artifactId>
+				<version>2.10</version>
 				<configuration>
 					<downloadSources>true</downloadSources>
 					<downloadJavadocs>true</downloadJavadocs>
@@ -120,6 +126,7 @@
 	</build>
 	<modules>
 		<module>photomate-core</module>
+		<module>photomate-search</module>
 		<module>photomate-ui</module>
 		<module>photomate-app</module>
 	</modules>

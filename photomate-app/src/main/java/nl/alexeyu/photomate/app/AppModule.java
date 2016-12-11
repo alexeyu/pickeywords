@@ -8,8 +8,8 @@ import com.google.inject.AbstractModule;
 import com.google.inject.name.Names;
 
 import nl.alexeyu.photomate.api.PhotoFileCleaner;
-import nl.alexeyu.photomate.api.PhotoStockApi;
-import nl.alexeyu.photomate.api.shutterstock.ShutterPhotoStockApi;
+import nl.alexeyu.photomate.search.api.PhotoStockApi;
+import nl.alexeyu.photomate.search.shutterstock.ShutterPhotoStockApi;
 import nl.alexeyu.photomate.service.metadata.ExifPhotoMetadataProcessor;
 import nl.alexeyu.photomate.service.metadata.PhotoMetadataProcessor;
 import nl.alexeyu.photomate.service.metadata.PhotoMetadataReader;

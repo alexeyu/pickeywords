@@ -1,4 +1,4 @@
-package nl.alexeyu.photomate.api;
+package nl.alexeyu.photomate.search.api;
 
 import java.util.List;
 

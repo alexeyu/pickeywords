@@ -25,11 +25,9 @@ public class FakeUploadTask implements Runnable {
         boolean error = new Random().nextDouble() < ERROR_PROBABILITY;
         if (error) {
             pause(1000);
-            System.out.println("Error " + Thread.currentThread().getName());
             throw new UploadException();
         } else {
             for (int i = 1; i <= 10; i++) {
-            	System.out.println(i + Thread.currentThread().getName());
             	notifier.notifyProgress(photo, endpoint, photo.fileSize() / 10 * i);
                 pause(100);
             }

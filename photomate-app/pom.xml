@@ -16,6 +16,10 @@
 		</dependency>
 		<dependency>
 			<groupId>nl.alexeyu</groupId>
+			<artifactId>photomate-search</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>nl.alexeyu</groupId>
 			<artifactId>photomate-ui</artifactId>
 		</dependency>
 		<dependency>

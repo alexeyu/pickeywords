@@ -1,4 +1,4 @@
-package nl.alexeyu.photomate.api.shutterstock;
+package nl.alexeyu.photomate.search.shutterstock;
 
 import java.util.List;
 
