@@ -11,6 +11,9 @@ import org.apache.commons.net.io.CopyStreamListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import nl.alexeyu.photomate.api.editable.EditablePhoto;
+import nl.alexeyu.photomate.model.FtpEndpoint;
+
 public class FtpUploadTask implements Runnable, CopyStreamListener {
 
     private static final int KEEP_ALIVE_TIMEOUT = 10;
@@ -19,21 +22,24 @@ public class FtpUploadTask implements Runnable, CopyStreamListener {
 
     private final FTPClient client = new FTPClient();
     
-    private final UploadAttempt uploadAttempt;
+    private final EditablePhoto photo;
+    
+    private final FtpEndpoint endpoint;
     
     private final UploadNotifier notifier;
 
-    public FtpUploadTask(UploadAttempt uploadAttempt, UploadNotifier notifier) {
-    	this.uploadAttempt = uploadAttempt;
+    public FtpUploadTask(EditablePhoto photo, FtpEndpoint endpoint, UploadNotifier notifier) {
+    	this.photo = photo;
+    	this.endpoint = endpoint;
     	this.notifier = notifier;
     }
 
     private void init() throws IOException {
         client.setCopyStreamListener(this);
         client.setControlKeepAliveTimeout(KEEP_ALIVE_TIMEOUT);
-        client.connect(uploadAttempt.getEndpoint().url());
-        if (!client.login(uploadAttempt.getEndpoint().username(), uploadAttempt.getEndpoint().password())) {
-            throw new IOException("Could not connect to " + uploadAttempt.getEndpoint());
+        client.connect(endpoint.url());
+        if (!client.login(endpoint.username(), endpoint.password())) {
+            throw new IOException("Could not connect to " + endpoint);
         }
         client.enterLocalPassiveMode();
         client.setFileType(FTP.BINARY_FILE_TYPE);
@@ -41,7 +47,7 @@ public class FtpUploadTask implements Runnable, CopyStreamListener {
 
     @Override
     public void bytesTransferred(long totalBytesTransferred, int bytesTransferred, long streamSize) {
-    	notifier.notifyProgress(uploadAttempt, totalBytesTransferred);
+    	notifier.notifyProgress(photo, endpoint, totalBytesTransferred);
     }
 
     @Override
@@ -50,12 +56,12 @@ public class FtpUploadTask implements Runnable, CopyStreamListener {
 
     @Override
     public void run() {
-        try (InputStream is = Files.newInputStream(uploadAttempt.getPhoto().getPath())) {
+        try (InputStream is = Files.newInputStream(photo.getPath())) {
             init();
-            client.deleteFile(uploadAttempt.getPhoto().name());
-            boolean stored = client.storeFile(uploadAttempt.getPhoto().name(), is);
+            client.deleteFile(photo.name());
+            boolean stored = client.storeFile(photo.name(), is);
             if (stored) {
-                logger.info("Uploaded successful: %s", uploadAttempt);
+                logger.info("Uploaded photo: %s to %s", photo, endpoint);
             } else {
                 throw new UploadException();
             }

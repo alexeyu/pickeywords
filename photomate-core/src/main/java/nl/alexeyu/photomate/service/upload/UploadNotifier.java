@@ -1,11 +1,14 @@
 package nl.alexeyu.photomate.service.upload;
 
+import nl.alexeyu.photomate.api.editable.EditablePhoto;
+import nl.alexeyu.photomate.model.FtpEndpoint;
+
 public interface UploadNotifier {
 
-    void notifyProgress(UploadAttempt uploadAttempt, long bytes);
+    void notifyProgress(EditablePhoto photo, FtpEndpoint endpoint, long bytes);
 
-    void notifyError(UploadAttempt uploadAttempt, Exception ex);
+    void notifyError(EditablePhoto photo, FtpEndpoint endpoint, Exception ex);
 
-    void notifySuccess(UploadAttempt uploadAttempt);
+    void notifySuccess(EditablePhoto photo, FtpEndpoint endpoint);
 
 }

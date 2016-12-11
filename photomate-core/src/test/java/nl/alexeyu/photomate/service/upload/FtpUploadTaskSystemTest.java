@@ -27,8 +27,7 @@ public class FtpUploadTaskSystemTest {
 		Path sourcePhotoPath = Paths.get(Resources.getResource("test.jpg").toURI());
 		EditablePhoto  photo = new EditablePhoto(sourcePhotoPath);
 		FtpEndpoint endpoint = new FtpEndpoint("localhost", "ftptest", "ftptest");
-		UploadAttempt photoToStock = new UploadAttempt(photo, endpoint, 1);
-		task = new FtpUploadTask(photoToStock, new NoopUploadNotifier());
+		task = new FtpUploadTask(photo, endpoint, new NoopUploadNotifier());
 	}
 	
 	@After
@@ -55,15 +54,15 @@ public class FtpUploadTaskSystemTest {
 	private static class NoopUploadNotifier implements UploadNotifier {
 
 		@Override
-		public void notifyProgress(UploadAttempt uploadAttempt, long bytes) {
+		public void notifyProgress(EditablePhoto photo, FtpEndpoint endpoint, long bytes) {
 		}
 
 		@Override
-		public void notifyError(UploadAttempt uploadAttempt, Exception ex) {
+		public void notifyError(EditablePhoto photo, FtpEndpoint endpoint, Exception ex) {
 		}
 
 		@Override
-		public void notifySuccess(UploadAttempt uploadAttempt) {
+		public void notifySuccess(EditablePhoto photo, FtpEndpoint endpoint) {
 		}
 		
 	}

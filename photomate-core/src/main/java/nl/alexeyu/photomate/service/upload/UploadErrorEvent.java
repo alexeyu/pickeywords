@@ -1,22 +1,19 @@
 package nl.alexeyu.photomate.service.upload;
 
-import java.util.Optional;
+import nl.alexeyu.photomate.api.editable.EditablePhoto;
+import nl.alexeyu.photomate.model.FtpEndpoint;
 
 public class UploadErrorEvent extends UploadEvent {
 
     private final Exception exception;
 
-    public UploadErrorEvent(UploadAttempt uploadAttempt, Exception ex) {
-        super(uploadAttempt);
+    public UploadErrorEvent(EditablePhoto photo, FtpEndpoint endpoint, Exception ex) {
+        super(photo, endpoint);
         this.exception = ex;
     }
 
     public Exception getException() {
         return exception;
-    }
-
-    public Optional<UploadAttempt> nextAttempt() {
-        return uploadAttempt.next();
     }
 
 }

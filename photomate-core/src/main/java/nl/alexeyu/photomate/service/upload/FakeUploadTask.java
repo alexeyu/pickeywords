@@ -2,16 +2,22 @@ package nl.alexeyu.photomate.service.upload;
 
 import java.util.Random;
 
+import nl.alexeyu.photomate.api.editable.EditablePhoto;
+import nl.alexeyu.photomate.model.FtpEndpoint;
+
 public class FakeUploadTask implements Runnable {
 
     private static final double ERROR_PROBABILITY = 0.5;
     
-    private final UploadAttempt uploadAttempt;
+    private final EditablePhoto photo;
+    
+    private final FtpEndpoint endpoint;
     
     private final UploadNotifier notifier;
     
-    public FakeUploadTask(UploadAttempt uploadAttempt, UploadNotifier notifier) {
-    	this.uploadAttempt = uploadAttempt;
+    public FakeUploadTask(EditablePhoto photo, FtpEndpoint endpoint, UploadNotifier notifier) {
+    	this.photo = photo;
+    	this.endpoint = endpoint;
     	this.notifier = notifier;
     }
 
@@ -19,10 +25,12 @@ public class FakeUploadTask implements Runnable {
         boolean error = new Random().nextDouble() < ERROR_PROBABILITY;
         if (error) {
             pause(1000);
+            System.out.println("Error " + Thread.currentThread().getName());
             throw new UploadException();
         } else {
             for (int i = 1; i <= 10; i++) {
-            	notifier.notifyProgress(uploadAttempt, uploadAttempt.getPhoto().fileSize() / 10 * i);
+            	System.out.println(i + Thread.currentThread().getName());
+            	notifier.notifyProgress(photo, endpoint, photo.fileSize() / 10 * i);
                 pause(100);
             }
         }

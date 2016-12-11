@@ -1,19 +1,18 @@
 package nl.alexeyu.photomate.service.upload;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
 import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.Subscribe;
 
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
 import nl.alexeyu.photomate.model.FtpEndpoint;
 import nl.alexeyu.photomate.model.PhotoStock;
 import nl.alexeyu.photomate.util.ConfigReader;
+import reactor.core.publisher.Mono;
 
 public final class PhotoUploader {
 
@@ -21,44 +20,35 @@ public final class PhotoUploader {
 
     private final ConfigReader configReader;
 
-    private final EventBus eventBus;
+    private final UploadNotifier notifier;
     
     private final UploadTaskFactory taskFactory;
+    
+    private final int attempts;
 
     @Inject
     public PhotoUploader(ConfigReader configReader, EventBus eventBus, UploadTaskFactory taskFactory) {
 		this.configReader = configReader;
-		this.eventBus = eventBus;
+		this.notifier = new EventBusUploadNotifier(eventBus);
 		this.taskFactory = taskFactory;
+		this.attempts = Integer.valueOf(configReader.getProperty("uploadAttempts").orElse("" + DEFAULT_UPLOAD_ATTEMPTS));
 	}
-
-	@Inject
-    public void init() {
-        eventBus.register(this);
-    }
 
     public void uploadPhotos(List<EditablePhoto> photos) {
         Stream<FtpEndpoint> endpoints = configReader.getPhotoStocks().stream()
         		.map(PhotoStock::ftpEndpoint);
-        int initialAttemptLeft = Integer.valueOf(configReader.getProperty("uploadAttempts").orElse("" + DEFAULT_UPLOAD_ATTEMPTS));
-        photos.forEach(photo -> 
-        	endpoints.forEach(endpoint -> 
-        		uploadPhoto(new UploadAttempt(photo, endpoint, initialAttemptLeft))));
+        endpoints.forEach(endpoint -> 
+        	photos.forEach(photo -> 
+            	CompletableFuture.runAsync(() -> uploadPhoto(photo, endpoint))));
     }
 
-    private void uploadPhoto(UploadAttempt uploadAttempt) {
-        UploadNotifier notifier = new EventBusUploadNotifier(eventBus);
-        Runnable uploadTask = taskFactory.create(uploadAttempt, notifier);
-        Runnable notifyingUploadTask = new StateAwareUploadTask(notifier, uploadAttempt, uploadTask);
-        CompletableFuture.runAsync(notifyingUploadTask);
-    }
-
-    @Subscribe
-    public void onError(UploadErrorEvent event) {
-    	Optional<UploadAttempt> nextAttempt = event.nextAttempt();
-        if (nextAttempt.isPresent()) {
-            uploadPhoto(nextAttempt.get());
-        }
+    private void uploadPhoto(EditablePhoto photo, FtpEndpoint endpoint) {
+        notifier.notifyProgress(photo, endpoint, 0);
+        Mono.fromRunnable(taskFactory.create(photo, endpoint, notifier))
+        		.doOnSuccess(c -> notifier.notifySuccess(photo, endpoint))
+        		.doOnError(UploadException.class, ex -> notifier.notifyError(photo, endpoint, ex))
+        		.retry(attempts)
+        		.subscribe();
     }
 
 }

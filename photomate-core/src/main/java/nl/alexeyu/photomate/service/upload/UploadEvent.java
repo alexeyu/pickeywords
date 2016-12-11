@@ -5,18 +5,21 @@ import nl.alexeyu.photomate.model.FtpEndpoint;
 
 public abstract class UploadEvent {
 
-    protected final UploadAttempt uploadAttempt;
+    protected final EditablePhoto photo;
+    
+    protected final FtpEndpoint endpoint;
 
-    public UploadEvent(UploadAttempt uploadAttempt) {
-        this.uploadAttempt = uploadAttempt;
-    }
+	public UploadEvent(EditablePhoto photo, FtpEndpoint endpoint) {
+		this.photo = photo;
+		this.endpoint = endpoint;
+	}
 
-    public EditablePhoto getPhoto() {
-        return uploadAttempt.getPhoto();
-    }
+	public EditablePhoto getPhoto() {
+		return photo;
+	}
 
-    public FtpEndpoint getEndpoint() {
-        return uploadAttempt.getEndpoint();
-    }
+	public FtpEndpoint getEndpoint() {
+		return endpoint;
+	}
 
 }

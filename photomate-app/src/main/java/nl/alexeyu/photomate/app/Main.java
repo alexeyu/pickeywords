@@ -25,6 +25,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
+import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
 import com.google.common.eventbus.EventBus;
@@ -232,7 +233,7 @@ public class Main implements PropertyChangeListener {
                 frame.getContentPane().add(new JScrollPane(uploadPanel));
                 frame.revalidate();
                 frame.repaint();
-                photoUploader.uploadPhotos(photos);
+                SwingUtilities.invokeLater(() ->  photoUploader.uploadPhotos(photos));
             } catch (PhotoNotReadyException ex) {
                 JOptionPane.showMessageDialog(frame, "Cannot upload photos: " + ex.getPhotos());
             }
