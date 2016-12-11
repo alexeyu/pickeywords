@@ -2,7 +2,6 @@ package nl.alexeyu.photomate.service.upload;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
@@ -35,20 +34,20 @@ public final class PhotoUploader {
 	}
 
     public void uploadPhotos(List<EditablePhoto> photos) {
-        Stream<FtpEndpoint> endpoints = configReader.getPhotoStocks().stream()
-        		.map(PhotoStock::ftpEndpoint);
-        endpoints.forEach(endpoint -> 
-        	photos.forEach(photo -> 
-            	CompletableFuture.runAsync(() -> uploadPhoto(photo, endpoint))));
+        configReader.getPhotoStocks().stream()
+        	.map(PhotoStock::ftpEndpoint)
+        	.forEach(endpoint ->  CompletableFuture.runAsync(() -> uploadPhotos(photos, endpoint)));
     }
 
-    private void uploadPhoto(EditablePhoto photo, FtpEndpoint endpoint) {
-        notifier.notifyProgress(photo, endpoint, 0);
-        Mono.fromRunnable(taskFactory.create(photo, endpoint, notifier))
-        		.doOnSuccess(c -> notifier.notifySuccess(photo, endpoint))
-        		.doOnError(UploadException.class, ex -> notifier.notifyError(photo, endpoint, ex))
-        		.retry(attempts)
-        		.subscribe();
+    private void uploadPhotos(List<EditablePhoto> photos, FtpEndpoint endpoint) {
+    	photos.forEach(photo -> {
+    		notifier.notifyProgress(photo, endpoint, 0);
+    		Mono.fromRunnable(taskFactory.create(photo, endpoint, notifier))
+	    		.doOnSuccess(c -> notifier.notifySuccess(photo, endpoint))
+	    		.doOnError(UploadException.class, ex -> notifier.notifyError(photo, endpoint, ex))
+	    		.retry(attempts)
+	    		.subscribe();
+    	});
     }
 
 }
