@@ -21,10 +21,6 @@ public class ArchivePhotoTable extends PhotoTable<ArchivePhoto> {
 		super(columnCount, parent);
 	}
 
-	public ArchivePhotoTable(int columnCount) {
-		super(columnCount);
-	}
-
 	public void setPhotos(List<ArchivePhoto> photos) {
 		super.setPhotos(photos);
         if (photos.size() > 0) {

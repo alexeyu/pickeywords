@@ -30,7 +30,7 @@ public class ArchivePhotoContainer extends PhotoContainer<ArchivePhoto> {
 
     @Override
 	protected PhotoTable<ArchivePhoto> createPhotoTable(int columnCount) {
-		return new ArchivePhotoTable(columnCount);
+		return new ArchivePhotoTable(columnCount, this);
 	}
 
 	@Inject
