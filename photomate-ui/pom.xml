@@ -11,12 +11,20 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>nl.alexeyu</groupId>
 			<artifactId>photomate-core</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>nl.alexeyu</groupId>
 			<artifactId>photomate-search</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>nl.alexeyu</groupId>
+			<artifactId>photomate-archive</artifactId>
 		</dependency>
 	</dependencies>
 

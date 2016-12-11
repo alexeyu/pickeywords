@@ -11,6 +11,15 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.google.inject</groupId>
+			<artifactId>guice</artifactId>
+			<classifier>no_aop</classifier>
+		</dependency>
+		<dependency>
 			<groupId>nl.alexeyu</groupId>
 			<artifactId>photomate-core</artifactId>
 		</dependency>
@@ -20,11 +29,11 @@
 		</dependency>
 		<dependency>
 			<groupId>nl.alexeyu</groupId>
-			<artifactId>photomate-ui</artifactId>
+			<artifactId>photomate-archive</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
+			<groupId>nl.alexeyu</groupId>
+			<artifactId>photomate-ui</artifactId>
 		</dependency>
 	</dependencies>
 	<build>

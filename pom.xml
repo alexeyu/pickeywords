@@ -10,6 +10,11 @@
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
+				<groupId>javax.inject</groupId>
+				<artifactId>javax.inject</artifactId>
+				<version>1</version>
+			</dependency>
+			<dependency>
 				<groupId>com.google.guava</groupId>
 				<artifactId>guava</artifactId>
 				<version>19.0</version>
@@ -92,6 +97,11 @@
 			</dependency>
 			<dependency>
 				<groupId>nl.alexeyu</groupId>
+				<artifactId>photomate-archive</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>nl.alexeyu</groupId>
 				<artifactId>photomate-ui</artifactId>
 				<version>${project.version}</version>
 			</dependency>
@@ -122,11 +132,33 @@
 				<artifactId>sonar-maven-plugin</artifactId>
 				<version>2.7.1</version>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>analyze-dependencies</id>
+						<phase>process-test-classes</phase>
+						<goals>
+							<goal>analyze-dep-mgt</goal>
+							<goal>analyze-duplicate</goal>
+							<goal>analyze-only</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<failBuild>true</failBuild>
+					<failOnWarning>false</failOnWarning>
+					<ignoreDirect>false</ignoreDirect>
+					<ignoreNonCompile>true</ignoreNonCompile>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 	<modules>
 		<module>photomate-core</module>
 		<module>photomate-search</module>
+		<module>photomate-archive</module>
 		<module>photomate-ui</module>
 		<module>photomate-app</module>
 	</modules>

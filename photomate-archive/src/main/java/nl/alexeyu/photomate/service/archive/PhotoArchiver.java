@@ -1,4 +1,4 @@
-package nl.alexeyu.photomate.service;
+package nl.alexeyu.photomate.service.archive;
 
 import java.io.IOException;
 import java.nio.file.Files;
