@@ -92,7 +92,7 @@ public class Main implements PropertyChangeListener {
 
     public void start() {
         registerPhotoSources();
-        dirChooser = new DirChooser(configReader.getProperty(DEFAULT_FOLDER_PROPERTY));
+        dirChooser = new DirChooser(configReader.getProperty(DEFAULT_FOLDER_PROPERTY).orElse(null));
         initListeners();
         buildGraphics();
         dirChooser.init();
@@ -217,7 +217,7 @@ public class Main implements PropertyChangeListener {
             sourcesLayout.show(sourcesPanel, sourceName);
             PhotoContainer<AbstractPhoto> photoContainer = (PhotoContainer<AbstractPhoto>) photoSourceRegistry
                     .getPhotoSource(sourceName);
-            sourcePhotoMetaDataPanel.setPhoto(photoContainer.getSelectedPhoto());
+            sourcePhotoMetaDataPanel.setPhoto(photoContainer.getSelectedPhoto().orElse(null));
         }
     }
 
@@ -233,7 +233,7 @@ public class Main implements PropertyChangeListener {
                 frame.getContentPane().add(new JScrollPane(uploadPanel));
                 frame.revalidate();
                 frame.repaint();
-                SwingUtilities.invokeLater(() ->  photoUploader.uploadPhotos(photos));
+                SwingUtilities.invokeLater(() -> photoUploader.uploadPhotos(photos));
             } catch (PhotoNotReadyException ex) {
                 JOptionPane.showMessageDialog(frame, "Cannot upload photos: " + ex.getPhotos());
             }

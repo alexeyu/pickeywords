@@ -6,12 +6,13 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.util.Optional;
 
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.filechooser.FileFilter;
+
+import com.google.common.base.Strings;
 
 import nl.alexeyu.photomate.util.ImageUtils;
 
@@ -23,9 +24,9 @@ public class DirChooser extends JPanel {
 
     private final JLabel pathLabel = new JLabel("Select directory...");
 
-    private final Optional<String> defaultFolder;
+    private final String defaultFolder;
 
-    public DirChooser(Optional<String> defaultFolder) {
+    public DirChooser(String defaultFolder) {
         super(new BorderLayout());
         this.defaultFolder = defaultFolder;
         setBorder(UiConstants.EMPTY_BORDER);
@@ -45,7 +46,9 @@ public class DirChooser extends JPanel {
     }
 
     public void init() {
-        defaultFolder.ifPresent(dir -> selectDir(new File(dir)));
+    	if (defaultFolder != null) {
+    		selectDir(new File(defaultFolder));
+    	}
     }
 
     public void selectDir(File dir) {
@@ -57,7 +60,7 @@ public class DirChooser extends JPanel {
     private final class PathSelector extends MouseAdapter {
         public void mouseClicked(MouseEvent e) {
             fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-            fileChooser.setCurrentDirectory(new File(defaultFolder.orElse("")));
+            fileChooser.setCurrentDirectory(new File(Strings.nullToEmpty(defaultFolder)));
             fileChooser.showOpenDialog(getParent());
         }
     }

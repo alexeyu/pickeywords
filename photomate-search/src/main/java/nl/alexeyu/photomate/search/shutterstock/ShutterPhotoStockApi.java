@@ -38,6 +38,8 @@ import nl.alexeyu.photomate.search.api.RemotePhoto;
 import nl.alexeyu.photomate.util.ConfigReader;
 
 public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, RemotePhoto>, PhotoStockApi {
+	
+	private static final String DEFAULT_RESULTS_PER_PAGE = "10";
 
     private static final Logger logger = LoggerFactory.getLogger("ShutterPhotoStockApi");
 
@@ -48,16 +50,14 @@ public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, R
 
     private HttpClient client;
 
-    private int resultsPerPage = 10;
+    private int resultsPerPage;
 
     @Inject
     public void init() {
         String name = configReader.getProperty("stock.shutter.api.name").orElse("");
         String apiKey = configReader.getProperty("stock.shutter.api.key").orElse("");
         Optional<String> resultsPerPageProperty = configReader.getProperty("stock.shutter.api.resultsPerPage");
-        if (resultsPerPageProperty.isPresent()) {
-            resultsPerPage = Integer.valueOf(resultsPerPageProperty.get());
-        }
+        this.resultsPerPage = Integer.valueOf(resultsPerPageProperty.orElse(DEFAULT_RESULTS_PER_PAGE)); 
         this.client = createClient(name, apiKey);
     }
 

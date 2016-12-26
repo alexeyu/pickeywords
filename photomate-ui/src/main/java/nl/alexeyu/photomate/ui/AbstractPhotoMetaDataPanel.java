@@ -5,7 +5,6 @@ import static nl.alexeyu.photomate.ui.UiConstants.BORDER_WIDTH;
 import java.awt.BorderLayout;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.Optional;
 
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
@@ -26,7 +25,7 @@ public abstract class AbstractPhotoMetaDataPanel<P extends AbstractPhoto> extend
 
     protected JList<String> keywordList = new JList<>(new DefaultListModel<String>());
 
-    protected Optional<P> photo = Optional.empty();
+    protected P photo;
 
     public AbstractPhotoMetaDataPanel() {
         super(new BorderLayout(BORDER_WIDTH, BORDER_WIDTH));
@@ -44,22 +43,26 @@ public abstract class AbstractPhotoMetaDataPanel<P extends AbstractPhoto> extend
         setPreferredSize(UiConstants.PREVIEW_SIZE);
     }
 
-    public final void setPhoto(Optional<P> photo) {
-        this.photo.ifPresent(p -> p.removePropertyChangeListener(this));
+    public final void setPhoto(P photo) {
+        if (this.photo != null) {
+            this.photo.removePropertyChangeListener(this);
+        }
         this.photo = photo;
         updateComponentsWithPhotoMetaData();
-        this.photo.ifPresent(p -> p.addPropertyChangeListener(this));
+        if (this.photo != null) {
+            this.photo.addPropertyChangeListener(this);
+        }
     }
 
     private void updateComponentsWithPhotoMetaData() {
-    	DefaultListModel<String> listModel = new DefaultListModel<>();
-    	if (photo.isPresent()) {
-    		captionEditor.setText(photo.get().metaData().caption());
-    		descriptionEditor.setText(photo.get().metaData().description());
-        	photo.get().keywords().forEach(listModel::addElement);
+        DefaultListModel<String> listModel = new DefaultListModel<>();
+        if (this.photo != null) {
+            captionEditor.setText(photo.metaData().caption());
+            descriptionEditor.setText(photo.metaData().description());
+            photo.keywords().forEach(listModel::addElement);
         } else {
-        	captionEditor.setText("");
-        	descriptionEditor.setText("");
+            captionEditor.setText("");
+            descriptionEditor.setText("");
         }
         keywordList.setModel(listModel);
     }
@@ -74,7 +77,7 @@ public abstract class AbstractPhotoMetaDataPanel<P extends AbstractPhoto> extend
     }
 
     @Override
-    public void photoSelected(Optional<P> photo) {
+    public void photoSelected(P photo) {
         setPhoto(photo);
     }
 

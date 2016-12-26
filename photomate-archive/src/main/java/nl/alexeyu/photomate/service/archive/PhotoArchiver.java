@@ -21,8 +21,6 @@ import nl.alexeyu.photomate.util.ConfigReader;
 
 public class PhotoArchiver implements Consumer<Path> {
 
-    private Optional<String> archiveDir;
-
     @Inject
     private ConfigReader configReader;
 
@@ -30,7 +28,7 @@ public class PhotoArchiver implements Consumer<Path> {
 
     @Override
     public void accept(Path photoPath) {
-        archiveDir = configReader.getProperty("archiveFolder");
+        Optional<String> archiveDir = configReader.getProperty("archiveFolder");
         if (archivedPhotos.put(photoPath.toString(), Boolean.TRUE) == null) {
             archiveDir.ifPresent(dir -> CompletableFuture.runAsync(new ArchivePhotoTask(photoPath, Paths.get(dir))));
         }

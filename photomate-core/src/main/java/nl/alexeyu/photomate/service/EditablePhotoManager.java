@@ -30,7 +30,7 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
     @Inject
     private ConfigReader configReader;
 
-    private Optional<EditablePhoto> currentPhoto = Optional.empty();
+    private EditablePhoto currentPhoto;
 
     public List<EditablePhoto> createPhotos(Path dir) {
         Stream<Path> paths = ImageUtils.getJpegImages(dir);
@@ -55,14 +55,14 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
     
     @Override
     public void propertyChange(PropertyChangeEvent e) {
-        if (currentPhoto.isPresent() && PhotoProperty.has(e.getPropertyName())) {
-            photoApi.updateProperty(currentPhoto.get(), 
+        if (currentPhoto != null && PhotoProperty.has(e.getPropertyName())) {
+            photoApi.updateProperty(currentPhoto, 
                     PhotoProperty.of(e.getPropertyName()), e.getNewValue());
         }
     }
 
     @Override
-    public void photoSelected(Optional<EditablePhoto> photo) {
+    public void photoSelected(EditablePhoto photo) {
         this.currentPhoto = photo;
     }
 

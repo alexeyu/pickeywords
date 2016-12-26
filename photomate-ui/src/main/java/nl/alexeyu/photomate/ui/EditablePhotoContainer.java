@@ -50,7 +50,7 @@ public class EditablePhotoContainer extends PhotoContainer<EditablePhoto>
     }
 
     @Override
-    public void photoSelected(Optional<EditablePhoto> photo) {
+    public void photoSelected(EditablePhoto photo) {
         initPreview();
     }
 
