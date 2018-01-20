@@ -7,7 +7,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -25,16 +24,13 @@ public class FtpUploadTaskSystemTest {
 	@Before
 	public void setUp() throws Exception {
 		Path sourcePhotoPath = Paths.get(Resources.getResource("test.jpg").toURI());
-		EditablePhoto  photo = new EditablePhoto(sourcePhotoPath);
+		EditablePhoto photo = new EditablePhoto(sourcePhotoPath);
+		// An FTP server must run and the user with the specified name/password must exist
 		FtpEndpoint endpoint = new FtpEndpoint("localhost", "ftptest", "ftptest");
 		task = new FtpUploadTask(photo, endpoint, new NoopUploadNotifier());
+		Files.deleteIfExists(targetPhotoPath);
 	}
 	
-	@After
-	public void tearDown() throws Exception {
-		Files.delete(targetPhotoPath);
-	}
-
 	@Test
 	public void uploadSucceeds() throws Exception {
 		assertFalse(targetPhotoPath.toFile().exists());
