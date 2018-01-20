@@ -8,8 +8,8 @@ import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.io.CopyStreamEvent;
 import org.apache.commons.net.io.CopyStreamListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
 import nl.alexeyu.photomate.model.FtpEndpoint;
@@ -18,7 +18,7 @@ public class FtpUploadTask implements Runnable, CopyStreamListener {
 
     private static final int KEEP_ALIVE_TIMEOUT = 10;
 
-    private static final Logger logger = LoggerFactory.getLogger("UploadTask");
+    private static final Logger logger = LogManager.getLogger();
 
     private final FTPClient client = new FTPClient();
     
@@ -61,7 +61,7 @@ public class FtpUploadTask implements Runnable, CopyStreamListener {
             client.deleteFile(photo.name());
             boolean stored = client.storeFile(photo.name(), is);
             if (stored) {
-                logger.info("Uploaded photo: %s to %s", photo, endpoint);
+                logger.info("Uploaded photo: {} to {}", photo, endpoint);
             } else {
                 throw new UploadException();
             }

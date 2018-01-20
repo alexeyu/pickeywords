@@ -6,15 +6,15 @@ import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.google.common.collect.Lists;
 import com.google.common.io.CharStreams;
 
 public class DefaultCmdExecutor implements CmdExecutor {
 
-    private final Logger logger = LoggerFactory.getLogger("CmdExecutor");
+    private final Logger logger = LogManager.getLogger();
 
     private final String cmd;
 
@@ -28,7 +28,7 @@ public class DefaultCmdExecutor implements CmdExecutor {
             List<String> execArgs = Lists.newArrayList(args);
             execArgs.add(0, cmd);
             execArgs.add(path.toString());
-            logger.debug("" + execArgs);
+            logger.debug("{}", execArgs);
             return doExec(execArgs);
         } catch (IOException ex) {
             logger.error("Could not run " + cmd, ex);

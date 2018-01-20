@@ -25,8 +25,8 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
@@ -41,7 +41,7 @@ public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, R
 	
 	private static final String DEFAULT_RESULTS_PER_PAGE = "10";
 
-    private static final Logger logger = LoggerFactory.getLogger("ShutterPhotoStockApi");
+    private static final Logger logger = LogManager.getLogger();
 
     private static final String QUERY_TEMPLATE = "http://api.shutterstock.com/images/search.json?searchterm=%s&results_per_page=%s&search_group=photos";
 

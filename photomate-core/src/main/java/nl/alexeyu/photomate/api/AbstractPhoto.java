@@ -29,7 +29,7 @@ public abstract class AbstractPhoto implements Photo {
     private List<WeakReference<PropertyChangeListener>> listeners = new CopyOnWriteArrayList<>();
 
     public final void addPropertyChangeListener(PropertyChangeListener listener) {
-        listeners.add(new WeakReference<PropertyChangeListener>(listener));
+        listeners.add(new WeakReference<>(listener));
     }
 
     public final void removePropertyChangeListener(PropertyChangeListener listener) {
@@ -39,8 +39,8 @@ public abstract class AbstractPhoto implements Photo {
     protected final void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
         PropertyChangeEvent event = new PropertyChangeEvent(this, propertyName, oldValue, newValue);
         listeners.stream()
-            .map(ref -> ref.get())
-            .filter(listener -> listener != null)
+            .map(WeakReference::get)
+            .filter(Objects::nonNull)
             .forEach(listener -> listener.propertyChange(event)); 
     }
 

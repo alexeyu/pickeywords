@@ -11,8 +11,8 @@ import java.util.function.Consumer;
 
 import javax.inject.Inject;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.google.common.eventbus.Subscribe;
 
@@ -41,7 +41,7 @@ public class PhotoArchiver implements Consumer<Path> {
 
     private static class ArchivePhotoTask implements Runnable {
 
-        private final Logger logger = LoggerFactory.getLogger("ArchivePhotoTask");
+        private final Logger logger = LogManager.getLogger();
 
         private final Path photoPath;
 
