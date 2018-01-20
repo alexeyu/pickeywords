@@ -15,8 +15,8 @@ public interface PhotoApi<S, P extends AbstractPhoto> {
     default List<P> createPhotos(Stream<S> sources, PhotoFactory<S, P> photoFactory) {
         return Flux.fromStream(sources)
         		.map(photoFactory::createPhoto)
-        		.doOnNext(photo ->  initMetaData(photo))
-        		.doOnNext(photo -> initThumbnails(photo))
+        		.doOnNext(this::initMetaData)
+        		.doOnNext(this::initThumbnails)
                 .buffer()
                 .blockFirst();
     }
