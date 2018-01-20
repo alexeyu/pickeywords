@@ -15,6 +15,11 @@
 			<artifactId>guava</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>com.google.inject</groupId>
+			<artifactId>guice</artifactId>
+			<classifier>no_aop</classifier>
+		</dependency>
+		<dependency>
 			<groupId>nl.alexeyu</groupId>
 			<artifactId>photomate-core</artifactId>
 		</dependency>
