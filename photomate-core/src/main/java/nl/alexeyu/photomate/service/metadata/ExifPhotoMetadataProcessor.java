@@ -47,8 +47,9 @@ public class ExifPhotoMetadataProcessor implements PhotoMetadataProcessor {
     private final Consumer<Path> photoCleaner;
 
     private static final Map<PhotoProperty, List<String>> PHOTO_TO_EXIF_PROPERTIES = ImmutableMap.of(
-            PhotoProperty.CAPTION, Arrays.asList(CAPTION_ABSTRACT, OBJECT_NAME), PhotoProperty.DESCRIPTION,
-            Arrays.asList(IMAGE_DESCRIPTION), PhotoProperty.CREATOR, Arrays.asList(CREATOR, COPYRIGHT));
+            PhotoProperty.CAPTION, Arrays.asList(CAPTION_ABSTRACT, OBJECT_NAME), 
+            PhotoProperty.DESCRIPTION, Arrays.asList(IMAGE_DESCRIPTION), 
+            PhotoProperty.CREATOR, Arrays.asList(CREATOR, COPYRIGHT));
 
     private static final String ADD_KEYWORD_COMMAND = KEYWORDS + "+=";
     private static final String REMOVE_KEYWORD_COMMAND = KEYWORDS + "-=";
