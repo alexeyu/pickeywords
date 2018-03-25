@@ -41,8 +41,8 @@ public class ReadonlyPhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<Abstr
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (photo != null && e.getClickCount() >= 2) {
-                    DefaultListModel<String> model = (DefaultListModel<String>) keywordList.getModel();
-                    String[] values = new String[model.size()];
+                    var model = (DefaultListModel<String>) keywordList.getModel();
+                    var values = new String[model.size()];
                     model.copyInto(values);
                     firePropertyChange(PhotoProperty.KEYWORDS.propertyName(), null, Arrays.asList(values));
                 }

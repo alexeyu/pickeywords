@@ -53,7 +53,7 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
     }
 
     private void injectIntoParent(JComponent parent) {
-        JScrollPane sp = new JScrollPane();
+        var sp = new JScrollPane();
         sp.setViewportView(this);
         sp.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         sp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -71,7 +71,7 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
 
     public void setPhotos(List<P> photos) {
         photos.forEach(photo -> photo.addPropertyChangeListener(this));
-        PhotoTableModel<P> model = new PhotoTableModel<>(photos, columnCount);
+        var model = new PhotoTableModel<>(photos, columnCount);
         setModel(model);
     }
 
@@ -96,7 +96,7 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
 
         @Override
         public void valueChanged(ListSelectionEvent e) {
-            Optional<P> photo = getSelectedPhoto();
+            var photo = getSelectedPhoto();
             observers.forEach(observer -> observer.photoSelected(photo.orElse(null)));
         }
 

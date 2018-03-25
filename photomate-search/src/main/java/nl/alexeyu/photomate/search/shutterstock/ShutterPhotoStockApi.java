@@ -54,16 +54,16 @@ public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, R
 
     @Inject
     public void init() {
-        String name = configReader.getProperty("stock.shutter.api.name").orElse("");
-        String apiKey = configReader.getProperty("stock.shutter.api.key").orElse("");
+        var name = configReader.getProperty("stock.shutter.api.name").orElse("");
+        var apiKey = configReader.getProperty("stock.shutter.api.key").orElse("");
         Optional<String> resultsPerPageProperty = configReader.getProperty("stock.shutter.api.resultsPerPage");
         this.resultsPerPage = Integer.valueOf(resultsPerPageProperty.orElse(DEFAULT_RESULTS_PER_PAGE)); 
         this.client = createClient(name, apiKey);
     }
 
     private HttpClient createClient(String name, String apiKey) {
-        Credentials credentials = new UsernamePasswordCredentials(name, apiKey);
-        CredentialsProvider credProvider = new BasicCredentialsProvider();
+        var credentials = new UsernamePasswordCredentials(name, apiKey);
+        var credProvider = new BasicCredentialsProvider();
         credProvider.setCredentials(AuthScope.ANY, credentials);
         return HttpClientBuilder.create().setDefaultCredentialsProvider(credProvider)
                 .setConnectionManager(new PoolingHttpClientConnectionManager()).build();
@@ -72,12 +72,10 @@ public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, R
     @Override
     public List<RemotePhoto> search(String keywords) {
         try {
-            String requestUri = String.format(QUERY_TEMPLATE, 
+            var requestUri = String.format(QUERY_TEMPLATE,
             		URLEncoder.encode(keywords, Charsets.UTF_8.toString()), resultsPerPage);
-            JsonResponseReader<ShutterSearchResult> searchResultReader = new JsonResponseReader<>(
-                    ShutterSearchResult.class);
-            ShutterSearchResult searchResult = client.execute(new HttpGet(requestUri),
-                    new DefaultResponseHandler<>(searchResultReader));
+            var searchResultReader = new JsonResponseReader<>(ShutterSearchResult.class);
+            var searchResult = client.execute(new HttpGet(requestUri), new DefaultResponseHandler<>(searchResultReader));
             return createPhotos(searchResult.getPhotoDescriptions().stream(), 
             		source -> new RemotePhoto(source.getUrl(), source.getThumbailUrl()));
         } catch (IOException ex) {
@@ -109,8 +107,8 @@ public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, R
         @Override
         public T handleResponse(HttpResponse response) throws IOException {
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                HttpEntity entity = response.getEntity();
-                byte[] content = ByteStreams.toByteArray(entity.getContent());
+                var entity = response.getEntity();
+                var content = ByteStreams.toByteArray(entity.getContent());
                 EntityUtils.consume(entity);
                 return contentReader.apply(content);
             }

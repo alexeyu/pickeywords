@@ -41,7 +41,7 @@ public class HintedTextField extends JTextField {
     }
 
     private void firePropertyChanged() {
-        String value = getText();
+        var value = getText();
         if (Strings.nullToEmpty(value).trim().length() > 0) {
             firePropertyChange(propertyName, null, value);
         }

@@ -56,7 +56,7 @@ public class FtpUploadTask implements Runnable, CopyStreamListener {
 
     @Override
     public void run() {
-        try (InputStream is = Files.newInputStream(photo.getPath())) {
+        try (var is = Files.newInputStream(photo.getPath())) {
             init();
             client.deleteFile(photo.name());
             boolean stored = client.storeFile(photo.name(), is);

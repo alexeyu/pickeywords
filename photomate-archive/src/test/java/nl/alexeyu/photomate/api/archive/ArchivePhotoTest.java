@@ -12,8 +12,8 @@ public class ArchivePhotoTest {
     
     @Test
     public void delete() {
-        Path photoPath = mock(Path.class);
-        ArchivePhoto photo = new ArchivePhoto(photoPath);
+        var photoPath = mock(Path.class);
+        var photo = new ArchivePhoto(photoPath);
         assertFalse(photo.isDeleted());
         photo.delete();
         assertTrue(photo.isDeleted());

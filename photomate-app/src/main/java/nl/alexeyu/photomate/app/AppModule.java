@@ -13,6 +13,7 @@ import nl.alexeyu.photomate.search.shutterstock.ShutterPhotoStockApi;
 import nl.alexeyu.photomate.service.metadata.ExifPhotoMetadataProcessor;
 import nl.alexeyu.photomate.service.metadata.PhotoMetadataProcessor;
 import nl.alexeyu.photomate.service.metadata.PhotoMetadataReader;
+import nl.alexeyu.photomate.service.thumbnail.ImgscalrThumbnailProvider;
 import nl.alexeyu.photomate.service.thumbnail.ThumbnailProvider;
 import nl.alexeyu.photomate.service.thumbnail.ThumbnailatorProvider;
 import nl.alexeyu.photomate.util.ConfigReader;
@@ -30,9 +31,9 @@ public class AppModule extends AbstractModule {
         bind(ConfigReader.class).toInstance(ConfigReader.createDefault());
 
         bind(ThumbnailProvider.class).annotatedWith(Names.named("thumbnail"))
-                .toInstance(new ThumbnailatorProvider(THUMBNAIL_SIZE));
+                .toInstance(new ImgscalrThumbnailProvider(THUMBNAIL_SIZE));
         bind(ThumbnailProvider.class).annotatedWith(Names.named("preview"))
-                .toInstance(new ThumbnailatorProvider(PREVIEW_SIZE));
+                .toInstance(new ImgscalrThumbnailProvider(PREVIEW_SIZE));
         bind(EventBus.class).toInstance(new EventBus());
     }
 

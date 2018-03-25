@@ -9,7 +9,7 @@ import nl.alexeyu.photomate.api.LocalPhoto;
 import nl.alexeyu.photomate.model.PhotoMetaData;
 
 public final class EditablePhoto extends LocalPhoto {
-    
+
     public static final String PREVIEW_PROPERTY = "preview";
 
     private final AtomicReference<ImageIcon> preview = new AtomicReference<>(new ImageIcon());
@@ -34,12 +34,13 @@ public final class EditablePhoto extends LocalPhoto {
     }
 
     @Override
-    public void addThumbnail(ImageIcon thumbnail) {
+    public void addThumbnail(ImageIcon img) {
         if (thumbnail().getImage() != null) {
-            preview.set(thumbnail);
+            preview.set(img);
+            logger.debug("Setting preview to {}", name());
             firePropertyChange(PREVIEW_PROPERTY, null, preview);
         } else {
-            super.addThumbnail(thumbnail);
+            super.addThumbnail(img);
         }
     }
 

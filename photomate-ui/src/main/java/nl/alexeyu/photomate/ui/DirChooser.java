@@ -68,7 +68,7 @@ public class DirChooser extends JPanel {
     private final class SelectFileActionListener implements ActionListener {
         public void actionPerformed(ActionEvent event) {
             if (JFileChooser.APPROVE_SELECTION.equals(event.getActionCommand())) {
-                File dir = fileChooser.getSelectedFile();
+                var dir = fileChooser.getSelectedFile();
                 if (!dir.isDirectory()) {
                     dir = dir.getParentFile();
                 }

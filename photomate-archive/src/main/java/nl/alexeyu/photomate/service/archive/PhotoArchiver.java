@@ -28,9 +28,9 @@ public class PhotoArchiver implements Consumer<Path> {
 
     @Override
     public void accept(Path photoPath) {
-        Optional<String> archiveDir = configReader.getProperty("archiveFolder");
         if (archivedPhotos.put(photoPath.toString(), Boolean.TRUE) == null) {
-            archiveDir.ifPresent(dir -> CompletableFuture.runAsync(new ArchivePhotoTask(photoPath, Paths.get(dir))));
+            configReader.getProperty("archiveFolder").ifPresent(
+                    dir -> CompletableFuture.runAsync(new ArchivePhotoTask(photoPath, Paths.get(dir))));
         }
     }
 

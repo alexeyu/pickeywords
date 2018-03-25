@@ -34,15 +34,15 @@ public class ConfigReader {
 	}
 
 	public static ConfigReader createDefault() {
-		String location = System.getProperty(CONFIG_LOCATION_SYS_PROP);
+		var location = System.getProperty(CONFIG_LOCATION_SYS_PROP);
 		if (location == null) {
-			try (InputStream is = ConfigReader.class.getResourceAsStream(DEFAULT_CONFIG_FILE)) {
+			try (var is = ConfigReader.class.getResourceAsStream(DEFAULT_CONFIG_FILE)) {
 				return from(is);
 			} catch (IOException ex) {
 				throw new IllegalStateException(ex);
 			}
 		}
-		try (InputStream is = Files.newInputStream(Paths.get(location))) {
+		try (var is = Files.newInputStream(Paths.get(location))) {
 			return from(is);
 		} catch (IOException ex) {
 			throw new IllegalStateException(ex);
@@ -50,7 +50,7 @@ public class ConfigReader {
 	}
 	
 	public static ConfigReader from(InputStream is) throws IOException {
-		Properties props = new Properties();
+		var props = new Properties();
 		props.load(is);
 		return new ConfigReader(props);
 	}
@@ -69,12 +69,12 @@ public class ConfigReader {
 	}
 
 	private PhotoStock readPhotoStock(String key) {
-		String prefix = "stock." + key + ".";
-		String name = getProperty(prefix + "name").orElse("");
-		String icon = getProperty(prefix + "icon").orElse("");
-		String ftpUrl = getProperty(prefix + "ftp.url").orElse("");
-		String ftpUsername = getProperty(prefix + "ftp.username").orElse("");
-		String ftpPassword = getProperty(prefix + "ftp.password").orElse("");
+		var prefix = "stock." + key + ".";
+		var name = getProperty(prefix + "name").orElse("");
+		var icon = getProperty(prefix + "icon").orElse("");
+		var ftpUrl = getProperty(prefix + "ftp.url").orElse("");
+		var ftpUsername = getProperty(prefix + "ftp.username").orElse("");
+		var ftpPassword = getProperty(prefix + "ftp.password").orElse("");
 		return new PhotoStock(name, icon, 
 				new FtpEndpoint(ftpUrl, ftpUsername, ftpPassword));
 	}

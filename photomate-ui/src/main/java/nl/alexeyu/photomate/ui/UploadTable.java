@@ -27,7 +27,7 @@ public class UploadTable extends JTable {
 
         setDefaultRenderer(Object.class, new UploadTableRenderer());
 
-        JTableHeader header = getTableHeader();
+        var header = getTableHeader();
         header.setDefaultRenderer(new HeaderRenderer());
         header.setPreferredSize(new Dimension(1, PHOTO_STOCK_ROW_HEIGHT));
         header.setBackground(Color.WHITE);
@@ -42,14 +42,14 @@ public class UploadTable extends JTable {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
                 int row, int column) {
-            JLabel label = new JLabel();
+            var label = new JLabel();
             label.setBorder(new LineBorder(Color.LIGHT_GRAY));
             label.setHorizontalAlignment(SwingConstants.CENTER);
-            PhotoStock photoStock = getModel().getPhotoStock(column);
+            var photoStock = getModel().getPhotoStock(column);
             if (photoStock.iconUrl().isEmpty()) {
                 label.setText(photoStock.name());
             } else {
-                URL url = getClass().getResource(photoStock.iconUrl());
+                var url = getClass().getResource(photoStock.iconUrl());
                 label.setIcon(new ImageIcon(url));
             }
             return label;
@@ -62,14 +62,14 @@ public class UploadTable extends JTable {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
                 int row, int column) {
-            JLabel label = new JLabel();
+            var label = new JLabel();
             label.setHorizontalAlignment(SwingConstants.CENTER);
             if (value instanceof Exception) {
                 label.setIcon(ImageUtils.getImage("error.png"));
-                Exception ex = (Exception) value;
+                var ex = (Exception) value;
                 label.setToolTipText(ex.getMessage());
             } else if (value instanceof Integer) {
-                Integer progress = (Integer) value;
+                var progress = (Integer) value;
                 label.setText(progress + "%");
             } else if (value instanceof String) {
                 label.setIcon(ImageUtils.getImage("ok.png"));

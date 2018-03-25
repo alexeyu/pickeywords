@@ -61,19 +61,19 @@ public class ExifPhotoMetadataProcessor implements PhotoMetadataProcessor {
 
     @Override
     public DefaultPhotoMetaData read(Path photoPath) {
-        List<String> arguments = Arrays.asList(IMAGE_DESCRIPTION, CAPTION_ABSTRACT, CREATOR, KEYWORDS);
-        String[] cmdOutput = executor.exec(photoPath, arguments).split(LINE_SEPARATOR);
-        Map<PhotoProperty, String> properties = Stream.of(PhotoProperty.values())
+        var arguments = Arrays.asList(IMAGE_DESCRIPTION, CAPTION_ABSTRACT, CREATOR, KEYWORDS);
+        var cmdOutput = executor.exec(photoPath, arguments).split(LINE_SEPARATOR);
+        var properties = Stream.of(PhotoProperty.values())
                 .collect(Collectors.toMap(p -> p, p -> getPhotoProperty(cmdOutput, p)));
 
-        DefaultPhotoMetaDataBuilder builder = new DefaultPhotoMetaDataBuilder(properties);
-        List<String> keywords = preProcessKeywords(properties.get(PhotoProperty.KEYWORDS));
+        var builder = new DefaultPhotoMetaDataBuilder(properties);
+        var keywords = preProcessKeywords(properties.get(PhotoProperty.KEYWORDS));
         builder.set(PhotoProperty.KEYWORDS, keywords);
         return builder.build();
     }
 
     private String getPhotoProperty(String[] cmdOutput, PhotoProperty property) {
-        Pattern pattern = PROPERTY_PATTERN.get(property);
+        var pattern = PROPERTY_PATTERN.get(property);
         return Stream.of(cmdOutput).map(line -> pattern.matcher(line)).filter(m -> m.matches())
                 .map(m -> m.group(2).trim()).findFirst().orElse("");
     }
@@ -84,7 +84,7 @@ public class ExifPhotoMetadataProcessor implements PhotoMetadataProcessor {
 
     @Override
     public void update(Path photoPath, PhotoMetaData oldMetaData, PhotoMetaData newMetaData) {
-        List<String> arguments = getUpdateArguments(oldMetaData, newMetaData);
+        var arguments = getUpdateArguments(oldMetaData, newMetaData);
         if (arguments.size() > 0) {
             executor.exec(photoPath, arguments);
             photoCleaner.accept(photoPath);
@@ -96,11 +96,11 @@ public class ExifPhotoMetadataProcessor implements PhotoMetadataProcessor {
     }
 
     private List<String> getUpdateArguments(PhotoMetaData oldMetaData, PhotoMetaData newMetaData) {
-        Stream<String> arguments = PHOTO_TO_EXIF_PROPERTIES.keySet().stream()
+        var arguments = PHOTO_TO_EXIF_PROPERTIES.keySet().stream()
                 .filter(p -> !oldMetaData.getProperty(p).equals(newMetaData.getProperty(p)))
                 .flatMap(p -> args(newMetaData, p));
 
-        Stream<String> changedKeywords = Stream.concat(
+        var changedKeywords = Stream.concat(
                 diff(newMetaData.keywords(), oldMetaData.keywords()).map(kw -> ADD_KEYWORD_COMMAND + kw.trim()),
                 diff(oldMetaData.keywords(), newMetaData.keywords()).map(kw -> REMOVE_KEYWORD_COMMAND + kw.trim()));
         return Stream.concat(arguments, changedKeywords).collect(Collectors.toList());

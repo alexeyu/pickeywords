@@ -1,18 +1,24 @@
 package nl.alexeyu.photomate.service.thumbnail;
 
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.nio.file.Path;
 
 import javax.imageio.ImageIO;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public final class BufferedImageProvider {
+
+	private static final Logger logger = LogManager.getLogger();
 
     public BufferedImage toBufferedImage(Path photoFile) {
         try {
+        	logger.debug("Reading {}", photoFile);
             return ImageIO.read(photoFile.toFile());
-        } catch (IOException ex) {
-            throw new IllegalStateException("Could not read image " + photoFile, ex);
+        } catch (Exception ex) {
+        	logger.catching(ex);
+        	return new BufferedImage(0, 0, BufferedImage.TYPE_INT_RGB);
         }
     }
 

@@ -29,7 +29,7 @@ public abstract class AbstractPhotoMetaDataPanel<P extends AbstractPhoto> extend
 
     public AbstractPhotoMetaDataPanel() {
         super(new BorderLayout(BORDER_WIDTH, BORDER_WIDTH));
-        JPanel editorPanel = new JPanel();
+        var editorPanel = new JPanel();
         editorPanel.setLayout(new BoxLayout(editorPanel, BoxLayout.Y_AXIS));
 
         captionEditor = new HintedTextField("Caption", PhotoProperty.CAPTION.propertyName(), true);
@@ -55,7 +55,7 @@ public abstract class AbstractPhotoMetaDataPanel<P extends AbstractPhoto> extend
     }
 
     private void updateComponentsWithPhotoMetaData() {
-        DefaultListModel<String> listModel = new DefaultListModel<>();
+        var listModel = new DefaultListModel<String>();
         if (this.photo != null) {
             captionEditor.setText(photo.metaData().caption());
             descriptionEditor.setText(photo.metaData().description());

@@ -18,7 +18,7 @@ public class DefaultPhotoMetaData implements PhotoMetaData {
     @Override
     @SuppressWarnings("unchecked")
     public Collection<String> keywords() {
-    	Collection<String> keywords = (Collection<String>) properties.get(PhotoProperty.KEYWORDS);
+    	var keywords = (Collection<String>) properties.get(PhotoProperty.KEYWORDS);
     	return keywords == null ? Collections.emptyList() : keywords;
     }
     

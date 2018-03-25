@@ -45,14 +45,14 @@ public class LocalPhotoApi<P extends LocalPhoto> implements PhotoApi<Path, P> {
     }
 
     private List<ImageIcon> getThumbnails(P photo) {
-        BufferedImage buf = bufferedImageProvider.toBufferedImage(photo.getPath());
+        var buf = bufferedImageProvider.toBufferedImage(photo.getPath());
         return Arrays.asList(new ImageIcon(thumbnailGenerator.scale(buf)), new ImageIcon(previewGenerator.scale(buf)));
     }
 
     public void updateProperty(LocalPhoto photo, PhotoProperty property, Object propertyValue) {
-        PhotoMetaData oldMetaData = photo.metaData();
-    	DefaultPhotoMetaDataBuilder builder = new DefaultPhotoMetaDataBuilder(oldMetaData);
-        PhotoMetaData metaData = builder.set(property, propertyValue).build();
+        var oldMetaData = photo.metaData();
+    	var builder = new DefaultPhotoMetaDataBuilder(oldMetaData);
+        var metaData = builder.set(property, propertyValue).build();
         CompletableFuture
         	.runAsync(() -> metadataProcessor.update(photo.getPath(), oldMetaData, metaData))
         	.thenRun(() -> photo.setMetaData(metaData));

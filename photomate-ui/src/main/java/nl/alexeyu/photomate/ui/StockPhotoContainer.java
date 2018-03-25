@@ -32,7 +32,7 @@ public class StockPhotoContainer extends PhotoContainer<RemotePhoto> implements 
     @Override
     public void propertyChange(PropertyChangeEvent e) {
         if (e.getPropertyName().equals(KEYWORD_SEARCH)) {
-        	String searchString = e.getNewValue().toString();
+        	var searchString = e.getNewValue().toString();
             CompletableFuture
                 .supplyAsync(() -> photoStockApi.search(searchString))
                 .thenAccept(photoTable::setPhotos);

@@ -51,15 +51,15 @@ public class EditablePhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<Edita
     private void removeKeywords(List<String> keywords) {
         if (keywords.size() > 0) {
             Collection<String> currentKeywords = photo.keywords();
-            List<String> reducedKeywords = currentKeywords.stream().filter(k -> !keywords.contains(k))
+            var reducedKeywords = currentKeywords.stream().filter(k -> !keywords.contains(k))
                     .collect(Collectors.toList());
             firePropertyChange(KEYWORDS.propertyName(), currentKeywords, reducedKeywords);
         }
     }
 
     private void addKeywords(List<String> keywords) {
-        Collection<String> currentKeywords = photo.keywords();
-        Collection<String> extendedKeywords = new LinkedHashSet<>(currentKeywords);
+        var currentKeywords = photo.keywords();
+        var extendedKeywords = new LinkedHashSet<>(currentKeywords);
         extendedKeywords.addAll(keywords);
         firePropertyChange(KEYWORDS.propertyName(), currentKeywords, extendedKeywords);
     }
@@ -81,9 +81,9 @@ public class EditablePhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<Edita
         @Override
         public void drop(DropTargetDropEvent dtde) {
             try {
-                DataFlavor dataFlavor = new DataFlavor("text/plain; class=java.lang.String");
-                String draggedValue = dtde.getTransferable().getTransferData(dataFlavor).toString();
-                String[] keywords = draggedValue.split(System.getProperty("line.separator"));
+                var dataFlavor = new DataFlavor("text/plain; class=java.lang.String");
+                var draggedValue = dtde.getTransferable().getTransferData(dataFlavor).toString();
+                var keywords = draggedValue.split(System.getProperty("line.separator"));
                 addKeywords(asList(keywords));
             } catch (Exception ex) {
                 throw new IllegalStateException(ex);

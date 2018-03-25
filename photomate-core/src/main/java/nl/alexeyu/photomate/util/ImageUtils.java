@@ -11,7 +11,7 @@ import javax.swing.ImageIcon;
 public class ImageUtils {
 
     public static ImageIcon getImage(String name) {
-        URL url = ImageUtils.class.getResource("/img/" + name);
+        var url = ImageUtils.class.getResource("/img/" + name);
         return new ImageIcon(url);
     }
 
@@ -25,7 +25,7 @@ public class ImageUtils {
     }
 
     public static boolean isJpeg(Path path) {
-        String fileName = path.getFileName()
+        var fileName = path.getFileName()
                 .toString()
                 .toLowerCase();
         return fileName.endsWith(".jpg") || fileName.endsWith(".jpeg");

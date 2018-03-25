@@ -33,18 +33,15 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
     private EditablePhoto currentPhoto;
 
     public List<EditablePhoto> createPhotos(Path dir) {
-        Stream<Path> paths = ImageUtils.getJpegImages(dir);
+        var paths = ImageUtils.getJpegImages(dir);
         this.photos = photoApi.createPhotos(paths, path -> new EditablePhoto(path));
-        Optional<String> creator = configReader.getProperty("copyright");
-        if (creator.isPresent()) {
-            PhotoCopyrightSetter photoCopyrightSetter = new PhotoCopyrightSetter(creator.get());
-            photos.forEach(photo -> photo.addPropertyChangeListener(photoCopyrightSetter));
-        }
+        configReader.getProperty("copyright").ifPresent(creator ->
+            photos.forEach(photo -> photo.addPropertyChangeListener(new PhotoCopyrightSetter(creator))));
         return photos;
     }
 
     public List<EditablePhoto> validatePhotos() throws PhotoNotReadyException {
-        List<EditablePhoto> notReadyPhotos = photos.stream()
+        var notReadyPhotos = photos.stream()
         		.filter(photo -> !photo.isReadyToUpload())
         		.collect(Collectors.toList());
         if (photos.isEmpty() || !notReadyPhotos.isEmpty()) {
@@ -77,7 +74,7 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
         @Override
         public void propertyChange(PropertyChangeEvent e) {
             if (e.getPropertyName().equals(METADATA_PROPERTY)) {
-                LocalPhoto photo = (LocalPhoto) e.getSource();
+                var photo = (LocalPhoto) e.getSource();
                 photo.removePropertyChangeListener(this);
                 photoApi.updateProperty(photo, PhotoProperty.CREATOR, creator);
             }

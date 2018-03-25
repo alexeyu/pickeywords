@@ -11,12 +11,17 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.swing.ImageIcon;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.google.common.base.Preconditions;
 
 import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.model.PhotoMetaData;
 
 public abstract class AbstractPhoto implements Photo {
+	
+	protected static final Logger logger = LogManager.getLogger();
     
     public static final String THUMBNAIL_PROPERTY = "thumbnail";
 
@@ -37,7 +42,7 @@ public abstract class AbstractPhoto implements Photo {
     }
 
     protected final void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
-        PropertyChangeEvent event = new PropertyChangeEvent(this, propertyName, oldValue, newValue);
+        var event = new PropertyChangeEvent(this, propertyName, oldValue, newValue);
         listeners.stream()
             .map(WeakReference::get)
             .filter(Objects::nonNull)
@@ -55,12 +60,13 @@ public abstract class AbstractPhoto implements Photo {
     }
     
     protected void addThumbnail(ImageIcon thumbnail) {
+    	logger.debug("Setting thumbnail to {}", name());
     	this.thumbnail.set(thumbnail);
         firePropertyChange(THUMBNAIL_PROPERTY, null, thumbnail);
     }
     
     public final void setMetaData(PhotoMetaData metaData) {
-        PhotoMetaData oldMetaData = this.metaData.getAndSet(metaData);
+        var oldMetaData = this.metaData.getAndSet(metaData);
         firePropertyChange(METADATA_PROPERTY, oldMetaData, metaData);
     }
     
@@ -78,7 +84,7 @@ public abstract class AbstractPhoto implements Photo {
     public boolean equals(Object obj) {
         if (!(obj instanceof AbstractPhoto))
             return false;
-        Photo other = (Photo) obj;
+        var other = (Photo) obj;
         return name().equals(other.name());
     }
 

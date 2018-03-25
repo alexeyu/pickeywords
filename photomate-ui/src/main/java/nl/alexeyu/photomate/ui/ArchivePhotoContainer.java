@@ -35,16 +35,19 @@ public class ArchivePhotoContainer extends PhotoContainer<ArchivePhoto> {
 
 	@Inject
     public void init() throws IOException {
-        Optional<String> archiveFolder = configReader.getProperty("archiveFolder");
-        if (archiveFolder.isPresent()) {
-            Path dir = Paths.get(archiveFolder.get());
+        configReader.getProperty("archiveFolder").ifPresent(arcFolder -> {
+            var dir = Paths.get(arcFolder);
             if (Files.exists(dir)) {
-                List<ArchivePhoto> photos = photoApi.createPhotos(
-                        ImageUtils.getJpegImages(dir), 
-                        path -> new ArchivePhoto(path));
-                photoTable.setPhotos(photos);
+                readPhotos(dir);
             }
-        }
+        });
     }
-    
+
+    private void readPhotos(Path dir) {
+        var photos = photoApi.createPhotos(
+                ImageUtils.getJpegImages(dir),
+                path -> new ArchivePhoto(path));
+        photoTable.setPhotos(photos);
+    }
+
 }

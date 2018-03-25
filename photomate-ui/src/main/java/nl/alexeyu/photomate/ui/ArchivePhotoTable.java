@@ -38,9 +38,9 @@ public class ArchivePhotoTable extends PhotoTable<ArchivePhoto> {
             int col = columnAtPoint(e.getPoint());
             if (getColumnRight(col) - e.getPoint().x < CLICKABLE_ICON_SIZE
                     && e.getPoint().y - getRowTop(row) < CLICKABLE_ICON_SIZE) {
-                Optional<ArchivePhoto> photo = getModel().getValueAt(row, col);
+                var photo = getModel().getValueAt(row, col);
                 if (photo.isPresent()) {
-                    ArchivePhoto arcPhoto = photo.get();
+                    var arcPhoto = photo.get();
                     arcPhoto.delete();
                     cleaner.accept(arcPhoto.getPath());
                     repaint();

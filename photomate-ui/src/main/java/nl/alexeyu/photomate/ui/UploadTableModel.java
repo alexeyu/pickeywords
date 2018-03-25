@@ -25,7 +25,7 @@ public class UploadTableModel extends AbstractTableModel {
     }
 
     public void setStatus(FtpEndpoint endpoint, Photo photo, Object status) {
-        String key = getKey(endpoint, photo);
+        var key = getKey(endpoint, photo);
         statuses.put(key, status);
     }
 
@@ -42,7 +42,7 @@ public class UploadTableModel extends AbstractTableModel {
     }
 
     public Object getValueAt(int rowIndex, int columnIndex) {
-        String key = getKey(photoStocks.get(columnIndex).ftpEndpoint(), photos.get(rowIndex));
+        var key = getKey(photoStocks.get(columnIndex).ftpEndpoint(), photos.get(rowIndex));
         return statuses.get(key);
     }
 

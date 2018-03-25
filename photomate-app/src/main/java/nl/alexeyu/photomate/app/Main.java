@@ -50,7 +50,7 @@ import nl.alexeyu.photomate.ui.UploadPanel;
 import nl.alexeyu.photomate.util.ConfigReader;
 
 public class Main implements PropertyChangeListener {
-
+	
     private JFrame frame = new JFrame("Your Photo Mate");
 
     private static final String DEFAULT_FOLDER_PROPERTY = "defaultFolder";
@@ -121,7 +121,7 @@ public class Main implements PropertyChangeListener {
     }
 
     private void buildGraphics() {
-        JPanel centerPanel = new JPanel(new BorderLayout(BORDER_WIDTH, BORDER_WIDTH));
+        var centerPanel = new JPanel(new BorderLayout(BORDER_WIDTH, BORDER_WIDTH));
         centerPanel.setBorder(UiConstants.EMPTY_BORDER);
         centerPanel.add(prepareCurrentPhotoPanel(), BorderLayout.WEST);
         centerPanel.add(prepareSourcePhotosPanel(), BorderLayout.CENTER);
@@ -131,14 +131,14 @@ public class Main implements PropertyChangeListener {
     }
 
     private JComponent prepareLocalPhotosPanel() {
-        JPanel p = new JPanel(new BorderLayout());
+        var p = new JPanel(new BorderLayout());
         p.add(dirChooser, BorderLayout.NORTH);
         p.add(editablePhotoContainer, BorderLayout.CENTER);
         return p;
     }
 
     private JComponent prepareCurrentPhotoPanel() {
-        JPanel p = new JPanel(new BorderLayout());
+        var p = new JPanel(new BorderLayout());
         p.setBorder(UiConstants.EMPTY_BORDER);
         p.add(editablePhotoContainer.getPreview(), BorderLayout.NORTH);
         p.add(photoMetaDataPanel, BorderLayout.CENTER);
@@ -146,7 +146,7 @@ public class Main implements PropertyChangeListener {
     }
 
     private JComponent prepareSourcePhotosPanel() {
-        JPanel p = new JPanel(new BorderLayout());
+        var p = new JPanel(new BorderLayout());
         p.setBorder(UiConstants.EMPTY_BORDER);
         final CardLayout sourcesLayout = new CardLayout();
         final JPanel sourcesPanel = new JPanel(sourcesLayout);
@@ -155,7 +155,7 @@ public class Main implements PropertyChangeListener {
         final ButtonGroup bgroup = new ButtonGroup();
         ActionListener l = new ChangePhotoListener(sourcesPanel, bgroup, sourcesLayout);
 
-        JPanel buttonsPanel = new JPanel();
+        var buttonsPanel = new JPanel();
         BoxLayout buttonsLayout = new BoxLayout(buttonsPanel, BoxLayout.Y_AXIS);
         buttonsPanel.setLayout(buttonsLayout);
         buttonsPanel.setBorder(UiConstants.EMPTY_BORDER);
@@ -177,7 +177,7 @@ public class Main implements PropertyChangeListener {
         buttonsPanel.add(Box.createVerticalGlue());
         buttonsPanel.add(uploadButton);
 
-        JPanel centerPanel = new JPanel(new BorderLayout(BORDER_WIDTH, BORDER_WIDTH));
+        var centerPanel = new JPanel(new BorderLayout(BORDER_WIDTH, BORDER_WIDTH));
         centerPanel.add(sourcePhotoMetaDataPanel, BorderLayout.WEST);
         centerPanel.add(buttonsPanel, BorderLayout.CENTER);
 
@@ -191,7 +191,7 @@ public class Main implements PropertyChangeListener {
         if (e.getNewValue() == null) {
             return;
         }
-        Path dir = Paths.get(e.getNewValue().toString());
+        var dir = Paths.get(e.getNewValue().toString());
         if (Files.exists(dir)) {
             List<EditablePhoto> photos = photoManager.createPhotos(dir);
             editablePhotoContainer.setPhotos(photos);
@@ -213,7 +213,7 @@ public class Main implements PropertyChangeListener {
         @Override
         @SuppressWarnings("unchecked")
         public void actionPerformed(ActionEvent e) {
-            String sourceName = bgroup.getSelection().getActionCommand();
+            var sourceName = bgroup.getSelection().getActionCommand();
             sourcesLayout.show(sourcesPanel, sourceName);
             PhotoContainer<AbstractPhoto> photoContainer = (PhotoContainer<AbstractPhoto>) photoSourceRegistry
                     .getPhotoSource(sourceName);
@@ -226,8 +226,8 @@ public class Main implements PropertyChangeListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             try {
-                List<EditablePhoto> photos = photoManager.validatePhotos();
-                UploadPanel uploadPanel = new UploadPanel(photos, configReader.getPhotoStocks());
+                var photos = photoManager.validatePhotos();
+                var uploadPanel = new UploadPanel(photos, configReader.getPhotoStocks());
                 eventBus.register(uploadPanel);
                 frame.getContentPane().removeAll();
                 frame.getContentPane().add(new JScrollPane(uploadPanel));

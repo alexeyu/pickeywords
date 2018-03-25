@@ -1,13 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN">
 	<Properties>
-		<Property name="LOG_PATTERN">%p: %m%n</Property>
-		<Property name="appender">Console</Property>
+		<Property name="LOG_PATTERN">%d [%t] %p: %m%n</Property>
+		<Property name="appender">File</Property>
+		<Property name="log-file">$${sys:logfile}</Property>
 	</Properties>
 	<Appenders>
 		<Console name="Console" target="SYSTEM_OUT" follow="true">
 			<PatternLayout pattern="${LOG_PATTERN}" />
 		</Console>
+		<File name="File" fileName="${log-file}">
+			<PatternLayout pattern="${LOG_PATTERN}" />
+		</File>
 	</Appenders>
 	<Loggers>
 		<Root level="debug">

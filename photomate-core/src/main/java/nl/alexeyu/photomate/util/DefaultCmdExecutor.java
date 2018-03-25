@@ -28,7 +28,7 @@ public class DefaultCmdExecutor implements CmdExecutor {
             List<String> execArgs = Lists.newArrayList(args);
             execArgs.add(0, cmd);
             execArgs.add(path.toString());
-            logger.debug("{}", execArgs);
+            logger.debug("Running command with parameters {}", execArgs);
             return doExec(execArgs);
         } catch (IOException ex) {
             logger.error("Could not run " + cmd, ex);
@@ -40,7 +40,7 @@ public class DefaultCmdExecutor implements CmdExecutor {
         Process p = Runtime.getRuntime().exec(execArgs.toArray(new String[0]));
         try (InputStream is = p.getInputStream()) {
             String result = CharStreams.toString(new InputStreamReader(is));
-            logger.debug(result);
+            logger.debug("Result of the command: {}", result);
             return result;
         }
     }

@@ -34,7 +34,7 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, 
             boolean isSelected, boolean hasFocus, int row, int column) {
-    	JComponent comp = createComponent(table, value, column);
+    	var comp = createComponent(table, value, column);
         comp.setBorder(isSelected ? LINE_BORDER : EMPTY_BORDER);
         comp.setBackground(BACKGROUND);
         return comp;
@@ -72,7 +72,7 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
         }
 
         protected JComponent createComponent() {
-            ImageIcon thumbnail = photo.thumbnail();
+            var thumbnail = photo.thumbnail();
             return thumbnail.getImage() != null ? new JLabel(thumbnail) : new JLabel("Loading...");
         }
 
@@ -95,7 +95,7 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
     	
         @Override
         protected JComponent createComponent() {
-            ImageIcon thumbnail = photo.thumbnail();
+            var thumbnail = photo.thumbnail();
             if (thumbnail.getImage() == null) {
                 return super.createComponent();
             }
@@ -104,7 +104,7 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
                 protected void paintComponent(Graphics g) {
                     if (photo.isDeleted()) {
                         super.paintComponent(g);
-                        Graphics2D g2d = (Graphics2D) g;
+                        var g2d = (Graphics2D) g;
                         g2d.setStroke(new BasicStroke(5));
                         g2d.setPaint(Color.red);
                         g2d.drawLine(0, 0, columnWidth, UiConstants.THUMBNAIL_SIZE.height);
@@ -128,20 +128,20 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
 
         @Override
         protected JComponent createComponent() {
-            JPanel panel = new JPanel(new BorderLayout());
-            JComponent label = super.createComponent();
+            var panel = new JPanel(new BorderLayout());
+            var label = super.createComponent();
             panel.add(createTitle(photo), BorderLayout.NORTH);
             panel.add(label, BorderLayout.CENTER);
             return panel;
         }
 
         private JComponent createTitle(EditablePhoto photo) {
-            String title = photo.name();
-            PhotoMetaData metadata = photo.metaData();
+            var title = photo.name();
+            var metadata = photo.metaData();
             if (!metadata.isEmpty()) {
                 title += " [" + metadata.keywords().size() + "]";
             }
-            JLabel nameLabel = new JLabel(title);
+            var nameLabel = new JLabel(title);
             if (!photo.isReadyToUpload()) {
                 nameLabel.setIcon(ImageUtils.getImage("error.png"));
             }

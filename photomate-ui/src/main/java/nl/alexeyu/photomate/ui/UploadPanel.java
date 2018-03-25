@@ -19,15 +19,15 @@ public class UploadPanel extends JPanel {
 
     public UploadPanel(List<EditablePhoto> photos, List<PhotoStock> photoStocks) {
         super(new BorderLayout());
-        UploadTableModel model = new UploadTableModel(photos, photoStocks);
+        var model = new UploadTableModel(photos, photoStocks);
 
-        JPanel photoTableParent = new JPanel(new BorderLayout());
+        var photoTableParent = new JPanel(new BorderLayout());
         PhotoTable<EditablePhoto> photoTable = new PhotoTable<>(1);
         photoTable.setPhotos(photos);
         photoTableParent.add(photoTable);
         photoTableParent.add(photoTable.getTableHeader(), BorderLayout.NORTH);
 
-        JPanel uploadTableParent = new JPanel(new BorderLayout());
+        var uploadTableParent = new JPanel(new BorderLayout());
         uploadTable = new UploadTable(model, photoTable);
         uploadTableParent.add(uploadTable);
         uploadTableParent.add(uploadTable.getTableHeader(), BorderLayout.NORTH);
@@ -41,7 +41,7 @@ public class UploadPanel extends JPanel {
 
     @Subscribe
     public void onProgress(UploadProgressEvent ev) {
-        Integer percent = (int) (ev.getBytesUploaded() * 100 / ev.getPhoto().fileSize());
+        var percent = (int) (ev.getBytesUploaded() * 100 / ev.getPhoto().fileSize());
         uploadTable.getModel().setStatus(ev.getEndpoint(), ev.getPhoto(), percent);
         uploadTable.repaint();
     }
