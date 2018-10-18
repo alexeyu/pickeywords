@@ -15,7 +15,6 @@ import nl.alexeyu.photomate.service.metadata.PhotoMetadataProcessor;
 import nl.alexeyu.photomate.service.metadata.PhotoMetadataReader;
 import nl.alexeyu.photomate.service.thumbnail.ImgscalrThumbnailProvider;
 import nl.alexeyu.photomate.service.thumbnail.ThumbnailProvider;
-import nl.alexeyu.photomate.service.thumbnail.ThumbnailatorProvider;
 import nl.alexeyu.photomate.util.ConfigReader;
 import nl.alexeyu.photomate.util.DefaultCmdExecutor;
 

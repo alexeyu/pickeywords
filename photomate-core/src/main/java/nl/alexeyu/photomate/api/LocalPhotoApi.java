@@ -1,6 +1,5 @@
 package nl.alexeyu.photomate.api;
 
-import java.awt.image.BufferedImage;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;

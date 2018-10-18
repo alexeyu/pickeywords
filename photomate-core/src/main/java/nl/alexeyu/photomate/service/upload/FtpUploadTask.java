@@ -1,7 +1,6 @@
 package nl.alexeyu.photomate.service.upload;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 
 import org.apache.commons.net.ftp.FTP;

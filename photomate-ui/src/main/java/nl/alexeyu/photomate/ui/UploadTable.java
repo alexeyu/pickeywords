@@ -3,7 +3,6 @@ package nl.alexeyu.photomate.ui;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.net.URL;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -11,9 +10,7 @@ import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.JTableHeader;
 
-import nl.alexeyu.photomate.model.PhotoStock;
 import nl.alexeyu.photomate.util.ImageUtils;
 
 public class UploadTable extends JTable {

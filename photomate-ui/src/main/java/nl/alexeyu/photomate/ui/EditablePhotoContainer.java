@@ -5,7 +5,6 @@ import static nl.alexeyu.photomate.ui.UiConstants.PREVIEW_SIZE;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.List;
-import java.util.Optional;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;

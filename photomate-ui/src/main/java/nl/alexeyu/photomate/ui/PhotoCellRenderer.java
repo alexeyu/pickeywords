@@ -14,7 +14,6 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.util.Optional;
 
-import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -24,7 +23,6 @@ import javax.swing.table.DefaultTableCellRenderer;
 import nl.alexeyu.photomate.api.archive.ArchivePhoto;
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
 import nl.alexeyu.photomate.model.Photo;
-import nl.alexeyu.photomate.model.PhotoMetaData;
 import nl.alexeyu.photomate.util.ImageUtils;
 
 public class PhotoCellRenderer extends DefaultTableCellRenderer {
