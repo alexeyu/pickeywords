@@ -1,17 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN">
 	<Properties>
-		<Property name="LOG_PATTERN">%d [%t] %p: %m%n</Property>
+		<Property name="logPattern">%d %p [%t] %c{1}: %m%n</Property>
 		<Property name="appender">File</Property>
-		<Property name="log-file">$${sys:logfile}</Property>
+		<Property name="logDir">$${sys:logdir}</Property>
 	</Properties>
 	<Appenders>
 		<Console name="Console" target="SYSTEM_OUT" follow="true">
-			<PatternLayout pattern="${LOG_PATTERN}" />
+			<PatternLayout pattern="${${logPattern}}" />
 		</Console>
-		<File name="File" fileName="${log-file}">
-			<PatternLayout pattern="${LOG_PATTERN}" />
-		</File>
+		<RollingFile name="File" filePattern="${logDir}/photomate-%d{yyyy-MM-dd}.log" fileName="${logDir}/photomate.log">
+			<PatternLayout pattern="${logPattern}" />
+			<Policies>
+				 <TimeBasedTriggeringPolicy interval="1"/>
+			</Policies>
+		</RollingFile>
 	</Appenders>
 	<Loggers>
 		<Root level="debug">
