@@ -24,20 +24,24 @@
 			<classifier>no_aop</classifier>
 		</dependency>
 		<dependency>
-			<groupId>nl.alexeyu</groupId>
+			<groupId>${project.groupId}</groupId>
 			<artifactId>photomate-core</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>nl.alexeyu</groupId>
+			<groupId>${project.groupId}</groupId>
 			<artifactId>photomate-search</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>nl.alexeyu</groupId>
+			<groupId>${project.groupId}</groupId>
 			<artifactId>photomate-archive</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>nl.alexeyu</groupId>
+			<groupId>${project.groupId}</groupId>
 			<artifactId>photomate-ui</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>photomate-thumbnail</artifactId>
 		</dependency>
 	</dependencies>
 	<build>

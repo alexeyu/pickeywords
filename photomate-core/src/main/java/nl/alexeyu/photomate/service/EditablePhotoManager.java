@@ -10,31 +10,40 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import nl.alexeyu.photomate.api.LocalPhoto;
 import nl.alexeyu.photomate.api.LocalPhotoApi;
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
 import nl.alexeyu.photomate.model.PhotoProperty;
 import nl.alexeyu.photomate.util.ConfigReader;
-import nl.alexeyu.photomate.util.ImageUtils;
+import nl.alexeyu.photomate.util.MediaFileProcessors;
 
 public class EditablePhotoManager implements PropertyChangeListener, PhotoObserver<EditablePhoto> {
 
     private List<EditablePhoto> photos = new ArrayList<>();
 
     @Inject
+    @Named("photoApi")
     private LocalPhotoApi<EditablePhoto> photoApi;
+
+    @Inject
+    @Named("videoApi")
+    private LocalPhotoApi<EditablePhoto> videoApi;
 
     @Inject
     private ConfigReader configReader;
 
     private EditablePhoto currentPhoto;
-
+    
     public List<EditablePhoto> createPhotos(Path dir) {
-        var paths = ImageUtils.getJpegImages(dir);
-        this.photos = photoApi.createPhotos(paths, path -> new EditablePhoto(path));
-        configReader.getProperty("copyright").ifPresent(creator ->
-            photos.forEach(photo -> photo.addPropertyChangeListener(new PhotoCopyrightSetter(creator))));
+        var photoPaths = MediaFileProcessors.JPEG.apply(dir);
+        var videoPaths = MediaFileProcessors.MPEG4.apply(dir);
+        this.photos = photoApi.createPhotos(photoPaths, EditablePhoto::new);
+        this.photos.addAll(videoApi.createPhotos(videoPaths, EditablePhoto::new));
+        configReader.getProperty("copyright")
+        	.map(PhotoCopyrightSetter::new)
+        	.ifPresent(creator -> photos.forEach(photo -> photo.addPropertyChangeListener(creator)));
         return photos;
     }
 

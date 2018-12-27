@@ -23,7 +23,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import nl.alexeyu.photomate.api.archive.ArchivePhoto;
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
 import nl.alexeyu.photomate.model.Photo;
-import nl.alexeyu.photomate.util.ImageUtils;
+import nl.alexeyu.photomate.util.StaticImageProvider;
 
 public class PhotoCellRenderer extends DefaultTableCellRenderer {
 	
@@ -82,7 +82,7 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
     
     private static class ArchivePhotoLabel extends PhotoLabel<ArchivePhoto> {
 
-    	private static final Image DELETE_IMAGE = ImageUtils.getImage("trash.png").getImage();
+    	private static final Image DELETE_IMAGE = StaticImageProvider.getImage("trash.png").getImage();
 
     	private final int columnWidth;
 
@@ -141,7 +141,7 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
             }
             var nameLabel = new JLabel(title);
             if (!photo.isReadyToUpload()) {
-                nameLabel.setIcon(ImageUtils.getImage("error.png"));
+                nameLabel.setIcon(StaticImageProvider.getImage("error.png"));
             }
             nameLabel.setForeground(Color.GRAY);
             return nameLabel;

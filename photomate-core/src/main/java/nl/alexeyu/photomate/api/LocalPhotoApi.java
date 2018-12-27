@@ -1,51 +1,37 @@
 package nl.alexeyu.photomate.api;
 
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
-import javax.inject.Inject;
-import javax.inject.Named;
 import javax.swing.ImageIcon;
 
 import nl.alexeyu.photomate.model.DefaultPhotoMetaDataBuilder;
 import nl.alexeyu.photomate.model.PhotoMetaData;
 import nl.alexeyu.photomate.model.PhotoProperty;
 import nl.alexeyu.photomate.service.metadata.PhotoMetadataProcessor;
-import nl.alexeyu.photomate.service.thumbnail.BufferedImageProvider;
-import nl.alexeyu.photomate.service.thumbnail.ThumbnailProvider;
+import nl.alexeyu.photomate.thumbnail.ThumbnailsProvider;
 
 public class LocalPhotoApi<P extends LocalPhoto> implements PhotoApi<Path, P> {
     
-    @Inject
-    private PhotoMetadataProcessor metadataProcessor;
+    private final PhotoMetadataProcessor metadataProcessor;
     
-    @Inject 
-    private BufferedImageProvider bufferedImageProvider;
+    private final ThumbnailsProvider thumbnailsProvider;
     
-    @Inject 
-    @Named("thumbnail")
-    private ThumbnailProvider thumbnailGenerator;
-    
-    @Inject 
-    @Named("preview")
-    private ThumbnailProvider previewGenerator;
+    public LocalPhotoApi(PhotoMetadataProcessor metadataProcessor, ThumbnailsProvider thumbnailsProvider) {
+		this.metadataProcessor = metadataProcessor;
+		this.thumbnailsProvider = thumbnailsProvider;
+	}
 
-    @Override
+	@Override
     public Supplier<PhotoMetaData> metaDataSupplier(P photo) {
         return () -> metadataProcessor.read(photo.getPath());
     }
 
     @Override
     public Supplier<List<ImageIcon>> thumbnailsSupplier(P photo) {
-        return () -> getThumbnails(photo);
-    }
-
-    private List<ImageIcon> getThumbnails(P photo) {
-        var buf = bufferedImageProvider.toBufferedImage(photo.getPath());
-        return Arrays.asList(new ImageIcon(thumbnailGenerator.scale(buf)), new ImageIcon(previewGenerator.scale(buf)));
+        return () -> thumbnailsProvider.apply(photo.getPath());
     }
 
     public void updateProperty(LocalPhoto photo, PhotoProperty property, Object propertyValue) {

@@ -11,7 +11,7 @@ import javax.swing.SwingConstants;
 import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 
-import nl.alexeyu.photomate.util.ImageUtils;
+import nl.alexeyu.photomate.util.StaticImageProvider;
 
 public class UploadTable extends JTable {
 
@@ -62,16 +62,16 @@ public class UploadTable extends JTable {
             var label = new JLabel();
             label.setHorizontalAlignment(SwingConstants.CENTER);
             if (value instanceof Exception) {
-                label.setIcon(ImageUtils.getImage("error.png"));
+                label.setIcon(StaticImageProvider.getImage("error.png"));
                 var ex = (Exception) value;
                 label.setToolTipText(ex.getMessage());
             } else if (value instanceof Integer) {
                 var progress = (Integer) value;
                 label.setText(progress + "%");
             } else if (value instanceof String) {
-                label.setIcon(ImageUtils.getImage("ok.png"));
+                label.setIcon(StaticImageProvider.getImage("ok.png"));
             } else {
-                label.setIcon(ImageUtils.getImage("queue.png"));
+                label.setIcon(StaticImageProvider.getImage("queue.png"));
             }
             return label;
         }

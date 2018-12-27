@@ -1,4 +1,4 @@
-package nl.alexeyu.photomate.service.thumbnail;
+package nl.alexeyu.photomate.thumbnail;
 
 import java.awt.image.BufferedImage;
 import java.nio.file.Path;
@@ -8,11 +8,12 @@ import javax.imageio.ImageIO;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public final class BufferedImageProvider {
+public final class ImageBufferedImageProvider implements BufferedImageProvider {
 
 	private static final Logger logger = LogManager.getLogger();
 
-    public BufferedImage toBufferedImage(Path photoFile) {
+    @Override
+	public BufferedImage toBufferedImage(Path photoFile) {
         try {
         	logger.debug("Reading {}", photoFile);
             return ImageIO.read(photoFile.toFile());

@@ -6,6 +6,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
+import java.nio.file.Path;
+import java.util.function.Predicate;
 
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -14,7 +16,7 @@ import javax.swing.filechooser.FileFilter;
 
 import com.google.common.base.Strings;
 
-import nl.alexeyu.photomate.util.ImageUtils;
+import nl.alexeyu.photomate.util.MediaFileProcessors;
 
 public class DirChooser extends JPanel {
 
@@ -35,7 +37,7 @@ public class DirChooser extends JPanel {
     }
 
     private void prepareFileChooser() {
-        fileChooser.setFileFilter(new JpegFilter());
+        fileChooser.setFileFilter(new MediaFilesFilter());
         fileChooser.addActionListener(new SelectFileActionListener());
     }
 
@@ -77,15 +79,18 @@ public class DirChooser extends JPanel {
         }
     }
 
-    private static class JpegFilter extends FileFilter {
+    private static class MediaFilesFilter extends FileFilter {
+    	
+    	private static final Predicate<Path> PREDICATE = MediaFileProcessors.JPEG.or(MediaFileProcessors.MPEG4);
+    	
         @Override
         public boolean accept(File file) {
-            return file.isDirectory() || ImageUtils.isJpeg(file.toPath());
+            return file.isDirectory() || PREDICATE.test(file.toPath());
         }
 
         @Override
         public String getDescription() {
-            return "Photos";
+            return "Photos and Videos";
         }
     }
 

@@ -1,4 +1,4 @@
-package nl.alexeyu.photomate.service.thumbnail;
+package nl.alexeyu.photomate.thumbnail;
 
 import java.awt.Dimension;
 import java.awt.Image;

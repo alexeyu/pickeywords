@@ -97,6 +97,11 @@
 			</dependency>
 			<dependency>
 				<groupId>nl.alexeyu</groupId>
+				<artifactId>photomate-thumbnail</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>nl.alexeyu</groupId>
 				<artifactId>photomate-core</artifactId>
 				<version>${project.version}</version>
 			</dependency>
@@ -115,6 +120,16 @@
 				<artifactId>photomate-ui</artifactId>
 				<version>${project.version}</version>
 			</dependency>
+			<dependency>
+			    <groupId>org.jcodec</groupId>
+			    <artifactId>jcodec</artifactId>
+			    <version>0.2.3</version>
+			</dependency>
+			<dependency>
+			    <groupId>org.jcodec</groupId>
+			    <artifactId>jcodec-javase</artifactId>
+			    <version>0.2.3</version>
+			</dependency>			
 		</dependencies>
 	</dependencyManagement>
 
@@ -157,6 +172,7 @@
 		</plugins>
 	</build>
 	<modules>
+		<module>photomate-thumbnail</module>
 		<module>photomate-core</module>
 		<module>photomate-search</module>
 		<module>photomate-archive</module>

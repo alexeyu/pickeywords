@@ -7,10 +7,12 @@ import java.nio.file.Paths;
 
 import javax.inject.Inject;
 
+import com.google.inject.name.Named;
+
 import nl.alexeyu.photomate.api.LocalPhotoApi;
 import nl.alexeyu.photomate.api.archive.ArchivePhoto;
 import nl.alexeyu.photomate.util.ConfigReader;
-import nl.alexeyu.photomate.util.ImageUtils;
+import nl.alexeyu.photomate.util.MediaFileProcessors;
 
 public class ArchivePhotoContainer extends PhotoContainer<ArchivePhoto> {
     
@@ -20,6 +22,7 @@ public class ArchivePhotoContainer extends PhotoContainer<ArchivePhoto> {
     private ConfigReader configReader;
     
     @Inject
+    @Named("archiveApi")
     private LocalPhotoApi<ArchivePhoto> photoApi;
 
     public ArchivePhotoContainer() {
@@ -42,9 +45,7 @@ public class ArchivePhotoContainer extends PhotoContainer<ArchivePhoto> {
     }
 
     private void readPhotos(Path dir) {
-        var photos = photoApi.createPhotos(
-                ImageUtils.getJpegImages(dir),
-                path -> new ArchivePhoto(path));
+        var photos = photoApi.createPhotos(MediaFileProcessors.JPEG.apply(dir), ArchivePhoto::new);
         photoTable.setPhotos(photos);
     }
 
