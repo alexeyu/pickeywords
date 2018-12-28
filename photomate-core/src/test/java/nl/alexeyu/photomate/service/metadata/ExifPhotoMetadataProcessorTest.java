@@ -32,7 +32,7 @@ import nl.alexeyu.photomate.util.CmdExecutor;
 public class ExifPhotoMetadataProcessorTest {
 
     private static final List<String> DEFAULT_RESPONSE = Arrays.asList("Image Description               : Coolpic",
-            "Caption-Abstract:My Photo", "Creator        : Me", "Keywords  : landscape, evening, summer");
+            "Title:My Photo", "Creator        : Me", "Keywords  : landscape, evening, summer");
 
     private static final Joiner JOINER = Joiner.on(System.getProperty("line.separator"));
 
@@ -69,7 +69,7 @@ public class ExifPhotoMetadataProcessorTest {
         verify(executor).exec(pathCaptor.capture(), argsCaptor.capture());
         verifyZeroInteractions(backupCleaner);
         assertEquals(testPath, pathCaptor.getValue());
-        assertEquals(Sets.newHashSet("-ImageDescription", "-Caption-Abstract", "-Creator", "-keywords"),
+        assertEquals(Sets.newHashSet("-ImageDescription", "-Title", "-Creator", "-keywords"),
                 Sets.newHashSet(argsCaptor.getValue()));
 
         assertEquals("Coolpic", metaData.description());
@@ -102,9 +102,10 @@ public class ExifPhotoMetadataProcessorTest {
         assertEquals(testPath, pathCaptor.getValue());
 
         List<String> args = argsCaptor.getValue();
-        assertEquals(2, args.size());
+        assertEquals(3, args.size());
         assertTrue(args.contains("-Caption-Abstract=New Caption"));
         assertTrue(args.contains("-ObjectName=New Caption"));
+        assertTrue(args.contains("-Title=New Caption"));
     }
 
     @Test
@@ -147,8 +148,7 @@ public class ExifPhotoMetadataProcessorTest {
         assertEquals(testPath, pathCaptor.getValue());
 
         List<String> args = argsCaptor.getValue();
-        assertEquals(2, args.size());
-        assertTrue(args.contains("-keywords+=landscape"));
-        assertTrue(args.contains("-keywords-=evening"));
+        assertEquals(1, args.size());
+        assertEquals("-keywords=landscape, summer", args.get(0));
     }
 }
