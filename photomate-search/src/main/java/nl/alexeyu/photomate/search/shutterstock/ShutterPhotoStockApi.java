@@ -36,7 +36,7 @@ import nl.alexeyu.photomate.util.ConfigReader;
 
 public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, RemotePhoto>, PhotoStockApi {
 	
-	private static final String DEFAULT_RESULTS_PER_PAGE = "10";
+    private static final String DEFAULT_RESULTS_PER_PAGE = "10";
 
     private static final Logger logger = LogManager.getLogger();
 
@@ -51,8 +51,8 @@ public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, R
 
     @Inject
     public void init() {
-        var name = configReader.getProperty("stock.shutter.api.name").orElse("");
-        var apiKey = configReader.getProperty("stock.shutter.api.key").orElse("");
+        var name = System.getProperty("SHUTTERSTOCK_API_NAME", "");
+        var apiKey = System.getProperty("SHUTTERSTOCK_API_KEY", "");
         Optional<String> resultsPerPageProperty = configReader.getProperty("stock.shutter.api.resultsPerPage");
         this.resultsPerPage = Integer.valueOf(resultsPerPageProperty.orElse(DEFAULT_RESULTS_PER_PAGE)); 
         this.client = createClient(name, apiKey);
