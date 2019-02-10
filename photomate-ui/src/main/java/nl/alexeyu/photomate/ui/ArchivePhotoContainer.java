@@ -15,12 +15,12 @@ import nl.alexeyu.photomate.util.ConfigReader;
 import nl.alexeyu.photomate.util.MediaFileProcessors;
 
 public class ArchivePhotoContainer extends PhotoContainer<ArchivePhoto> {
-    
+
     private static final int COLUMN_COUNT = 4;
-    
+
     @Inject
     private ConfigReader configReader;
-    
+
     @Inject
     @Named("archiveApi")
     private LocalPhotoApi<ArchivePhoto> photoApi;
@@ -30,11 +30,11 @@ public class ArchivePhotoContainer extends PhotoContainer<ArchivePhoto> {
     }
 
     @Override
-	protected PhotoTable<ArchivePhoto> createPhotoTable(int columnCount) {
-		return new ArchivePhotoTable(columnCount, this);
-	}
+    protected PhotoTable<ArchivePhoto> createPhotoTable(int columnCount) {
+        return new ArchivePhotoTable(columnCount, this);
+    }
 
-	@Inject
+    @Inject
     public void init() throws IOException {
         configReader.getProperty("archiveFolder").ifPresent(arcFolder -> {
             var dir = Paths.get(arcFolder);

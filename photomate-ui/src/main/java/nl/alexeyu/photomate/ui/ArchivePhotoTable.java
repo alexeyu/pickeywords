@@ -15,23 +15,23 @@ import nl.alexeyu.photomate.api.PhotoFileCleaner;
 import nl.alexeyu.photomate.api.archive.ArchivePhoto;
 
 public class ArchivePhotoTable extends PhotoTable<ArchivePhoto> {
-	
-	public ArchivePhotoTable(int columnCount, JComponent parent) {
-		super(columnCount, parent);
-	}
 
-	public void setPhotos(List<ArchivePhoto> photos) {
-		super.setPhotos(photos);
+    public ArchivePhotoTable(int columnCount, JComponent parent) {
+        super(columnCount, parent);
+    }
+
+    public void setPhotos(List<ArchivePhoto> photos) {
+        super.setPhotos(photos);
         if (photos.size() > 0) {
-    		addMouseListener(new DeleteArchivedPhotoListener());
+            addMouseListener(new DeleteArchivedPhotoListener());
         }
-	}
-	
+    }
+
     private class DeleteArchivedPhotoListener extends MouseAdapter {
 
         private final Consumer<Path> cleaner = new PhotoFileCleaner();
 
-		@Override
+        @Override
         public void mouseClicked(MouseEvent e) {
             int row = rowAtPoint(e.getPoint());
             int col = columnAtPoint(e.getPoint());
@@ -46,18 +46,15 @@ public class ArchivePhotoTable extends PhotoTable<ArchivePhoto> {
                 }
             }
         }
-        
-	    private int getRowTop(int row) {
-	    	return row  * getRowHeight(); 
-	    }
-		
-		private int getColumnRight(int col) {
-        	return IntStream.range(0, col + 1)
-        			.map(index -> getColumnModel().getColumn(index).getWidth())
-        			.sum();
+
+        private int getRowTop(int row) {
+            return row * getRowHeight();
+        }
+
+        private int getColumnRight(int col) {
+            return IntStream.range(0, col + 1).map(index -> getColumnModel().getColumn(index).getWidth()).sum();
         }
 
     }
-
 
 }
