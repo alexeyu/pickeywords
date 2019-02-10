@@ -1,7 +1,14 @@
 package nl.alexeyu.photomate.search.shutterstock;
 
 import java.io.IOException;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
+import java.net.URI;
 import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpClient.Version;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -11,23 +18,11 @@ import java.util.function.Supplier;
 import javax.inject.Inject;
 import javax.swing.ImageIcon;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
-import com.google.common.io.ByteStreams;
 
 import nl.alexeyu.photomate.api.PhotoApi;
 import nl.alexeyu.photomate.search.api.PhotoStockApi;
@@ -35,7 +30,7 @@ import nl.alexeyu.photomate.search.api.RemotePhoto;
 import nl.alexeyu.photomate.util.ConfigReader;
 
 public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, RemotePhoto>, PhotoStockApi {
-	
+
     private static final String DEFAULT_RESULTS_PER_PAGE = "10";
 
     private static final Logger logger = LogManager.getLogger();
@@ -51,33 +46,26 @@ public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, R
 
     @Inject
     public void init() {
-        var name = System.getProperty("SHUTTERSTOCK_API_NAME", "");
-        var apiKey = System.getProperty("SHUTTERSTOCK_API_KEY", "");
         Optional<String> resultsPerPageProperty = configReader.getProperty("stock.shutter.api.resultsPerPage");
-        this.resultsPerPage = Integer.valueOf(resultsPerPageProperty.orElse(DEFAULT_RESULTS_PER_PAGE)); 
-        this.client = createClient(name, apiKey);
-    }
-
-    private HttpClient createClient(String name, String apiKey) {
-        var credentials = new UsernamePasswordCredentials(name, apiKey);
-        var credProvider = new BasicCredentialsProvider();
-        credProvider.setCredentials(AuthScope.ANY, credentials);
-        return HttpClientBuilder.create().setDefaultCredentialsProvider(credProvider)
-                .setConnectionManager(new PoolingHttpClientConnectionManager()).build();
+        this.resultsPerPage = Integer.valueOf(resultsPerPageProperty.orElse(DEFAULT_RESULTS_PER_PAGE));
+        this.client = HttpClient.newBuilder().version(Version.HTTP_1_1).authenticator(new PasswordAuthenticator())
+                .build();
     }
 
     @Override
     public List<RemotePhoto> search(String keywords) {
+        var searchUri = String.format(QUERY_TEMPLATE, encode(keywords), resultsPerPage);
+        var result = new HttpResponseSupplier<>(searchUri, new JsonResponseReader<>(ShutterSearchResult.class)).get();
+        return createPhotos(result.getPhotoDescriptions().stream(),
+                source -> new RemotePhoto(source.getUrl(), source.getThumbailUrl()));
+    }
+
+    private String encode(String keywords) {
         try {
-            var requestUri = String.format(QUERY_TEMPLATE,
-            		URLEncoder.encode(keywords, Charsets.UTF_8.toString()), resultsPerPage);
-            var searchResultReader = new JsonResponseReader<>(ShutterSearchResult.class);
-            var searchResult = client.execute(new HttpGet(requestUri), new DefaultResponseHandler<>(searchResultReader));
-            return createPhotos(searchResult.getPhotoDescriptions().stream(), 
-            		source -> new RemotePhoto(source.getUrl(), source.getThumbailUrl()));
+            return URLEncoder.encode(keywords, Charsets.UTF_8.toString());
         } catch (IOException ex) {
-            logger.error("Cannot find photos", ex);
-            return Collections.emptyList();
+            logger.error("Could not encode keywords", ex);
+            return "";
         }
     }
 
@@ -93,27 +81,7 @@ public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, R
                 content -> Collections.singletonList(new ImageIcon(content)));
     }
 
-    private static class DefaultResponseHandler<T> implements ResponseHandler<T> {
-
-        private final Function<byte[], T> contentReader;
-
-        DefaultResponseHandler(Function<byte[], T> contentReader) {
-            this.contentReader = contentReader;
-        }
-
-        @Override
-        public T handleResponse(HttpResponse response) throws IOException {
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                var entity = response.getEntity();
-                var content = ByteStreams.toByteArray(entity.getContent());
-                EntityUtils.consume(entity);
-                return contentReader.apply(content);
-            }
-            throw new IOException(response.getStatusLine().getReasonPhrase());
-        }
-    }
-
-    private static class JsonResponseReader<T> implements Function<byte[], T> {
+    private static class JsonResponseReader<T> implements Function<String, T> {
 
         private final Class<T> clazz;
 
@@ -122,7 +90,7 @@ public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, R
         }
 
         @Override
-        public T apply(byte[] content) {
+        public T apply(String content) {
             try {
                 return new ObjectMapper().readValue(content, clazz);
             } catch (IOException ex) {
@@ -135,22 +103,39 @@ public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, R
 
     private class HttpResponseSupplier<T> implements Supplier<T> {
 
-        private final String url;
-        private final Function<byte[], T> responseReader;
+        private final URI uri;
+        private final Function<String, T> responseReader;
 
-        public HttpResponseSupplier(String url, Function<byte[], T> responseReader) {
-            this.url = url;
+        public HttpResponseSupplier(String url, Function<String, T> responseReader) {
+            this.uri = URI.create(url);
             this.responseReader = responseReader;
         }
 
         @Override
         public T get() {
             try {
-                return client.execute(new HttpGet(url), new DefaultResponseHandler<>(responseReader));
-            } catch (IOException ex) {
-                logger.error("Cannot read url " + url, ex);
+                var request = HttpRequest.newBuilder().GET().uri(uri).build();
+                var response = client.send(request, BodyHandlers.ofString());
+                if (response.statusCode() != 200) {
+                    logger.error("Cannot find photos: {}", response.statusCode());
+                    return null;
+                }
+                return responseReader.apply(response.body());
+            } catch (IOException | InterruptedException ex) {
+                logger.error("Cannot read url {}", ex);
                 return null;
             }
+        }
+
+    }
+
+    private static class PasswordAuthenticator extends Authenticator {
+
+        @Override
+        protected PasswordAuthentication getPasswordAuthentication() {
+            var name = System.getProperty("SHUTTERSTOCK_API_NAME", "");
+            var apiKey = System.getProperty("SHUTTERSTOCK_API_KEY", "");
+            return new PasswordAuthentication(name, apiKey.toCharArray());
         }
 
     }
