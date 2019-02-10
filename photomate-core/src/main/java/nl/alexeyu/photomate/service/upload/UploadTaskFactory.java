@@ -11,11 +11,11 @@ public class UploadTaskFactory {
     @Inject
     private ConfigReader configReader;
 
-	public Runnable create(EditablePhoto photo, FtpEndpoint endpoint, UploadNotifier notifier) {
-		String realUploadProperty = configReader.getProperty("realUpload").orElse("true");
-		return Boolean.valueOf(realUploadProperty)
-				? new FtpUploadTask(photo, endpoint, notifier)
-				: new FakeUploadTask(photo, endpoint, notifier);
-	}
+    public Runnable create(EditablePhoto photo, FtpEndpoint endpoint, UploadNotifier notifier) {
+        String realUploadProperty = configReader.getProperty("realUpload").orElse("true");
+        return Boolean.valueOf(realUploadProperty) 
+                ? new FtpUploadTask(photo, endpoint, notifier)
+                : new FakeUploadTask(photo, endpoint, notifier);
+    }
 
 }

@@ -5,6 +5,6 @@ import java.nio.file.Path;
 
 public interface BufferedImageProvider {
 
-	BufferedImage toBufferedImage(Path photoFile);
+    BufferedImage toBufferedImage(Path photoFile);
 
 }

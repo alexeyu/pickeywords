@@ -14,17 +14,17 @@ import nl.alexeyu.photomate.service.metadata.PhotoMetadataProcessor;
 import nl.alexeyu.photomate.thumbnail.ThumbnailsProvider;
 
 public class LocalPhotoApi<P extends LocalPhoto> implements PhotoApi<Path, P> {
-    
-    private final PhotoMetadataProcessor metadataProcessor;
-    
-    private final ThumbnailsProvider thumbnailsProvider;
-    
-    public LocalPhotoApi(PhotoMetadataProcessor metadataProcessor, ThumbnailsProvider thumbnailsProvider) {
-		this.metadataProcessor = metadataProcessor;
-		this.thumbnailsProvider = thumbnailsProvider;
-	}
 
-	@Override
+    private final PhotoMetadataProcessor metadataProcessor;
+
+    private final ThumbnailsProvider thumbnailsProvider;
+
+    public LocalPhotoApi(PhotoMetadataProcessor metadataProcessor, ThumbnailsProvider thumbnailsProvider) {
+        this.metadataProcessor = metadataProcessor;
+        this.thumbnailsProvider = thumbnailsProvider;
+    }
+
+    @Override
     public Supplier<PhotoMetaData> metaDataSupplier(P photo) {
         return () -> metadataProcessor.read(photo.getPath());
     }
@@ -36,11 +36,10 @@ public class LocalPhotoApi<P extends LocalPhoto> implements PhotoApi<Path, P> {
 
     public void updateProperty(LocalPhoto photo, PhotoProperty property, Object propertyValue) {
         var oldMetaData = photo.metaData();
-    	var builder = new DefaultPhotoMetaDataBuilder(oldMetaData);
+        var builder = new DefaultPhotoMetaDataBuilder(oldMetaData);
         var metaData = builder.set(property, propertyValue).build();
-        CompletableFuture
-        	.runAsync(() -> metadataProcessor.update(photo.getPath(), oldMetaData, metaData))
-        	.thenRun(() -> photo.setMetaData(metaData));
+        CompletableFuture.runAsync(() -> metadataProcessor.update(photo.getPath(), oldMetaData, metaData))
+                .thenRun(() -> photo.setMetaData(metaData));
     }
 
 }

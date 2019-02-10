@@ -1,7 +1,5 @@
 package nl.alexeyu.photomate.search.shutterstock;
 
-import static java.util.Collections.emptyList;
-
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -81,9 +79,9 @@ public class ShutterPhotoDetails implements PhotoMetaData {
 
     @Override
     public List<String> keywords() {
-        return keywords == null ? emptyList() : keywords;
+        return keywords == null ? List.of() : keywords;
     }
-    
+
     @Override
     public String caption() {
         return description;
@@ -93,14 +91,17 @@ public class ShutterPhotoDetails implements PhotoMetaData {
     public String description() {
         return description;
     }
-    
+
     @Override
-	public Object getProperty(PhotoProperty p) {
-    	switch (p) {
-    	    case DESCRIPTION: return description();
-    	    case KEYWORDS:    return keywords();
-    	    default:          return "";
-		}
-	}
+    public Object getProperty(PhotoProperty p) {
+        switch (p) {
+        case DESCRIPTION:
+            return description();
+        case KEYWORDS:
+            return keywords();
+        default:
+            return "";
+        }
+    }
 
 }

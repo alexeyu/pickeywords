@@ -10,9 +10,9 @@ import org.imgscalr.Scalr;
 
 public final class ImgscalrThumbnailProvider implements ThumbnailProvider {
 
-	private static final Logger logger = LogManager.getLogger();
+    private static final Logger logger = LogManager.getLogger();
 
-	private final Dimension thumnailSize;
+    private final Dimension thumnailSize;
 
     public ImgscalrThumbnailProvider(Dimension previewSize) {
         this.thumnailSize = previewSize;
@@ -20,15 +20,14 @@ public final class ImgscalrThumbnailProvider implements ThumbnailProvider {
 
     @Override
     public Image scale(BufferedImage source) {
-    	logger.debug("{} scales {}", this, source);
+        logger.debug("{} scales {}", this, source);
         boolean portrait = source.getHeight() > source.getWidth();
         Scalr.Mode fitMode = portrait ? Scalr.Mode.FIT_TO_HEIGHT : Scalr.Mode.FIT_TO_WIDTH;
         try {
-        	return Scalr.resize(source, Scalr.Method.SPEED, fitMode, thumnailSize.width, thumnailSize.height);
+            return Scalr.resize(source, Scalr.Method.SPEED, fitMode, thumnailSize.width, thumnailSize.height);
         } catch (Exception ex) {
-        	logger.catching(ex);
-        	return new BufferedImage(thumnailSize.width, thumnailSize.height, 
-        			BufferedImage.TYPE_INT_RGB);
+            logger.catching(ex);
+            return new BufferedImage(thumnailSize.width, thumnailSize.height, BufferedImage.TYPE_INT_RGB);
         }
     }
 

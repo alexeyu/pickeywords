@@ -1,20 +1,21 @@
 package nl.alexeyu.photomate.search.shutterstock;
 
+import static java.net.http.HttpClient.Version.HTTP_1_1;
+
 import java.io.IOException;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
-import java.net.http.HttpClient.Version;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandlers;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import javax.annotation.CheckForNull;
 import javax.inject.Inject;
 import javax.swing.ImageIcon;
 
@@ -48,8 +49,7 @@ public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, R
     public void init() {
         Optional<String> resultsPerPageProperty = configReader.getProperty("stock.shutter.api.resultsPerPage");
         this.resultsPerPage = Integer.valueOf(resultsPerPageProperty.orElse(DEFAULT_RESULTS_PER_PAGE));
-        this.client = HttpClient.newBuilder().version(Version.HTTP_1_1).authenticator(new PasswordAuthenticator())
-                .build();
+        this.client = HttpClient.newBuilder().version(HTTP_1_1).authenticator(new PasswordAuthenticator()).build();
     }
 
     @Override
@@ -78,12 +78,14 @@ public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, R
     @Override
     public Supplier<List<ImageIcon>> thumbnailsSupplier(RemotePhoto photo) {
         return new HttpResponseSupplier<>(photo.thumbnailUrl(),
-                content -> Collections.singletonList(new ImageIcon(content)));
+                content -> content == null ? List.of() : List.of(new ImageIcon(content)));
     }
 
     private static class JsonResponseReader<T> implements Function<String, T> {
 
         private final Class<T> clazz;
+
+        private final ObjectMapper mapper = new ObjectMapper();
 
         public JsonResponseReader(Class<T> clazz) {
             this.clazz = clazz;
@@ -92,7 +94,7 @@ public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, R
         @Override
         public T apply(String content) {
             try {
-                return new ObjectMapper().readValue(content, clazz);
+                return mapper.readValue(content, clazz);
             } catch (IOException ex) {
                 logger.error("Cannot read content", ex);
                 return null;
@@ -112,6 +114,7 @@ public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, R
         }
 
         @Override
+        @CheckForNull
         public T get() {
             try {
                 var request = HttpRequest.newBuilder().GET().uri(uri).build();

@@ -20,34 +20,33 @@ public final class PhotoUploader {
     private final ConfigReader configReader;
 
     private final UploadNotifier notifier;
-    
+
     private final UploadTaskFactory taskFactory;
-    
+
     private final int attempts;
 
     @Inject
     public PhotoUploader(ConfigReader configReader, EventBus eventBus, UploadTaskFactory taskFactory) {
-		this.configReader = configReader;
-		this.notifier = new EventBusUploadNotifier(eventBus);
-		this.taskFactory = taskFactory;
-		this.attempts = Integer.valueOf(configReader.getProperty("uploadAttempts").orElse("" + DEFAULT_UPLOAD_ATTEMPTS));
-	}
+        this.configReader = configReader;
+        this.notifier = new EventBusUploadNotifier(eventBus);
+        this.taskFactory = taskFactory;
+        this.attempts = Integer
+                .valueOf(configReader.getProperty("uploadAttempts").orElse("" + DEFAULT_UPLOAD_ATTEMPTS));
+    }
 
     public void uploadPhotos(List<EditablePhoto> photos) {
-        configReader.getPhotoStocks().stream()
-        	.map(PhotoStock::ftpEndpoint)
-        	.forEach(endpoint ->  CompletableFuture.runAsync(() -> uploadPhotos(photos, endpoint)));
+        configReader.getPhotoStocks().stream().map(PhotoStock::ftpEndpoint)
+                .forEach(endpoint -> CompletableFuture.runAsync(() -> uploadPhotos(photos, endpoint)));
     }
 
     private void uploadPhotos(List<EditablePhoto> photos, FtpEndpoint endpoint) {
-    	photos.forEach(photo -> {
-    		notifier.notifyProgress(photo, endpoint, 0);
-    		Mono.fromRunnable(taskFactory.create(photo, endpoint, notifier))
-	    		.doOnSuccess(c -> notifier.notifySuccess(photo, endpoint))
-	    		.doOnError(UploadException.class, ex -> notifier.notifyError(photo, endpoint, ex))
-	    		.retry(attempts)
-	    		.subscribe();
-    	});
+        photos.forEach(photo -> {
+            notifier.notifyProgress(photo, endpoint, 0);
+            Mono.fromRunnable(taskFactory.create(photo, endpoint, notifier))
+                    .doOnSuccess(c -> notifier.notifySuccess(photo, endpoint))
+                    .doOnError(UploadException.class, ex -> notifier.notifyError(photo, endpoint, ex)).retry(attempts)
+                    .subscribe();
+        });
     }
 
 }

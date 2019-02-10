@@ -21,7 +21,7 @@ import nl.alexeyu.photomate.model.PhotoMetaData;
 
 public abstract class AbstractPhoto implements Photo {
 	
-	protected static final Logger logger = LogManager.getLogger();
+    protected static final Logger logger = LogManager.getLogger();
     
     public static final String THUMBNAIL_PROPERTY = "thumbnail";
 

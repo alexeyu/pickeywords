@@ -4,7 +4,6 @@ import java.awt.Dimension;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,7 +38,7 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
     }
 
     private void init() {
-        setPhotos(Collections.emptyList());
+        setPhotos(List.of());
         setDefaultRenderer(Object.class, new PhotoCellRenderer());
 
         setSelectionMode(ListSelectionModel.SINGLE_SELECTION);

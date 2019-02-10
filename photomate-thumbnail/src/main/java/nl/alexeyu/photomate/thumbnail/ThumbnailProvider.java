@@ -5,6 +5,6 @@ import java.awt.image.BufferedImage;
 
 public interface ThumbnailProvider {
 
-	Image scale(BufferedImage source);
+    Image scale(BufferedImage source);
 
 }

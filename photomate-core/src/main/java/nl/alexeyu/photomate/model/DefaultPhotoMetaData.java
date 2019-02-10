@@ -1,8 +1,8 @@
 package nl.alexeyu.photomate.model;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.google.common.base.Strings;
@@ -19,7 +19,7 @@ public class DefaultPhotoMetaData implements PhotoMetaData {
     @SuppressWarnings("unchecked")
     public Collection<String> keywords() {
     	var keywords = (Collection<String>) properties.get(PhotoProperty.KEYWORDS);
-    	return keywords == null ? Collections.emptyList() : keywords;
+    	return keywords == null ? List.of() : keywords;
     }
     
 	@Override

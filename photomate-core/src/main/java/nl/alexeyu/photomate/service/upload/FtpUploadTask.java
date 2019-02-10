@@ -20,17 +20,17 @@ public class FtpUploadTask implements Runnable, CopyStreamListener {
     private static final Logger logger = LogManager.getLogger();
 
     private final FTPClient client = new FTPClient();
-    
+
     private final EditablePhoto photo;
-    
+
     private final FtpEndpoint endpoint;
-    
+
     private final UploadNotifier notifier;
 
     public FtpUploadTask(EditablePhoto photo, FtpEndpoint endpoint, UploadNotifier notifier) {
-    	this.photo = photo;
-    	this.endpoint = endpoint;
-    	this.notifier = notifier;
+        this.photo = photo;
+        this.endpoint = endpoint;
+        this.notifier = notifier;
     }
 
     private void init() throws IOException {
@@ -46,7 +46,7 @@ public class FtpUploadTask implements Runnable, CopyStreamListener {
 
     @Override
     public void bytesTransferred(long totalBytesTransferred, int bytesTransferred, long streamSize) {
-    	notifier.notifyProgress(photo, endpoint, totalBytesTransferred);
+        notifier.notifyProgress(photo, endpoint, totalBytesTransferred);
     }
 
     @Override
@@ -65,13 +65,13 @@ public class FtpUploadTask implements Runnable, CopyStreamListener {
                 throw new UploadException();
             }
         } catch (IOException ex) {
-        	throw new UploadException(ex);
+            throw new UploadException(ex);
         } finally {
             destroy();
         }
     }
 
-	private void destroy() {
+    private void destroy() {
         try {
             if (client.isConnected()) {
                 client.logout();

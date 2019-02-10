@@ -35,33 +35,29 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
     private ConfigReader configReader;
 
     private EditablePhoto currentPhoto;
-    
+
     public List<EditablePhoto> createPhotos(Path dir) {
         var photoPaths = MediaFileProcessors.JPEG.apply(dir);
         var videoPaths = MediaFileProcessors.MPEG4.apply(dir);
         this.photos = photoApi.createPhotos(photoPaths, EditablePhoto::new);
         this.photos.addAll(videoApi.createPhotos(videoPaths, EditablePhoto::new));
-        configReader.getProperty("copyright")
-        	.map(PhotoCopyrightSetter::new)
-        	.ifPresent(creator -> photos.forEach(photo -> photo.addPropertyChangeListener(creator)));
+        configReader.getProperty("copyright").map(PhotoCopyrightSetter::new)
+                .ifPresent(creator -> photos.forEach(photo -> photo.addPropertyChangeListener(creator)));
         return photos;
     }
 
     public List<EditablePhoto> validatePhotos() throws PhotoNotReadyException {
-        var notReadyPhotos = photos.stream()
-        		.filter(photo -> !photo.isReadyToUpload())
-        		.collect(Collectors.toList());
+        var notReadyPhotos = photos.stream().filter(photo -> !photo.isReadyToUpload()).collect(Collectors.toList());
         if (photos.isEmpty() || !notReadyPhotos.isEmpty()) {
             throw new PhotoNotReadyException(notReadyPhotos);
         }
         return photos;
     }
-    
+
     @Override
     public void propertyChange(PropertyChangeEvent e) {
         if (currentPhoto != null && PhotoProperty.has(e.getPropertyName())) {
-            photoApi.updateProperty(currentPhoto, 
-                    PhotoProperty.of(e.getPropertyName()), e.getNewValue());
+            photoApi.updateProperty(currentPhoto, PhotoProperty.of(e.getPropertyName()), e.getNewValue());
         }
     }
 

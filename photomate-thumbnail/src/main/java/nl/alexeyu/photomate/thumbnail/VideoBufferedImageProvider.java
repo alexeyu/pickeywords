@@ -11,16 +11,16 @@ import org.jcodec.scale.AWTUtil;
 
 public class VideoBufferedImageProvider implements BufferedImageProvider {
 
-	private static final int FRAME_NUMBER = 42;
+    private static final int FRAME_NUMBER = 42;
 
-	@Override
-	public BufferedImage toBufferedImage(Path photoFile) {
-		try {
-			Picture picture = FrameGrab.getFrameFromFile(photoFile.toFile(), FRAME_NUMBER);
-			return AWTUtil.toBufferedImage(picture);
-		} catch (IOException | JCodecException ex) {
-			throw new IllegalStateException(ex);
-		}
-	}
+    @Override
+    public BufferedImage toBufferedImage(Path photoFile) {
+        try {
+            Picture picture = FrameGrab.getFrameFromFile(photoFile.toFile(), FRAME_NUMBER);
+            return AWTUtil.toBufferedImage(picture);
+        } catch (IOException | JCodecException ex) {
+            throw new IllegalStateException(ex);
+        }
+    }
 
 }
