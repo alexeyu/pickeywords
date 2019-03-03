@@ -36,7 +36,7 @@ public class ExifPhotoMetadataProcessorTest {
 
     private static final Joiner JOINER = Joiner.on(System.getProperty("line.separator"));
 
-    private ExifPhotoMetadataProcessor processor;
+    private ExifMetadataProcessor processor;
 
     private CmdExecutor executor;
 
@@ -54,7 +54,7 @@ public class ExifPhotoMetadataProcessorTest {
     public void setUp() {
         executor = mock(CmdExecutor.class);
         backupCleaner = mock(Consumer.class);
-        processor = new ExifPhotoMetadataProcessor(executor, backupCleaner);
+        processor = new ExifMetadataProcessor(executor, new ChangedVideoKeywordsProvider(), backupCleaner);
         pathCaptor = ArgumentCaptor.forClass(Path.class);
         argsCaptor = ArgumentCaptor.forClass(List.class);
     }

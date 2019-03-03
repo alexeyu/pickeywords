@@ -8,7 +8,7 @@ import javax.imageio.ImageIO;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public final class ImageBufferedImageProvider implements BufferedImageProvider {
+public final class PhotoBufferedImageProvider implements BufferedImageProvider {
 
     private static final Logger logger = LogManager.getLogger();
 

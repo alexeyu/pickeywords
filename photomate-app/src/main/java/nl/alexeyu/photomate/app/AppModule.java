@@ -14,12 +14,13 @@ import nl.alexeyu.photomate.api.archive.ArchivePhoto;
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
 import nl.alexeyu.photomate.search.api.PhotoStockApi;
 import nl.alexeyu.photomate.search.shutterstock.ShutterPhotoStockApi;
-import nl.alexeyu.photomate.service.metadata.ExifPhotoMetadataProcessor;
+import nl.alexeyu.photomate.service.metadata.ChangedPhotoKeywordsProvider;
+import nl.alexeyu.photomate.service.metadata.ChangedVideoKeywordsProvider;
+import nl.alexeyu.photomate.service.metadata.ExifMetadataProcessor;
 import nl.alexeyu.photomate.service.metadata.PhotoMetadataProcessor;
 import nl.alexeyu.photomate.service.metadata.PhotoMetadataReader;
-import nl.alexeyu.photomate.thumbnail.ImageBufferedImageProvider;
 import nl.alexeyu.photomate.thumbnail.ImgscalrThumbnailProvider;
-import nl.alexeyu.photomate.thumbnail.ThumbnailProvider;
+import nl.alexeyu.photomate.thumbnail.PhotoBufferedImageProvider;
 import nl.alexeyu.photomate.thumbnail.ThumbnailsProvider;
 import nl.alexeyu.photomate.thumbnail.VideoBufferedImageProvider;
 import nl.alexeyu.photomate.util.ConfigReader;
@@ -29,27 +30,35 @@ public class AppModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        ExifPhotoMetadataProcessor metadataProcessor = new ExifPhotoMetadataProcessor(
-                new DefaultCmdExecutor("exiftool"), new PhotoFileCleaner("_original"));
-        bind(PhotoMetadataReader.class).toInstance(metadataProcessor);
-        bind(PhotoMetadataProcessor.class).toInstance(metadataProcessor);
+        var exifExecutor = new DefaultCmdExecutor("exiftool");
+        var tmpFileCleaner = new PhotoFileCleaner("_original");
+        var photoMetadataProcessor = new ExifMetadataProcessor(exifExecutor,
+                new ChangedPhotoKeywordsProvider(), tmpFileCleaner);
+        bind(PhotoMetadataReader.class).toInstance(photoMetadataProcessor);
+        bind(PhotoMetadataProcessor.class).toInstance(photoMetadataProcessor);
         bind(PhotoStockApi.class).to(ShutterPhotoStockApi.class);
         bind(ConfigReader.class).toInstance(ConfigReader.createDefault());
 
-        ThumbnailProvider thumbnailProvider = new ImgscalrThumbnailProvider(THUMBNAIL_SIZE);
-        ThumbnailProvider previewProvider = new ImgscalrThumbnailProvider(PREVIEW_SIZE);
-        
-        LocalPhotoApi<EditablePhoto> localPhotoApi = new LocalPhotoApi<>(metadataProcessor, 
-    			new ThumbnailsProvider(new ImageBufferedImageProvider(), thumbnailProvider, previewProvider));
-        bind(new TypeLiteral<LocalPhotoApi<EditablePhoto>>() {}).annotatedWith(Names.named("photoApi")).toInstance(localPhotoApi);
+        var thumbnailProvider = new ImgscalrThumbnailProvider(THUMBNAIL_SIZE);
+        var previewProvider = new ImgscalrThumbnailProvider(PREVIEW_SIZE);
 
-        LocalPhotoApi<EditablePhoto> localVideoApi = new LocalPhotoApi<>(metadataProcessor, 
-    			new ThumbnailsProvider(new VideoBufferedImageProvider(), thumbnailProvider, previewProvider));
-        bind(new TypeLiteral<LocalPhotoApi<EditablePhoto>>() {}).annotatedWith(Names.named("videoApi")).toInstance(localVideoApi);
+        var photoBufferedImageProvider = new PhotoBufferedImageProvider();
+        LocalPhotoApi<EditablePhoto> localPhotoApi = new LocalPhotoApi<>(photoMetadataProcessor, 
+                new ThumbnailsProvider(photoBufferedImageProvider, thumbnailProvider, previewProvider));
+        bind(new TypeLiteral<LocalPhotoApi<EditablePhoto>>() {}).annotatedWith(Names.named("photoApi"))
+            .toInstance(localPhotoApi);
 
-        LocalPhotoApi<ArchivePhoto> archivePhotoApi = new LocalPhotoApi<>(metadataProcessor, 
-    			new ThumbnailsProvider(new ImageBufferedImageProvider(), thumbnailProvider, previewProvider));
-        bind(new TypeLiteral<LocalPhotoApi<ArchivePhoto>>() {}).annotatedWith(Names.named("archiveApi")).toInstance(archivePhotoApi);
+        var videoMetadataProcessor = new ExifMetadataProcessor(
+                exifExecutor, new ChangedVideoKeywordsProvider(), tmpFileCleaner);
+        LocalPhotoApi<EditablePhoto> localVideoApi = new LocalPhotoApi<>(videoMetadataProcessor, 
+                new ThumbnailsProvider(new VideoBufferedImageProvider(), thumbnailProvider, previewProvider));
+        bind(new TypeLiteral<LocalPhotoApi<EditablePhoto>>() {}).annotatedWith(Names.named("videoApi"))
+            .toInstance(localVideoApi);
+
+        LocalPhotoApi<ArchivePhoto> archivePhotoApi = new LocalPhotoApi<>(photoMetadataProcessor, 
+                new ThumbnailsProvider(photoBufferedImageProvider, thumbnailProvider, previewProvider));
+        bind(new TypeLiteral<LocalPhotoApi<ArchivePhoto>>() {}).annotatedWith(Names.named("archiveApi"))
+            .toInstance(archivePhotoApi);
 
         bind(EventBus.class).toInstance(new EventBus());
     }

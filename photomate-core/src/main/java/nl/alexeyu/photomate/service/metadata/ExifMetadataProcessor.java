@@ -1,9 +1,9 @@
 package nl.alexeyu.photomate.service.metadata;
 
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,10 +12,7 @@ import java.util.stream.Stream;
 
 import javax.inject.Singleton;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 
 import nl.alexeyu.photomate.model.DefaultPhotoMetaData;
 import nl.alexeyu.photomate.model.DefaultPhotoMetaDataBuilder;
@@ -24,16 +21,15 @@ import nl.alexeyu.photomate.model.PhotoProperty;
 import nl.alexeyu.photomate.util.CmdExecutor;
 
 @Singleton
-public class ExifPhotoMetadataProcessor implements PhotoMetadataProcessor {
+public class ExifMetadataProcessor implements PhotoMetadataProcessor {
 
     private static final Splitter KEYWORD_SPLITTER = Splitter.on(',').omitEmptyStrings().trimResults();
-    private static final Joiner KEYWORD_JOINER = Joiner.on(", ");
 
-    private static final Map<PhotoProperty, Pattern> PROPERTY_PATTERN = ImmutableMap.of(
-    		PhotoProperty.DESCRIPTION, Pattern.compile(".*(Image Description)\\s*\\:(.*)"),
-    		PhotoProperty.CAPTION, Pattern.compile(".*(Title)\\s*\\:(.*)"),
-    		PhotoProperty.KEYWORDS, Pattern.compile(".*(Keywords)\\s*\\:(.*)"),
-    		PhotoProperty.CREATOR, Pattern.compile(".*(Creator)\\s*\\:(.*)"));
+    private static final Map<PhotoProperty, Pattern> PROPERTY_PATTERN = Map.of(
+		PhotoProperty.DESCRIPTION, Pattern.compile(".*(Image Description)\\s*\\:(.*)"),
+		PhotoProperty.CAPTION, Pattern.compile(".*(Title)\\s*\\:(.*)"),
+		PhotoProperty.KEYWORDS, Pattern.compile(".*(Keywords)\\s*\\:(.*)"),
+		PhotoProperty.CREATOR, Pattern.compile(".*(Creator)\\s*\\:(.*)"));
 
     private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
@@ -47,21 +43,26 @@ public class ExifPhotoMetadataProcessor implements PhotoMetadataProcessor {
 
     private final CmdExecutor executor;
 
+    private final BiFunction<PhotoMetaData, PhotoMetaData, Stream<String>> changedKeywordsProvider;
+
     private final Consumer<Path> photoCleaner;
 
-    private static final Map<PhotoProperty, List<String>> PHOTO_TO_EXIF_PROPERTIES = ImmutableMap.of(
-            PhotoProperty.CAPTION, Arrays.asList(CAPTION_ABSTRACT, OBJECT_NAME, TITLE), 
-            PhotoProperty.DESCRIPTION, Arrays.asList(IMAGE_DESCRIPTION), 
-            PhotoProperty.CREATOR, Arrays.asList(CREATOR, COPYRIGHT));
+    private static final Map<PhotoProperty, List<String>> PHOTO_TO_EXIF_PROPERTIES = Map.of(
+            PhotoProperty.CAPTION, List.of(CAPTION_ABSTRACT, OBJECT_NAME, TITLE), 
+            PhotoProperty.DESCRIPTION, List.of(IMAGE_DESCRIPTION), 
+            PhotoProperty.CREATOR, List.of(CREATOR, COPYRIGHT));
 
-    public ExifPhotoMetadataProcessor(CmdExecutor executor, Consumer<Path> photoCleaner) {
+    public ExifMetadataProcessor(CmdExecutor executor, 
+            BiFunction<PhotoMetaData, PhotoMetaData, Stream<String>> changedKeywordsProvider,
+            Consumer<Path> photoCleaner) {
         this.executor = executor;
+        this.changedKeywordsProvider = changedKeywordsProvider;
         this.photoCleaner = photoCleaner;
     }
 
     @Override
     public DefaultPhotoMetaData read(Path photoPath) {
-        var arguments = Arrays.asList(IMAGE_DESCRIPTION, TITLE, CREATOR, KEYWORDS);
+        var arguments = List.of(IMAGE_DESCRIPTION, TITLE, CREATOR, KEYWORDS);
         var cmdOutput = executor.exec(photoPath, arguments).split(LINE_SEPARATOR);
         var properties = Stream.of(PhotoProperty.values())
                 .collect(Collectors.toMap(p -> p, p -> getPhotoProperty(cmdOutput, p)));
@@ -75,15 +76,15 @@ public class ExifPhotoMetadataProcessor implements PhotoMetadataProcessor {
     private String getPhotoProperty(String[] cmdOutput, PhotoProperty property) {
         var pattern = PROPERTY_PATTERN.get(property);
         return Stream.of(cmdOutput)
-        		.map(pattern::matcher)
-        		.filter(Matcher::matches)
+                .map(pattern::matcher)
+                .filter(Matcher::matches)
                 .map(m -> m.group(2).trim())
                 .findFirst()
                 .orElse("");
     }
 
     private List<String> preProcessKeywords(String keywordsLine) {
-        return Lists.newArrayList(KEYWORD_SPLITTER.split(keywordsLine.trim()));
+        return KEYWORD_SPLITTER.splitToList(keywordsLine.trim());
     }
 
     @Override
@@ -102,13 +103,9 @@ public class ExifPhotoMetadataProcessor implements PhotoMetadataProcessor {
     private List<String> getUpdateArguments(PhotoMetaData oldMetaData, PhotoMetaData newMetaData) {
         var arguments = PHOTO_TO_EXIF_PROPERTIES.keySet().stream()
                 .filter(p -> !oldMetaData.getProperty(p).equals(newMetaData.getProperty(p)))
-                .flatMap(p -> args(newMetaData, p))
-                .collect(Collectors.toList());
-
-        if (!newMetaData.keywords().equals(oldMetaData.keywords())) {
-        	arguments.add(String.format("%s=%s", KEYWORDS, KEYWORD_JOINER.join(newMetaData.keywords())));
-        }
-        return arguments;
+                .flatMap(p -> args(newMetaData, p));
+        var changedKeywords = changedKeywordsProvider.apply(oldMetaData, newMetaData);
+        return Stream.concat(arguments, changedKeywords).collect(Collectors.toList());
     }
 
 }

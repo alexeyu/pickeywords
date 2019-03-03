@@ -6,6 +6,6 @@ import nl.alexeyu.photomate.model.PhotoMetaData;
 
 public interface PhotoMetadataReader {
 
-	PhotoMetaData read(Path photoPath);
-	
+    PhotoMetaData read(Path photoPath);
+
 }
