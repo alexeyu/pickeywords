@@ -9,6 +9,7 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.net.http.HttpResponse.BodyHandler;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.List;
 import java.util.Optional;
@@ -55,7 +56,7 @@ public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, R
     @Override
     public List<RemotePhoto> search(String keywords) {
         var searchUri = String.format(QUERY_TEMPLATE, encode(keywords), resultsPerPage);
-        var result = new HttpResponseSupplier<>(searchUri, new JsonResponseReader<>(ShutterSearchResult.class)).get();
+        var result = new HttpResponseSupplier<>(searchUri, BodyHandlers.ofString(), new JsonResponseReader<>(ShutterSearchResult.class)).get();
         return createPhotos(result.getPhotoDescriptions().stream(),
                 source -> new RemotePhoto(source.getUrl(), source.getThumbailUrl()));
     }
@@ -71,13 +72,13 @@ public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, R
 
     @Override
     public Supplier<ShutterPhotoDetails> metaDataSupplier(RemotePhoto photo) {
-        return new HttpResponseSupplier<>(photo.photoUrl() + ".json",
+        return new HttpResponseSupplier<>(photo.photoUrl() + ".json", BodyHandlers.ofString(),
                 new JsonResponseReader<>(ShutterPhotoDetails.class));
     }
 
     @Override
     public Supplier<List<ImageIcon>> thumbnailsSupplier(RemotePhoto photo) {
-        return new HttpResponseSupplier<>(photo.thumbnailUrl(),
+        return new HttpResponseSupplier<>(photo.thumbnailUrl(), BodyHandlers.ofByteArray(),
                 content -> content == null ? List.of() : List.of(new ImageIcon(content)));
     }
 
@@ -103,13 +104,15 @@ public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, R
 
     }
 
-    private class HttpResponseSupplier<T> implements Supplier<T> {
+    private class HttpResponseSupplier<R, T> implements Supplier<T> {
 
         private final URI uri;
-        private final Function<String, T> responseReader;
+        private final BodyHandler<R> bodyHandler;
+        private final Function<R, T> responseReader;
 
-        public HttpResponseSupplier(String url, Function<String, T> responseReader) {
+        public HttpResponseSupplier(String url, BodyHandler<R> bodyHandler, Function<R, T> responseReader) {
             this.uri = URI.create(url);
+            this.bodyHandler = bodyHandler;
             this.responseReader = responseReader;
         }
 
@@ -118,14 +121,14 @@ public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, R
         public T get() {
             try {
                 var request = HttpRequest.newBuilder().GET().uri(uri).build();
-                var response = client.send(request, BodyHandlers.ofString());
+                var response = client.send(request, bodyHandler);
                 if (response.statusCode() != 200) {
-                    logger.error("Cannot find photos: {}", response.statusCode());
+                    logger.error("Error on a request {}: {}", uri, response.statusCode());
                     return null;
                 }
                 return responseReader.apply(response.body());
             } catch (IOException | InterruptedException ex) {
-                logger.error("Cannot read url {}", ex);
+                logger.error("Error on a request {}: {}", uri, ex);
                 return null;
             }
         }

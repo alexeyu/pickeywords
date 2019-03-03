@@ -40,13 +40,11 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
 
     private JComponent createComponent(JTable table, Object value, int column) {
         if (value instanceof Optional) {
-            return ((Optional<?>) value).isPresent() 
-                    ? createComponent(table, ((Optional<?>) value).get(), column) 
-                    : createComponent(table, null, column);
+            return createComponent(table, ((Optional<?>) value).orElse(null), column); 
         }
         if (value instanceof ArchivePhoto) {
             int columnWidth = table.getColumnModel().getColumn(column).getWidth();
-        	return new ArchivePhotoLabel((ArchivePhoto) value, columnWidth).getComponent();
+            return new ArchivePhotoLabel((ArchivePhoto) value, columnWidth).getComponent();
         } else if (value instanceof EditablePhoto) {
             return new EdiatablePhotoPanel((EditablePhoto) value).getComponent(); 
         } else if (value instanceof Photo) {
@@ -54,15 +52,15 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
         } else if (value == null) {
             return new JPanel();
         } else {
-        	throw new IllegalArgumentException("Value must be instance of Photo");
+            throw new IllegalArgumentException("Value must be instance of Photo");
         }
     }
 
     private static class PhotoLabel<T extends Photo> {
 
-        protected final T photo;
+        final T photo;
 
-        protected final JComponent component;
+        final JComponent component;
 
         public PhotoLabel(T photo) {
             this.photo = photo;
