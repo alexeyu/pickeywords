@@ -38,7 +38,7 @@ public class LocalPhotoApi<P extends LocalPhoto> implements PhotoApi<Path, P> {
         var oldMetaData = photo.metaData();
         var metaData = new DefaultPhotoMetaDataBuilder(oldMetaData).set(property, propertyValue).build();
         CompletableFuture.runAsync(() -> metadataProcessor.update(photo.getPath(), oldMetaData, metaData))
-                .thenRun(() -> photo.setMetaData(metaData));
+                .thenRunAsync(() -> photo.setMetaData(metadataProcessor.read(photo.getPath())));
     }
 
 }

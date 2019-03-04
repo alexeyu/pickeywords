@@ -24,11 +24,9 @@ public interface PhotoApi<S, P extends AbstractPhoto> {
     }
 
     default void initPhoto(P photo) {
-        Runnable photoInitiator = () -> {
-            thumbnailsSupplier(photo).get().forEach(photo::addThumbnail);
-            photo.setMetaData(metaDataSupplier(photo).get());
-        };
-        CompletableFuture.runAsync(photoInitiator);
+        CompletableFuture
+            .runAsync(() -> photo.setMetaData(metaDataSupplier(photo).get()))
+            .thenRunAsync(() -> thumbnailsSupplier(photo).get().forEach(photo::addThumbnail));
     }
 
     Supplier<? extends PhotoMetaData> metaDataSupplier(P photo);
