@@ -1,4 +1,4 @@
-package nl.alexeyu.photomate.service.upload;
+package nl.alexeyu.photomate.upload;
 
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
 import nl.alexeyu.photomate.model.FtpEndpoint;

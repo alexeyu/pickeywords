@@ -36,7 +36,6 @@ import nl.alexeyu.photomate.api.editable.EditablePhoto;
 import nl.alexeyu.photomate.service.EditablePhotoManager;
 import nl.alexeyu.photomate.service.PhotoNotReadyException;
 import nl.alexeyu.photomate.service.archive.PhotoArchiver;
-import nl.alexeyu.photomate.service.upload.PhotoUploader;
 import nl.alexeyu.photomate.ui.ArchivePhotoContainer;
 import nl.alexeyu.photomate.ui.DirChooser;
 import nl.alexeyu.photomate.ui.EditablePhotoContainer;
@@ -46,6 +45,7 @@ import nl.alexeyu.photomate.ui.ReadonlyPhotoMetaDataPanel;
 import nl.alexeyu.photomate.ui.StockPhotoContainer;
 import nl.alexeyu.photomate.ui.UiConstants;
 import nl.alexeyu.photomate.ui.UploadPanel;
+import nl.alexeyu.photomate.upload.PhotoUploader;
 import nl.alexeyu.photomate.util.ConfigReader;
 
 public class Main implements PropertyChangeListener {

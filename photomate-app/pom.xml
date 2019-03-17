@@ -28,6 +28,10 @@
 			<artifactId>photomate-core</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>nl.alexeyu</groupId>
+			<artifactId>photomate-ftp-upload</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>photomate-search</artifactId>
 		</dependency>

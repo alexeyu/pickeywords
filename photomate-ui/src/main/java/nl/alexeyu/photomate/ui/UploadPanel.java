@@ -9,9 +9,9 @@ import com.google.common.eventbus.Subscribe;
 
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
 import nl.alexeyu.photomate.model.PhotoStock;
-import nl.alexeyu.photomate.service.upload.UploadErrorEvent;
-import nl.alexeyu.photomate.service.upload.UploadProgressEvent;
-import nl.alexeyu.photomate.service.upload.UploadSuccessEvent;
+import nl.alexeyu.photomate.upload.UploadErrorEvent;
+import nl.alexeyu.photomate.upload.UploadProgressEvent;
+import nl.alexeyu.photomate.upload.UploadSuccessEvent;
 
 public class UploadPanel extends JPanel {
 

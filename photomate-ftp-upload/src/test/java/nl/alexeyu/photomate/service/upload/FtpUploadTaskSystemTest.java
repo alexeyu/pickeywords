@@ -14,6 +14,8 @@ import com.google.common.io.Resources;
 
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
 import nl.alexeyu.photomate.model.FtpEndpoint;
+import nl.alexeyu.photomate.upload.FtpUploadTask;
+import nl.alexeyu.photomate.upload.UploadNotifier;
 
 public class FtpUploadTaskSystemTest {
 

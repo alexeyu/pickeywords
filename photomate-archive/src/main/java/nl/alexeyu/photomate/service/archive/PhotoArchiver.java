@@ -16,7 +16,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.common.eventbus.Subscribe;
 
-import nl.alexeyu.photomate.service.upload.UploadSuccessEvent;
+import nl.alexeyu.photomate.upload.UploadSuccessEvent;
 import nl.alexeyu.photomate.util.ConfigReader;
 import nl.alexeyu.photomate.util.MediaFileProcessors;
 

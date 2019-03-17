@@ -1,4 +1,4 @@
-package nl.alexeyu.photomate.service.upload;
+package nl.alexeyu.photomate.upload;
 
 public class UploadException extends RuntimeException {
 
