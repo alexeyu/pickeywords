@@ -1,6 +1,5 @@
 package nl.alexeyu.photomate.service.archive;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,6 +15,8 @@ import org.apache.logging.log4j.Logger;
 
 import com.google.common.eventbus.Subscribe;
 
+import nl.alexeyu.photomate.api.PhotoFileCleaner;
+import nl.alexeyu.photomate.thumbnail.FileThumbnailsProvider;
 import nl.alexeyu.photomate.upload.UploadSuccessEvent;
 import nl.alexeyu.photomate.util.ConfigReader;
 import nl.alexeyu.photomate.util.MediaFileProcessors;
@@ -27,6 +28,8 @@ public class PhotoArchiver implements Consumer<Path> {
     @Inject
     private ConfigReader configReader;
 
+    private PhotoFileCleaner photoFileCleaner = new PhotoFileCleaner("", FileThumbnailsProvider.CACHE_SUFFIX);
+    
     private Path archiveFolder;
 
     @Inject
@@ -62,10 +65,9 @@ public class PhotoArchiver implements Consumer<Path> {
         public void run() {
             var archiveCapacity = Integer.valueOf(configReader.getProperty("archiveCapacity").orElse("50"));
             MediaFileProcessors.JPEG.apply(archiveFolder)
-                .map(Path::toFile)
-                .sorted((a, b) -> Long.compare(b.lastModified(), a.lastModified()))
+                .sorted((a, b) -> Long.compare(b.toFile().lastModified(), a.toFile().lastModified()))
                 .skip(archiveCapacity)
-                .forEach(File::deleteOnExit);
+                .forEach(photoFileCleaner);
         }
 
     }

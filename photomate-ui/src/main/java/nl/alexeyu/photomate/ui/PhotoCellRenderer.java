@@ -46,9 +46,9 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
             int columnWidth = table.getColumnModel().getColumn(column).getWidth();
             return new ArchivePhotoLabel((ArchivePhoto) value, columnWidth).getComponent();
         } else if (value instanceof EditablePhoto) {
-            return new EdiatablePhotoPanel((EditablePhoto) value).getComponent(); 
+            return new EdiatablePhotoLabel((EditablePhoto) value).getComponent(); 
         } else if (value instanceof Photo) {
-            return new PhotoLabel<Photo>((Photo) value).getComponent();
+            return new PhotoLabel<>((Photo) value).getComponent();
         } else if (value == null) {
             return new JPanel();
         } else {
@@ -64,7 +64,7 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
 
         public PhotoLabel(T photo) {
             this.photo = photo;
-            component = createComponent();
+            this.component = createComponent();
         }
 
         protected JComponent createComponent() {
@@ -84,10 +84,10 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
 
     	private final int columnWidth;
 
-    	public ArchivePhotoLabel(ArchivePhoto photo, int columnWidth) {
-    		super(photo);
-    		this.columnWidth = columnWidth;
-    	}
+        public ArchivePhotoLabel(ArchivePhoto photo, int columnWidth) {
+            super(photo);
+            this.columnWidth = columnWidth;
+        }
     	
         @Override
         protected JComponent createComponent() {
@@ -98,14 +98,13 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
             return new JLabel(thumbnail) {
                 @Override
                 protected void paintComponent(Graphics g) {
+                    super.paintComponent(g);
                     if (photo.isDeleted()) {
-                        super.paintComponent(g);
                         var g2d = (Graphics2D) g;
                         g2d.setStroke(new BasicStroke(5));
                         g2d.setPaint(Color.red);
                         g2d.drawLine(0, 0, columnWidth, UiConstants.THUMBNAIL_SIZE.height);
                     } else {
-                        super.paintComponent(g);
                         g.drawImage(DELETE_IMAGE, columnWidth - CLICKABLE_ICON_SIZE - BORDER_WIDTH * 2, BORDER_WIDTH,
                                 CLICKABLE_ICON_SIZE, CLICKABLE_ICON_SIZE, null);
 
@@ -116,9 +115,9 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
         }
     }
 
-    private static class EdiatablePhotoPanel extends PhotoLabel<EditablePhoto> {
+    private static class EdiatablePhotoLabel extends PhotoLabel<EditablePhoto> {
 
-        public EdiatablePhotoPanel(EditablePhoto photo) {
+        public EdiatablePhotoLabel(EditablePhoto photo) {
             super(photo);
         }
 

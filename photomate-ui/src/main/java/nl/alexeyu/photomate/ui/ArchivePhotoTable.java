@@ -13,6 +13,7 @@ import javax.swing.JComponent;
 
 import nl.alexeyu.photomate.api.PhotoFileCleaner;
 import nl.alexeyu.photomate.api.archive.ArchivePhoto;
+import nl.alexeyu.photomate.thumbnail.FileThumbnailsProvider;
 
 public class ArchivePhotoTable extends PhotoTable<ArchivePhoto> {
 
@@ -29,7 +30,7 @@ public class ArchivePhotoTable extends PhotoTable<ArchivePhoto> {
 
     private class DeleteArchivedPhotoListener extends MouseAdapter {
 
-        private final Consumer<Path> cleaner = new PhotoFileCleaner();
+        private final Consumer<Path> cleaner = new PhotoFileCleaner("", FileThumbnailsProvider.CACHE_SUFFIX);
 
         @Override
         public void mouseClicked(MouseEvent e) {
