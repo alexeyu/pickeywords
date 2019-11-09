@@ -50,7 +50,11 @@ public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, R
     public void init() {
         Optional<String> resultsPerPageProperty = configReader.getProperty("stock.shutter.api.resultsPerPage");
         this.resultsPerPage = Integer.valueOf(resultsPerPageProperty.orElse(DEFAULT_RESULTS_PER_PAGE));
-        this.client = HttpClient.newBuilder().version(HTTP_1_1).authenticator(new PasswordAuthenticator()).build();
+        this.client = HttpClient.newBuilder()
+                .version(HTTP_1_1)
+                .authenticator(new PasswordAuthenticator())
+                .followRedirects(HttpClient.Redirect.NORMAL)
+                .build();
     }
 
     @Override
