@@ -1,9 +1,12 @@
 package nl.alexeyu.photomate.ui;
 
 import java.awt.Dimension;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,6 +30,8 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
 
     private final List<PhotoObserver<? super P>> observers = new ArrayList<>();
 
+    private List<Boolean> selected = new ArrayList<>();
+
     public PhotoTable(int columnCount) {
         this.columnCount = columnCount;
         init();
@@ -39,7 +44,7 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
 
     private void init() {
         setPhotos(List.of());
-        setDefaultRenderer(Object.class, new PhotoCellRenderer());
+        setDefaultRenderer(Object.class, new PhotoCellRenderer(idx -> selected.isEmpty() ? false : selected.get(idx)));
 
         setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         setCellSelectionEnabled(true);
@@ -49,6 +54,8 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
 
         setRowHeight(CELL_HEIGHT);
         setPreferredScrollableViewportSize(UiConstants.THUMBNAIL_SIZE);
+
+        addMouseListener(new PhotoMouseListener());
     }
 
     private void injectIntoParent(JComponent parent) {
@@ -69,6 +76,8 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
     }
 
     public void setPhotos(List<P> photos) {
+        selected.clear();
+        photos.forEach(photo -> selected.add(false));
         photos.forEach(photo -> photo.addPropertyChangeListener(this));
         var model = new PhotoTableModel<>(photos, columnCount);
         setModel(model);
@@ -82,8 +91,19 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
         return null;
     }
 
-    public Optional<P> getSelectedPhoto() {
+    public Optional<P> getActivePhoto() {
         return getModel().getValueAt(getSelectedRow(), getSelectedColumn());
+    }
+
+    public List<P> getSelectedPhotos() {
+        List<P> result = new ArrayList<>();
+        for (int index = 0; index < getModel().getRowCount(); index++) {
+            if (selected.get(index)) {
+                Optional<P> photo = getModel().getValueAt(index, 0);
+                photo.ifPresent(result::add);
+            }
+        }
+        return Collections.unmodifiableList(result);
     }
 
     @Override
@@ -95,10 +115,25 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
 
         @Override
         public void valueChanged(ListSelectionEvent e) {
-            var photo = getSelectedPhoto();
-            observers.forEach(observer -> observer.photoSelected(photo.orElse(null)));
+            var photo = getActivePhoto().orElse(null);
+            observers.forEach(observer -> observer.photoSelected(photo));
         }
 
     }
 
+    private class PhotoMouseListener extends MouseAdapter {
+
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            int relativeY = e.getY() % CELL_HEIGHT;
+            if (e.getX() > UiConstants.BOTTOM_LEFT_X_SELECTING_PHOTO &&
+                    relativeY < UiConstants.BOTTOM_LEFT_Y_SELECTING_PHOTO) {
+                int row = e.getY() / CELL_HEIGHT;
+                if (row < selected.size()) {
+                    selected.set(row, !selected.get(row));
+                    PhotoTable.this.repaint();
+                }
+            }
+        }
+    }
 }

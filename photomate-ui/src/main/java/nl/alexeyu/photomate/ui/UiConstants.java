@@ -21,4 +21,8 @@ public interface UiConstants {
 
     int CLICKABLE_ICON_SIZE = 32;
 
+    int BOTTOM_LEFT_X_SELECTING_PHOTO = THUMBNAIL_SIZE.width + 110;
+
+    int BOTTOM_LEFT_Y_SELECTING_PHOTO = 30;
+
 }

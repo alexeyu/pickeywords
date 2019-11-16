@@ -1,5 +1,8 @@
 package nl.alexeyu.photomate.service.metadata;
 
+import static nl.alexeyu.photomate.model.PhotoProperty.CAPTION;
+import static nl.alexeyu.photomate.model.PhotoProperty.CREATOR;
+import static nl.alexeyu.photomate.model.PhotoProperty.KEYWORDS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -9,7 +12,6 @@ import static org.mockito.Mockito.when;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -24,15 +26,15 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Sets;
 
 import nl.alexeyu.photomate.model.DefaultPhotoMetaDataBuilder;
-import nl.alexeyu.photomate.model.PhotoMetaData;
-import nl.alexeyu.photomate.model.PhotoProperty;
 import nl.alexeyu.photomate.util.CmdExecutor;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ExifPhotoMetadataProcessorTest {
 
-    private static final List<String> DEFAULT_RESPONSE = Arrays.asList("Image Description               : Coolpic",
-            "Title:My Photo", "Creator        : Me", "Keywords  : landscape, evening, summer");
+    private static final List<String> DEFAULT_RESPONSE = List.of(
+            "Image Description               : Coolpic",
+            "Title:My Photo", "Creator        : Me",
+            "Keywords  : landscape, evening, summer");
 
     private static final Joiner JOINER = Joiner.on(System.getProperty("line.separator"));
 
@@ -64,7 +66,7 @@ public class ExifPhotoMetadataProcessorTest {
     public void read() {
         when(executor.exec(Mockito.any(Path.class), Mockito.anyList())).thenReturn(JOINER.join(DEFAULT_RESPONSE));
 
-        PhotoMetaData metaData = processor.read(testPath);
+        var metaData = processor.read(testPath);
 
         verify(executor).exec(pathCaptor.capture(), argsCaptor.capture());
         verifyZeroInteractions(backupCleaner);
@@ -74,34 +76,34 @@ public class ExifPhotoMetadataProcessorTest {
 
         assertEquals("Coolpic", metaData.description());
         assertEquals("My Photo", metaData.caption());
-        assertEquals("Me", metaData.getProperty(PhotoProperty.CREATOR));
-        assertEquals(Arrays.asList("landscape", "evening", "summer"), metaData.keywords());
+        assertEquals("Me", metaData.getProperty(CREATOR));
+        assertEquals(List.of("landscape", "evening", "summer"), metaData.keywords());
     }
 
     @Test
     public void readEmptyResponse() {
         when(executor.exec(Mockito.eq(testPath), Mockito.anyList())).thenReturn("");
         verifyZeroInteractions(backupCleaner);
-        PhotoMetaData metaData = processor.read(testPath);
+        var metaData = processor.read(testPath);
 
         assertEquals("", metaData.description());
         assertEquals("", metaData.caption());
-        assertEquals("", metaData.getProperty(PhotoProperty.CREATOR));
+        assertEquals("", metaData.getProperty(CREATOR));
         assertTrue(metaData.keywords().isEmpty());
     }
 
     @Test
     @SuppressWarnings({ "unchecked" })
     public void changeCaption() {
-        PhotoMetaData oldMetaData = new DefaultPhotoMetaDataBuilder().build();
-        PhotoMetaData newMetaData = new DefaultPhotoMetaDataBuilder().set(PhotoProperty.CAPTION, "New Caption").build();
+        var oldMetaData = new DefaultPhotoMetaDataBuilder().build();
+        var newMetaData = new DefaultPhotoMetaDataBuilder().set(CAPTION, "New Caption").build();
         processor.update(testPath, oldMetaData, newMetaData);
 
         verify(executor).exec(pathCaptor.capture(), argsCaptor.capture());
         verify(backupCleaner).accept(pathCaptor.getValue());
         assertEquals(testPath, pathCaptor.getValue());
 
-        List<String> args = argsCaptor.getValue();
+        var args = argsCaptor.getValue();
         assertEquals(3, args.size());
         assertTrue(args.contains("-Caption-Abstract=New Caption"));
         assertTrue(args.contains("-ObjectName=New Caption"));
@@ -111,15 +113,15 @@ public class ExifPhotoMetadataProcessorTest {
     @Test
     @SuppressWarnings({ "unchecked" })
     public void changeCreator() {
-        PhotoMetaData oldMetaData = new DefaultPhotoMetaDataBuilder().build();
-        PhotoMetaData newMetaData = new DefaultPhotoMetaDataBuilder().set(PhotoProperty.CREATOR, "Me").build();
+        var oldMetaData = new DefaultPhotoMetaDataBuilder().build();
+        var newMetaData = new DefaultPhotoMetaDataBuilder().set(CREATOR, "Me").build();
         processor.update(testPath, oldMetaData, newMetaData);
 
         verify(executor).exec(pathCaptor.capture(), argsCaptor.capture());
         verify(backupCleaner).accept(pathCaptor.getValue());
         assertEquals(testPath, pathCaptor.getValue());
 
-        List<String> args = argsCaptor.getValue();
+        var args = argsCaptor.getValue();
         assertEquals(2, args.size());
         assertTrue(args.contains("-Creator=Me"));
         assertTrue(args.contains("-Copyright=Me"));
@@ -127,8 +129,8 @@ public class ExifPhotoMetadataProcessorTest {
 
     @Test
     public void dontCallExifIfMetadataNotChanged() {
-        PhotoMetaData oldMetaData = new DefaultPhotoMetaDataBuilder().set(PhotoProperty.CAPTION, "Caption").build();
-        PhotoMetaData newMetaData = new DefaultPhotoMetaDataBuilder().set(PhotoProperty.CAPTION, "Caption").build();
+        var oldMetaData = new DefaultPhotoMetaDataBuilder().set(CAPTION, "Caption").build();
+        var newMetaData = new DefaultPhotoMetaDataBuilder().set(CAPTION, "Caption").build();
         processor.update(testPath, oldMetaData, newMetaData);
         verifyZeroInteractions(executor);
         verifyZeroInteractions(backupCleaner);
@@ -137,18 +139,17 @@ public class ExifPhotoMetadataProcessorTest {
     @Test
     @SuppressWarnings({ "unchecked" })
     public void changeKeywords() {
-        PhotoMetaData oldMetaData = new DefaultPhotoMetaDataBuilder()
-                .set(PhotoProperty.KEYWORDS, Arrays.asList("summer", "evening")).build();
-        PhotoMetaData newMetaData = new DefaultPhotoMetaDataBuilder()
-                .set(PhotoProperty.KEYWORDS, Arrays.asList("landscape", "summer")).build();
+        var oldMetaData = new DefaultPhotoMetaDataBuilder().set(KEYWORDS, List.of("summer", "evening")).build();
+        var newMetaData = new DefaultPhotoMetaDataBuilder().set(KEYWORDS, List.of("landscape", "summer")).build();
         processor.update(testPath, oldMetaData, newMetaData);
 
         verify(executor).exec(pathCaptor.capture(), argsCaptor.capture());
         verify(backupCleaner).accept(pathCaptor.getValue());
         assertEquals(testPath, pathCaptor.getValue());
 
-        List<String> args = argsCaptor.getValue();
+        var args = argsCaptor.getValue();
         assertEquals(1, args.size());
         assertEquals("-keywords=landscape, summer", args.get(0));
     }
+
 }

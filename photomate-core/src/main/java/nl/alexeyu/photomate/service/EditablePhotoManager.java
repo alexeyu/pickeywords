@@ -6,15 +6,21 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.google.common.base.Strings;
+
+import nl.alexeyu.photomate.api.AbstractPhoto;
 import nl.alexeyu.photomate.api.LocalPhoto;
 import nl.alexeyu.photomate.api.LocalPhotoApi;
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
+import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.model.PhotoProperty;
 import nl.alexeyu.photomate.util.ConfigReader;
 import nl.alexeyu.photomate.util.MediaFileProcessors;
@@ -23,18 +29,22 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
 
     private List<EditablePhoto> photos = new ArrayList<>();
 
-    @Inject
-    @Named("photoApi")
     private LocalPhotoApi<EditablePhoto> photoApi;
 
-    @Inject
-    @Named("videoApi")
     private LocalPhotoApi<EditablePhoto> videoApi;
 
-    @Inject
     private ConfigReader configReader;
 
     private EditablePhoto currentPhoto;
+
+    @Inject
+    public EditablePhotoManager(@Named("photoApi") LocalPhotoApi<EditablePhoto> photoApi,
+                                @Named("videoApi") LocalPhotoApi<EditablePhoto> videoApi,
+                                ConfigReader configReader) {
+        this.photoApi = photoApi;
+        this.videoApi = videoApi;
+        this.configReader = configReader;
+    }
 
     public List<EditablePhoto> createPhotos(Path dir) {
         var photoPaths = MediaFileProcessors.JPEG.apply(dir);
@@ -64,6 +74,20 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
     @Override
     public void photoSelected(EditablePhoto photo) {
         this.currentPhoto = photo;
+    }
+
+    public void copyMetadata(LocalPhoto target, Photo source) {
+        if (!target.keywords().isEmpty()) {
+            var extendedKeywords = new LinkedHashSet<>(target.keywords());
+            extendedKeywords.addAll(source.metaData().keywords());
+            photoApi.updateProperty(target, PhotoProperty.KEYWORDS, extendedKeywords);
+        }
+        if (!Strings.isNullOrEmpty(source.metaData().caption())) {
+            photoApi.updateProperty(target, PhotoProperty.CAPTION, source.metaData().caption());
+        }
+        if (!Strings.isNullOrEmpty(source.metaData().description())) {
+            photoApi.updateProperty(target, PhotoProperty.DESCRIPTION, source.metaData().description());
+        }
     }
 
     private class PhotoCopyrightSetter implements PropertyChangeListener {

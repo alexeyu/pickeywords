@@ -1,6 +1,7 @@
 package nl.alexeyu.photomate.ui;
 
 import java.awt.BorderLayout;
+import java.util.List;
 import java.util.Optional;
 
 import javax.swing.JPanel;
@@ -25,8 +26,12 @@ public abstract class PhotoContainer<P extends AbstractPhoto> extends JPanel {
         photoTable.addObserver(photoObserver);
     }
 
-    public Optional<P> getSelectedPhoto() {
-        return photoTable.getSelectedPhoto();
+    public Optional<P> getActivePhoto() {
+        return photoTable.getActivePhoto();
+    }
+
+    public List<P> getSelectedPhotos() {
+        return photoTable.getSelectedPhotos();
     }
 
 }

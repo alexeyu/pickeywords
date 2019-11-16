@@ -13,11 +13,9 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.util.Optional;
+import java.util.function.Function;
 
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTable;
+import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 
 import nl.alexeyu.photomate.api.archive.ArchivePhoto;
@@ -28,25 +26,35 @@ import nl.alexeyu.photomate.util.StaticImageProvider;
 public class PhotoCellRenderer extends DefaultTableCellRenderer {
 	
     private static final Color BACKGROUND = new JPanel().getBackground();
-    
+
+    private final Function<Integer, Boolean> rowSelected;
+
+    public PhotoCellRenderer() {
+        this(x -> false);
+    }
+
+    public PhotoCellRenderer(Function<Integer, Boolean> rowSelected) {
+        this.rowSelected = rowSelected;
+    }
+
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, 
             boolean isSelected, boolean hasFocus, int row, int column) {
-    	var comp = createComponent(table, value, column);
+    	var comp = createComponent(table, value, column, rowSelected.apply(row));
         comp.setBorder(isSelected ? LINE_BORDER : EMPTY_BORDER);
         comp.setBackground(BACKGROUND);
         return comp;
     }
 
-    private JComponent createComponent(JTable table, Object value, int column) {
+    private JComponent createComponent(JTable table, Object value, int column, boolean selected) {
         if (value instanceof Optional) {
-            return createComponent(table, ((Optional<?>) value).orElse(null), column); 
+            return createComponent(table, ((Optional<?>) value).orElse(null), column, selected);
         }
         if (value instanceof ArchivePhoto) {
             int columnWidth = table.getColumnModel().getColumn(column).getWidth();
             return new ArchivePhotoLabel((ArchivePhoto) value, columnWidth).getComponent();
         } else if (value instanceof EditablePhoto) {
-            return new EdiatablePhotoLabel((EditablePhoto) value).getComponent(); 
+            return new EdiatablePhotoLabel((EditablePhoto) value, selected).getComponent();
         } else if (value instanceof Photo) {
             return new PhotoLabel<>((Photo) value).getComponent();
         } else if (value == null) {
@@ -60,11 +68,10 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
 
         final T photo;
 
-        final JComponent component;
+        JComponent component;
 
         public PhotoLabel(T photo) {
             this.photo = photo;
-            this.component = createComponent();
         }
 
         protected JComponent createComponent() {
@@ -73,6 +80,9 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
         }
 
         public final JComponent getComponent() {
+            if (component == null) {
+                component = createComponent();
+            }
             return component;
         }
 
@@ -117,8 +127,11 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
 
     private static class EdiatablePhotoLabel extends PhotoLabel<EditablePhoto> {
 
-        public EdiatablePhotoLabel(EditablePhoto photo) {
+        private final boolean selected;
+
+        public EdiatablePhotoLabel(EditablePhoto photo, boolean selected) {
             super(photo);
+            this.selected = selected;
         }
 
         @Override
@@ -131,6 +144,7 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
         }
 
         private JComponent createTitle(EditablePhoto photo) {
+            var panel = new JPanel(new BorderLayout());
             var title = photo.name();
             var metadata = photo.metaData();
             if (!metadata.isEmpty()) {
@@ -141,7 +155,11 @@ public class PhotoCellRenderer extends DefaultTableCellRenderer {
                 nameLabel.setIcon(StaticImageProvider.getImage("error.png"));
             }
             nameLabel.setForeground(Color.GRAY);
-            return nameLabel;
+            panel.add(nameLabel, BorderLayout.WEST);
+            var selector = new JCheckBox("");
+            panel.add(selector, BorderLayout.EAST);
+            selector.setSelected(selected);
+            return panel;
         }
 
     }

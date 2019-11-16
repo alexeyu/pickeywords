@@ -7,6 +7,7 @@ import java.awt.dnd.DropTarget;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
+import java.util.List;
 
 import javax.swing.DefaultListModel;
 
@@ -41,14 +42,15 @@ public class ReadonlyPhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<Abstr
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (photo != null && e.getClickCount() >= 2) {
-                    var model = (DefaultListModel<String>) keywordList.getModel();
-                    var values = new String[model.size()];
-                    model.copyInto(values);
-                    firePropertyChange(PhotoProperty.KEYWORDS.propertyName(), null, Arrays.asList(values));
+                    firePropertyChange(PhotoProperty.KEYWORDS.propertyName(), null, keywordList.getSelectedValuesList());
                 }
             }
         });
 
+    }
+
+    public List<String> getSelectedKeywords() {
+        return keywordList.getSelectedValuesList();
     }
 
 }
