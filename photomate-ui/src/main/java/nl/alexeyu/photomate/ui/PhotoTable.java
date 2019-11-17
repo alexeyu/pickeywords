@@ -19,12 +19,21 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import nl.alexeyu.photomate.api.AbstractPhoto;
 import nl.alexeyu.photomate.service.PhotoObserver;
 
 public class PhotoTable<P extends AbstractPhoto> extends JTable implements PropertyChangeListener {
 
+    private static final Logger logger = LogManager.getLogger();
+
     private static final int CELL_HEIGHT = UiConstants.THUMBNAIL_SIZE.height + 16;
+
+    private static final int BOTTOM_LEFT_X_SELECTING_PHOTO = 50;
+
+    private static final int BOTTOM_LEFT_Y_SELECTING_PHOTO = 30;
 
     private final int columnCount;
 
@@ -125,9 +134,10 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
 
         @Override
         public void mouseClicked(MouseEvent e) {
+            logger.debug("Click: x {}, width {}", e.getX(), PhotoTable.this.getWidth());
             int relativeY = e.getY() % CELL_HEIGHT;
-            if (e.getX() > UiConstants.BOTTOM_LEFT_X_SELECTING_PHOTO &&
-                    relativeY < UiConstants.BOTTOM_LEFT_Y_SELECTING_PHOTO) {
+            if (e.getX() > PhotoTable.this.getWidth() - BOTTOM_LEFT_X_SELECTING_PHOTO &&
+                    relativeY < BOTTOM_LEFT_Y_SELECTING_PHOTO) {
                 int row = e.getY() / CELL_HEIGHT;
                 if (row < selected.size()) {
                     selected.set(row, !selected.get(row));

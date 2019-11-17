@@ -43,7 +43,7 @@ public class ExifMetadataProcessor implements PhotoMetadataProcessor {
 
     private final CmdExecutor executor;
 
-    private final BiFunction<PhotoMetaData, PhotoMetaData, Stream<String>> changedKeywordsProvider;
+    private final BiFunction<PhotoMetaData, PhotoMetaData, List<String>> changedKeywordsProvider;
 
     private final Consumer<Path> photoCleaner;
 
@@ -53,7 +53,7 @@ public class ExifMetadataProcessor implements PhotoMetadataProcessor {
             PhotoProperty.CREATOR, List.of(CREATOR, COPYRIGHT));
 
     public ExifMetadataProcessor(CmdExecutor executor, 
-            BiFunction<PhotoMetaData, PhotoMetaData, Stream<String>> changedKeywordsProvider,
+            BiFunction<PhotoMetaData, PhotoMetaData, List<String>> changedKeywordsProvider,
             Consumer<Path> photoCleaner) {
         this.executor = executor;
         this.changedKeywordsProvider = changedKeywordsProvider;
@@ -103,9 +103,10 @@ public class ExifMetadataProcessor implements PhotoMetadataProcessor {
     private List<String> getUpdateArguments(PhotoMetaData oldMetaData, PhotoMetaData newMetaData) {
         var arguments = PHOTO_TO_EXIF_PROPERTIES.keySet().stream()
                 .filter(p -> !oldMetaData.getProperty(p).equals(newMetaData.getProperty(p)))
-                .flatMap(p -> args(newMetaData, p));
-        var changedKeywords = changedKeywordsProvider.apply(oldMetaData, newMetaData);
-        return Stream.concat(arguments, changedKeywords).collect(Collectors.toList());
+                .flatMap(p -> args(newMetaData, p))
+                .collect(Collectors.toList());
+        arguments.addAll(changedKeywordsProvider.apply(oldMetaData, newMetaData));
+        return arguments;
     }
 
 }

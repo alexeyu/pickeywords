@@ -88,7 +88,7 @@ public class Main implements PropertyChangeListener {
 
     private void activateWindow() {
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.setSize(1600, 1000);
+        frame.setSize(1500, 900);
         frame.setVisible(true);
     }
 
