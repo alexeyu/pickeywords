@@ -18,7 +18,7 @@ import com.google.common.eventbus.Subscribe;
 import nl.alexeyu.photomate.api.PhotoFileCleaner;
 import nl.alexeyu.photomate.thumbnail.FileThumbnailsProvider;
 import nl.alexeyu.photomate.upload.UploadSuccessEvent;
-import nl.alexeyu.photomate.util.ConfigReader;
+import nl.alexeyu.photomate.util.Configuration;
 import nl.alexeyu.photomate.util.MediaFileProcessors;
 
 public class PhotoArchiver implements Consumer<Path> {
@@ -26,7 +26,7 @@ public class PhotoArchiver implements Consumer<Path> {
     private ConcurrentSkipListSet<String> archivedPhotos = new ConcurrentSkipListSet<>();
 
     @Inject
-    private ConfigReader configReader;
+    private Configuration configuration;
 
     private PhotoFileCleaner photoFileCleaner = new PhotoFileCleaner("", FileThumbnailsProvider.CACHE_SUFFIX);
     
@@ -34,7 +34,7 @@ public class PhotoArchiver implements Consumer<Path> {
 
     @Inject
     public void init() {
-        archiveFolder = configReader.getProperty("archiveFolder").map(Paths::get).orElse(createTempDir());
+        archiveFolder = configuration.getProperty("archiveFolder").map(Paths::get).orElse(createTempDir());
         CompletableFuture.runAsync(new CleanupOldPhotos());
     }
 
@@ -63,7 +63,7 @@ public class PhotoArchiver implements Consumer<Path> {
 
         @Override
         public void run() {
-            var archiveCapacity = Integer.valueOf(configReader.getProperty("archiveCapacity").orElse("50"));
+            var archiveCapacity = Integer.valueOf(configuration.getProperty("archiveCapacity").orElse("50"));
             MediaFileProcessors.JPEG.apply(archiveFolder)
                 .sorted((a, b) -> Long.compare(b.toFile().lastModified(), a.toFile().lastModified()))
                 .skip(archiveCapacity)

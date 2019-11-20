@@ -29,7 +29,7 @@ import com.google.common.base.Charsets;
 import nl.alexeyu.photomate.api.PhotoApi;
 import nl.alexeyu.photomate.search.api.PhotoStockApi;
 import nl.alexeyu.photomate.search.api.RemotePhoto;
-import nl.alexeyu.photomate.util.ConfigReader;
+import nl.alexeyu.photomate.util.Configuration;
 
 public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, RemotePhoto>, PhotoStockApi {
 
@@ -40,7 +40,7 @@ public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, R
     private static final String QUERY_TEMPLATE = "http://api.shutterstock.com/images/search.json?searchterm=%s&results_per_page=%s&search_group=photos";
 
     @Inject
-    private ConfigReader configReader;
+    private Configuration configuration;
 
     private HttpClient client;
 
@@ -48,7 +48,7 @@ public class ShutterPhotoStockApi implements PhotoApi<ShutterPhotoDescription, R
 
     @Inject
     public void init() {
-        Optional<String> resultsPerPageProperty = configReader.getProperty("stock.shutter.api.resultsPerPage");
+        Optional<String> resultsPerPageProperty = configuration.getProperty("stock.shutter.api.resultsPerPage");
         this.resultsPerPage = Integer.valueOf(resultsPerPageProperty.orElse(DEFAULT_RESULTS_PER_PAGE));
         this.client = HttpClient.newBuilder()
                 .version(HTTP_1_1)

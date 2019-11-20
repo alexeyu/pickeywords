@@ -8,16 +8,16 @@ import javax.inject.Inject;
 import com.google.common.eventbus.EventBus;
 
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
-import nl.alexeyu.photomate.model.FtpEndpoint;
+import nl.alexeyu.photomate.model.PhotoStockAccess;
 import nl.alexeyu.photomate.model.PhotoStock;
-import nl.alexeyu.photomate.util.ConfigReader;
+import nl.alexeyu.photomate.util.Configuration;
 import reactor.core.publisher.Mono;
 
 public final class PhotoUploader {
 
     private static final int DEFAULT_UPLOAD_ATTEMPTS = 2;
 
-    private final ConfigReader configReader;
+    private final Configuration configuration;
 
     private final UploadNotifier notifier;
 
@@ -26,20 +26,20 @@ public final class PhotoUploader {
     private final int attempts;
 
     @Inject
-    public PhotoUploader(ConfigReader configReader, EventBus eventBus, UploadTaskFactory taskFactory) {
-        this.configReader = configReader;
+    public PhotoUploader(Configuration configuration, EventBus eventBus, UploadTaskFactory taskFactory) {
+        this.configuration = configuration;
         this.notifier = new EventBusUploadNotifier(eventBus);
         this.taskFactory = taskFactory;
         this.attempts = Integer
-                .valueOf(configReader.getProperty("uploadAttempts").orElse("" + DEFAULT_UPLOAD_ATTEMPTS));
+                .valueOf(configuration.getProperty("uploadAttempts").orElse("" + DEFAULT_UPLOAD_ATTEMPTS));
     }
 
     public void uploadPhotos(List<EditablePhoto> photos) {
-        configReader.getPhotoStocks().stream().map(PhotoStock::ftpEndpoint)
+        configuration.getPhotoStocks().stream().map(PhotoStock::ftpEndpoint)
                 .forEach(endpoint -> CompletableFuture.runAsync(() -> uploadPhotos(photos, endpoint)));
     }
 
-    private void uploadPhotos(List<EditablePhoto> photos, FtpEndpoint endpoint) {
+    private void uploadPhotos(List<EditablePhoto> photos, PhotoStockAccess endpoint) {
         photos.forEach(photo -> {
             notifier.notifyProgress(photo, endpoint, 0);
             Mono.fromRunnable(taskFactory.create(photo, endpoint, notifier))

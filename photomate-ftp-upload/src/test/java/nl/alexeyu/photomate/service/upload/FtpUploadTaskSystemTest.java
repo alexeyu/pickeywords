@@ -13,7 +13,7 @@ import org.junit.Test;
 import com.google.common.io.Resources;
 
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
-import nl.alexeyu.photomate.model.FtpEndpoint;
+import nl.alexeyu.photomate.model.PhotoStockAccess;
 import nl.alexeyu.photomate.upload.FtpUploadTask;
 import nl.alexeyu.photomate.upload.UploadNotifier;
 
@@ -29,7 +29,7 @@ public class FtpUploadTaskSystemTest {
         EditablePhoto photo = new EditablePhoto(sourcePhotoPath);
         // An FTP server must run and the user with the specified name/password must
         // exist
-        FtpEndpoint endpoint = new FtpEndpoint("localhost", "ftptest", "ftptest");
+        PhotoStockAccess endpoint = new PhotoStockAccess("localhost", "ftptest", "ftptest");
         task = new FtpUploadTask(photo, endpoint, new NoopUploadNotifier());
         Files.deleteIfExists(targetPhotoPath);
     }
@@ -53,15 +53,15 @@ public class FtpUploadTaskSystemTest {
     private static class NoopUploadNotifier implements UploadNotifier {
 
         @Override
-        public void notifyProgress(EditablePhoto photo, FtpEndpoint endpoint, long bytes) {
+        public void notifyProgress(EditablePhoto photo, PhotoStockAccess endpoint, long bytes) {
         }
 
         @Override
-        public void notifyError(EditablePhoto photo, FtpEndpoint endpoint, Exception ex) {
+        public void notifyError(EditablePhoto photo, PhotoStockAccess endpoint, Exception ex) {
         }
 
         @Override
-        public void notifySuccess(EditablePhoto photo, FtpEndpoint endpoint) {
+        public void notifySuccess(EditablePhoto photo, PhotoStockAccess endpoint) {
         }
 
     }

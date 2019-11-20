@@ -32,7 +32,7 @@ import nl.alexeyu.photomate.ui.StockPhotoContainer;
 import nl.alexeyu.photomate.ui.UiConstants;
 import nl.alexeyu.photomate.ui.UploadPanel;
 import nl.alexeyu.photomate.upload.PhotoUploader;
-import nl.alexeyu.photomate.util.ConfigReader;
+import nl.alexeyu.photomate.util.Configuration;
 
 public class Main implements PropertyChangeListener {
 	
@@ -69,7 +69,7 @@ public class Main implements PropertyChangeListener {
     private ArchivePhotoContainer archivePhotoContainer;
 
     @Inject
-    private ConfigReader configReader;
+    private Configuration configuration;
 
     @Inject
     private PhotoUploader photoUploader;
@@ -79,7 +79,7 @@ public class Main implements PropertyChangeListener {
 
     public void start() {
         registerPhotoSources();
-        dirChooser = new DirChooser(configReader.getProperty(DEFAULT_FOLDER_PROPERTY).orElse(null));
+        dirChooser = new DirChooser(configuration.getProperty(DEFAULT_FOLDER_PROPERTY).orElse(null));
         initListeners();
         buildGraphics();
         dirChooser.init();
@@ -218,7 +218,7 @@ public class Main implements PropertyChangeListener {
         public void actionPerformed(ActionEvent e) {
             try {
                 var photos = photoManager.validatePhotos();
-                var uploadPanel = new UploadPanel(photos, configReader.getPhotoStocks());
+                var uploadPanel = new UploadPanel(photos, configuration.getPhotoStocks());
                 eventBus.register(uploadPanel);
                 frame.getContentPane().removeAll();
                 frame.getContentPane().add(new JScrollPane(uploadPanel));

@@ -12,7 +12,7 @@ import org.junit.Test;
 
 public class ConfigReaderTest {
 
-    private ConfigReader configReader;
+    private Configuration configuration;
 
     private Properties properties;
 
@@ -24,22 +24,22 @@ public class ConfigReaderTest {
         properties.put("stock.test.ftp.url", "ftp://test.com");
         properties.put("stock.test.ftp.username", "photographer");
         properties.put("stock.test.ftp.password", "#12");
-        configReader = new ConfigReader(properties);
+        configuration = new Configuration(properties);
     }
 
     @Test
     public void readExistingProperty() {
-        assertEquals("Cannot read a defined property", "test-stock", configReader.getProperty("stock.test.name").get());
+        assertEquals("Cannot read a defined property", "test-stock", configuration.getProperty("stock.test.name").get());
     }
 
     @Test
     public void readNotDefinedProperty() {
-        assertFalse("Undefined property must not be available", configReader.getProperty("undefined").isPresent());
+        assertFalse("Undefined property must not be available", configuration.getProperty("undefined").isPresent());
     }
 
     @Test
     public void readPhotoStock() {
-        List<PhotoStock> stocks = configReader.getPhotoStocks();
+        List<PhotoStock> stocks = configuration.getPhotoStocks();
         assertEquals("Must read one stock", 1, stocks.size());
         PhotoStock stock = stocks.get(0);
         assertEquals("test-stock", stock.name());
@@ -52,8 +52,8 @@ public class ConfigReaderTest {
     @Test
     public void doNotReadPhotoStockWithoutName() {
         properties.remove("stock.test.name");
-        configReader = new ConfigReader(properties);
-        assertEquals("Must not read a stock when its name is not defined", 0, configReader.getPhotoStocks().size());
+        configuration = new Configuration(properties);
+        assertEquals("Must not read a stock when its name is not defined", 0, configuration.getPhotoStocks().size());
     }
 
 }

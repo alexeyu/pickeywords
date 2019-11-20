@@ -21,7 +21,7 @@ import nl.alexeyu.photomate.api.LocalPhoto;
 import nl.alexeyu.photomate.api.LocalPhotoApi;
 import nl.alexeyu.photomate.model.DefaultPhotoMetaDataBuilder;
 import nl.alexeyu.photomate.model.PhotoProperty;
-import nl.alexeyu.photomate.util.ConfigReader;
+import nl.alexeyu.photomate.util.Configuration;
 
 public class EditablePhotoManagerTest {
 
@@ -31,14 +31,14 @@ public class EditablePhotoManagerTest {
 
     private LocalPhotoApi videoApi;
 
-    private ConfigReader configReader;
+    private Configuration configuration;
 
     @Before
     public void init() {
         photoApi = Mockito.mock(LocalPhotoApi.class);
         videoApi = Mockito.mock(LocalPhotoApi.class);
-        configReader = Mockito.mock(ConfigReader.class);
-        photoManager = new EditablePhotoManager(photoApi, videoApi, configReader);
+        configuration = Mockito.mock(Configuration.class);
+        photoManager = new EditablePhotoManager(photoApi, videoApi, configuration);
     }
 
     @Test

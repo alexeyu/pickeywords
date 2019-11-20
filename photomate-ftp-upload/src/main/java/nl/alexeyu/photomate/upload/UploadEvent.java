@@ -1,15 +1,15 @@
 package nl.alexeyu.photomate.upload;
 
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
-import nl.alexeyu.photomate.model.FtpEndpoint;
+import nl.alexeyu.photomate.model.PhotoStockAccess;
 
 public abstract class UploadEvent {
 
     protected final EditablePhoto photo;
 
-    protected final FtpEndpoint endpoint;
+    protected final PhotoStockAccess endpoint;
 
-    public UploadEvent(EditablePhoto photo, FtpEndpoint endpoint) {
+    public UploadEvent(EditablePhoto photo, PhotoStockAccess endpoint) {
         this.photo = photo;
         this.endpoint = endpoint;
     }
@@ -18,7 +18,7 @@ public abstract class UploadEvent {
         return photo;
     }
 
-    public FtpEndpoint getEndpoint() {
+    public PhotoStockAccess getEndpoint() {
         return endpoint;
     }
 

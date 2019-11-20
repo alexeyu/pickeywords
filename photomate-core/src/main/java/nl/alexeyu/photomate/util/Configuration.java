@@ -12,11 +12,11 @@ import java.util.stream.Collectors;
 
 import javax.inject.Singleton;
 
-import nl.alexeyu.photomate.model.FtpEndpoint;
+import nl.alexeyu.photomate.model.PhotoStockAccess;
 import nl.alexeyu.photomate.model.PhotoStock;
 
 @Singleton
-public class ConfigReader {
+public class Configuration {
 
     private static final String CONFIG_LOCATION_SYS_PROP = "configfile";
 
@@ -28,15 +28,15 @@ public class ConfigReader {
 
     private final List<PhotoStock> photoStocks;
 
-    public ConfigReader(Properties props) {
+    public Configuration(Properties props) {
         this.properties = new Properties(props);
         photoStocks = readPhotoStocks();
     }
 
-    public static ConfigReader createDefault() {
+    public static Configuration createDefault() {
         var location = System.getProperty(CONFIG_LOCATION_SYS_PROP);
         if (location == null) {
-            try (var is = ConfigReader.class.getResourceAsStream(DEFAULT_CONFIG_FILE)) {
+            try (var is = Configuration.class.getResourceAsStream(DEFAULT_CONFIG_FILE)) {
                 return from(is);
             } catch (IOException ex) {
                 throw new IllegalStateException(ex);
@@ -49,16 +49,19 @@ public class ConfigReader {
         }
     }
 
-    public static ConfigReader from(InputStream is) throws IOException {
+    public static Configuration from(InputStream is) throws IOException {
         var props = new Properties();
         props.load(is);
-        return new ConfigReader(props);
+        return new Configuration(props);
     }
 
     private List<PhotoStock> readPhotoStocks() {
-        return properties.stringPropertyNames().stream().filter(prop -> isNotCommentedOut(prop))
-                .map(prop -> PHOTO_STOCK_NAME.matcher(prop)).filter(matcher -> matcher.matches())
-                .map(matcher -> readPhotoStock(matcher.group(1))).collect(Collectors.toList());
+        return properties.stringPropertyNames().stream()
+                .filter(prop -> isNotCommentedOut(prop))
+                .map(prop -> PHOTO_STOCK_NAME.matcher(prop))
+                .filter(matcher -> matcher.matches())
+                .map(matcher -> readPhotoStock(matcher.group(1)))
+                .collect(Collectors.toList());
     }
 
     private boolean isNotCommentedOut(String prop) {
@@ -72,7 +75,7 @@ public class ConfigReader {
         var ftpUrl = getProperty(prefix + "ftp.url").orElse("");
         var ftpUsername = getProperty(prefix + "ftp.username").orElse("");
         var ftpPassword = getProperty(prefix + "ftp.password").orElse("");
-        return new PhotoStock(name, icon, new FtpEndpoint(ftpUrl, ftpUsername, ftpPassword));
+        return new PhotoStock(name, icon, new PhotoStockAccess(ftpUrl, ftpUsername, ftpPassword));
     }
 
     public List<PhotoStock> getPhotoStocks() {

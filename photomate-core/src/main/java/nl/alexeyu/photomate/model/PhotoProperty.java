@@ -24,7 +24,9 @@ public enum PhotoProperty {
     }
 
     public static PhotoProperty of(String s) {
-        return Stream.of(values()).filter(val -> val.propertyName.equals(s)).findFirst()
+        return Stream.of(values())
+                .filter(val -> val.propertyName.equals(s))
+                .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Not found: " + s));
     }
 

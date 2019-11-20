@@ -26,7 +26,7 @@ import nl.alexeyu.photomate.thumbnail.PhotoBufferedImageProvider;
 import nl.alexeyu.photomate.thumbnail.ScalingThumbnailsProvider;
 import nl.alexeyu.photomate.thumbnail.ThumbnailsProvider;
 import nl.alexeyu.photomate.thumbnail.VideoBufferedImageProvider;
-import nl.alexeyu.photomate.util.ConfigReader;
+import nl.alexeyu.photomate.util.Configuration;
 import nl.alexeyu.photomate.util.DefaultCmdExecutor;
 
 public class AppModule extends AbstractModule {
@@ -40,7 +40,7 @@ public class AppModule extends AbstractModule {
         bind(PhotoMetadataReader.class).toInstance(photoMetadataProcessor);
         bind(PhotoMetadataProcessor.class).toInstance(photoMetadataProcessor);
         bind(PhotoStockApi.class).to(ShutterPhotoStockApi.class);
-        bind(ConfigReader.class).toInstance(ConfigReader.createDefault());
+        bind(Configuration.class).toInstance(Configuration.createDefault());
 
         var thumbnailProvider = new ImgscalrThumbnailProvider(THUMBNAIL_SIZE);
         var previewProvider = new ImgscalrThumbnailProvider(PREVIEW_SIZE);

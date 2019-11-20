@@ -6,7 +6,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,13 +15,12 @@ import javax.inject.Named;
 
 import com.google.common.base.Strings;
 
-import nl.alexeyu.photomate.api.AbstractPhoto;
 import nl.alexeyu.photomate.api.LocalPhoto;
 import nl.alexeyu.photomate.api.LocalPhotoApi;
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
 import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.model.PhotoProperty;
-import nl.alexeyu.photomate.util.ConfigReader;
+import nl.alexeyu.photomate.util.Configuration;
 import nl.alexeyu.photomate.util.MediaFileProcessors;
 
 public class EditablePhotoManager implements PropertyChangeListener, PhotoObserver<EditablePhoto> {
@@ -33,17 +31,17 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
 
     private LocalPhotoApi<EditablePhoto> videoApi;
 
-    private ConfigReader configReader;
+    private Configuration configuration;
 
     private EditablePhoto currentPhoto;
 
     @Inject
     public EditablePhotoManager(@Named("photoApi") LocalPhotoApi<EditablePhoto> photoApi,
                                 @Named("videoApi") LocalPhotoApi<EditablePhoto> videoApi,
-                                ConfigReader configReader) {
+                                Configuration configuration) {
         this.photoApi = photoApi;
         this.videoApi = videoApi;
-        this.configReader = configReader;
+        this.configuration = configuration;
     }
 
     public List<EditablePhoto> createPhotos(Path dir) {
@@ -51,7 +49,7 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
         var videoPaths = MediaFileProcessors.MPEG4.apply(dir);
         this.photos = photoApi.createPhotos(photoPaths, EditablePhoto::new);
         this.photos.addAll(videoApi.createPhotos(videoPaths, EditablePhoto::new));
-        configReader.getProperty("copyright").map(PhotoCopyrightSetter::new)
+        configuration.getProperty("copyright").map(PhotoCopyrightSetter::new)
                 .ifPresent(creator -> photos.forEach(photo -> photo.addPropertyChangeListener(creator)));
         return photos;
     }
@@ -94,7 +92,7 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
 
         private final String creator;
 
-        public PhotoCopyrightSetter(String creator) {
+        private PhotoCopyrightSetter(String creator) {
             this.creator = creator;
         }
 

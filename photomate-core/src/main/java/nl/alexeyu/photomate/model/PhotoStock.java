@@ -8,12 +8,12 @@ public final class PhotoStock {
 
     private final String iconUrl;
 
-    private final FtpEndpoint ftpEndpoint;
+    private final PhotoStockAccess access;
 
-    public PhotoStock(String name, String iconUrl, FtpEndpoint ftpEndpoint) {
+    public PhotoStock(String name, String iconUrl, PhotoStockAccess access) {
         this.name = name;
         this.iconUrl = iconUrl;
-        this.ftpEndpoint = ftpEndpoint;
+        this.access = access;
     }
 
     public String name() {
@@ -24,8 +24,8 @@ public final class PhotoStock {
         return iconUrl;
     }
 
-    public FtpEndpoint ftpEndpoint() {
-        return ftpEndpoint;
+    public PhotoStockAccess ftpEndpoint() {
+        return access;
     }
 
     @Override

@@ -11,7 +11,7 @@ import com.google.inject.name.Named;
 
 import nl.alexeyu.photomate.api.LocalPhotoApi;
 import nl.alexeyu.photomate.api.archive.ArchivePhoto;
-import nl.alexeyu.photomate.util.ConfigReader;
+import nl.alexeyu.photomate.util.Configuration;
 import nl.alexeyu.photomate.util.MediaFileProcessors;
 
 public class ArchivePhotoContainer extends PhotoContainer<ArchivePhoto> {
@@ -19,7 +19,7 @@ public class ArchivePhotoContainer extends PhotoContainer<ArchivePhoto> {
     private static final int COLUMN_COUNT = 4;
 
     @Inject
-    private ConfigReader configReader;
+    private Configuration configuration;
 
     @Inject
     @Named("archiveApi")
@@ -36,7 +36,7 @@ public class ArchivePhotoContainer extends PhotoContainer<ArchivePhoto> {
 
     @Inject
     public void init() throws IOException {
-        configReader.getProperty("archiveFolder").ifPresent(arcFolder -> {
+        configuration.getProperty("archiveFolder").ifPresent(arcFolder -> {
             var dir = Paths.get(arcFolder);
             if (Files.exists(dir)) {
                 readPhotos(dir);

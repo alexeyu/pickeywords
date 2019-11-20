@@ -1,6 +1,6 @@
 package nl.alexeyu.photomate.model;
 
-public final class FtpEndpoint {
+public final class PhotoStockAccess {
 
     private final String url;
 
@@ -8,7 +8,7 @@ public final class FtpEndpoint {
 
     private final String password;
 
-    public FtpEndpoint(String url, String username, String password) {
+    public PhotoStockAccess(String url, String username, String password) {
         this.url = url;
         this.username = username;
         this.password = password;

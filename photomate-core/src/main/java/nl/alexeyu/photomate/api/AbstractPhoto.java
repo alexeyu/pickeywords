@@ -14,8 +14,6 @@ import javax.swing.ImageIcon;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.google.common.base.Preconditions;
-
 import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.model.PhotoMetaData;
 
@@ -71,7 +69,6 @@ public abstract class AbstractPhoto implements Photo {
     }
     
     public final Collection<String> keywords() {
-        Preconditions.checkNotNull(metaData.get());
     	return metaData.get().keywords();
     }
 

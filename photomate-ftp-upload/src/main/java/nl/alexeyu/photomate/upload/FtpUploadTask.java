@@ -11,7 +11,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
-import nl.alexeyu.photomate.model.FtpEndpoint;
+import nl.alexeyu.photomate.model.PhotoStockAccess;
 
 public class FtpUploadTask implements Runnable, CopyStreamListener {
 
@@ -23,11 +23,11 @@ public class FtpUploadTask implements Runnable, CopyStreamListener {
 
     private final EditablePhoto photo;
 
-    private final FtpEndpoint endpoint;
+    private final PhotoStockAccess endpoint;
 
     private final UploadNotifier notifier;
 
-    public FtpUploadTask(EditablePhoto photo, FtpEndpoint endpoint, UploadNotifier notifier) {
+    public FtpUploadTask(EditablePhoto photo, PhotoStockAccess endpoint, UploadNotifier notifier) {
         this.photo = photo;
         this.endpoint = endpoint;
         this.notifier = notifier;

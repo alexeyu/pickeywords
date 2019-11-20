@@ -3,7 +3,7 @@ package nl.alexeyu.photomate.upload;
 import java.util.Random;
 
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
-import nl.alexeyu.photomate.model.FtpEndpoint;
+import nl.alexeyu.photomate.model.PhotoStockAccess;
 
 public class FakeUploadTask implements Runnable {
 
@@ -11,11 +11,11 @@ public class FakeUploadTask implements Runnable {
 
     private final EditablePhoto photo;
 
-    private final FtpEndpoint endpoint;
+    private final PhotoStockAccess endpoint;
 
     private final UploadNotifier notifier;
 
-    public FakeUploadTask(EditablePhoto photo, FtpEndpoint endpoint, UploadNotifier notifier) {
+    public FakeUploadTask(EditablePhoto photo, PhotoStockAccess endpoint, UploadNotifier notifier) {
         this.photo = photo;
         this.endpoint = endpoint;
         this.notifier = notifier;
