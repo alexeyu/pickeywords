@@ -3,6 +3,7 @@ package nl.alexeyu.photomate.ui;
 import java.awt.BorderLayout;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import javax.swing.JPanel;
 
@@ -18,8 +19,12 @@ public abstract class PhotoContainer<P extends AbstractPhoto> extends JPanel {
         photoTable = createPhotoTable(columnCount);
     }
     
-    protected PhotoTable<P> createPhotoTable(int columnCount) {
+    private PhotoTable<P> createPhotoTable(int columnCount) {
     	return new PhotoTable<>(columnCount, this);
+    }
+
+    public void setHighlightedPhotoConsumer(Consumer<P> consumer) {
+        photoTable.setHighlightedPhotoConsumer(consumer);
     }
     
     public void addPhotoObserver(PhotoObserver<? super P> photoObserver) {

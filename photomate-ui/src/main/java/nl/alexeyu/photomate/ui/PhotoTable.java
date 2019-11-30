@@ -1,6 +1,6 @@
 package nl.alexeyu.photomate.ui;
 
-import java.awt.Dimension;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
@@ -9,13 +9,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
-import javax.swing.JComponent;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -25,7 +21,7 @@ import org.apache.logging.log4j.Logger;
 import nl.alexeyu.photomate.api.AbstractPhoto;
 import nl.alexeyu.photomate.service.PhotoObserver;
 
-public class PhotoTable<P extends AbstractPhoto> extends JTable implements PropertyChangeListener {
+final class PhotoTable<P extends AbstractPhoto> extends JTable implements PropertyChangeListener {
 
     private static final Logger logger = LogManager.getLogger();
 
@@ -39,7 +35,9 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
 
     private final List<PhotoObserver<? super P>> observers = new ArrayList<>();
 
-    private List<Boolean> selected = new ArrayList<>();
+    private final List<Boolean> selected = new ArrayList<>();
+
+    private Consumer<P> highlightedPhotoConsumer = p -> {};
 
     public PhotoTable(int columnCount) {
         this.columnCount = columnCount;
@@ -49,6 +47,10 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
     public PhotoTable(int columnCount, JComponent parent) {
         this(columnCount);
         injectIntoParent(parent);
+    }
+
+    public void setHighlightedPhotoConsumer(Consumer<P> consumer) {
+        this.highlightedPhotoConsumer = consumer;
     }
 
     private void init() {
@@ -130,19 +132,27 @@ public class PhotoTable<P extends AbstractPhoto> extends JTable implements Prope
 
     }
 
+    private void invertPhotoSelection(int x, int y) {
+        logger.debug("Click: x {}, width {}", x, getWidth());
+        int relativeY = y % CELL_HEIGHT;
+        if (x > getWidth() - BOTTOM_LEFT_X_SELECTING_PHOTO &&
+                relativeY < BOTTOM_LEFT_Y_SELECTING_PHOTO) {
+            int row = rowAtPoint(new Point(x, y));
+            if (row < selected.size()) {
+                selected.set(row, !selected.get(row));
+                repaint();
+            }
+        }
+    }
+
     private class PhotoMouseListener extends MouseAdapter {
 
         @Override
         public void mouseClicked(MouseEvent e) {
-            logger.debug("Click: x {}, width {}", e.getX(), PhotoTable.this.getWidth());
-            int relativeY = e.getY() % CELL_HEIGHT;
-            if (e.getX() > PhotoTable.this.getWidth() - BOTTOM_LEFT_X_SELECTING_PHOTO &&
-                    relativeY < BOTTOM_LEFT_Y_SELECTING_PHOTO) {
-                int row = e.getY() / CELL_HEIGHT;
-                if (row < selected.size()) {
-                    selected.set(row, !selected.get(row));
-                    PhotoTable.this.repaint();
-                }
+            if (e.getClickCount() >= 2) {
+                getActivePhoto().ifPresent(highlightedPhotoConsumer);
+            } else {
+                invertPhotoSelection(e.getX(), e.getY());
             }
         }
     }

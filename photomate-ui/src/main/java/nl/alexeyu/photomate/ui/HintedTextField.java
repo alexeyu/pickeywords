@@ -47,15 +47,6 @@ public class HintedTextField extends JPanel {
 
         textField.setToolTipText(label);
         add(textField);
-//        textField.addKeyListener(new KeyAdapter() {
-//
-//            @Override
-//            public void keyTyped(KeyEvent e) {
-//                if (textField.isEditable() && e.getKeyChar() == KeyEvent.VK_ENTER) {
-//                    firePropertyChanged();
-//                }
-//            }
-//        });
 
         textField.addMouseListener(new MouseAdapter() {
             @Override

@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 import nl.alexeyu.photomate.search.api.PhotoStockApi;
 import nl.alexeyu.photomate.search.api.RemotePhoto;

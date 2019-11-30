@@ -10,7 +10,7 @@ import java.beans.PropertyChangeListener;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Optional;
+import java.util.function.Consumer;
 
 import javax.inject.Inject;
 import javax.swing.*;
@@ -19,6 +19,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
+import nl.alexeyu.photomate.api.AbstractPhoto;
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
 import nl.alexeyu.photomate.service.EditablePhotoManager;
 import nl.alexeyu.photomate.service.PhotoNotReadyException;
@@ -44,8 +45,6 @@ public class Main implements PropertyChangeListener {
     private static final String LOCAL_SOURCE = "Local";
 
     private final JButton uploadButton = new JButton();
-
-    private final JButton replicateButton = new JButton("Replicate metadata");
 
     private EditablePhotoMetaDataPanel photoMetaDataPanel = new EditablePhotoMetaDataPanel();
 
@@ -100,11 +99,34 @@ public class Main implements PropertyChangeListener {
     private void initListeners() {
         editablePhotoContainer.addPhotoObserver(photoMetaDataPanel);
         editablePhotoContainer.addPhotoObserver(photoManager);
+        Consumer photoReplicator = createPhotoReplicator();
+        editablePhotoContainer.setHighlightedPhotoConsumer(photoReplicator);
         dirChooser.addPropertyChangeListener(DirChooser.DIR_PROPERTY, this);
         photoMetaDataPanel.addPropertyChangeListener(photoManager);
         sourcePhotoMetaDataPanel.addPropertyChangeListener(photoManager);
         stockPhotoContainer.addPhotoObserver(sourcePhotoMetaDataPanel);
+        stockPhotoContainer.setHighlightedPhotoConsumer(photoReplicator);
         archivePhotoContainer.addPhotoObserver(sourcePhotoMetaDataPanel);
+        archivePhotoContainer.setHighlightedPhotoConsumer(photoReplicator);
+    }
+
+    private <P extends AbstractPhoto> Consumer<P> createPhotoReplicator() {
+        return photo -> {
+            List<EditablePhoto> selectedPhotos = editablePhotoContainer.getSelectedPhotos();
+            if (!selectedPhotos.isEmpty()) {
+                var answer = JOptionPane.showConfirmDialog(frame,
+                        "Do you want to replicate this photo's metadata to all selected photos?",
+                        photo.metaData().caption(),
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.PLAIN_MESSAGE,
+                        photo.thumbnail());
+                if (answer == JOptionPane.YES_OPTION) {
+                    selectedPhotos.stream()
+                        .filter(target -> !target.equals(photo))
+                        .forEach(target -> photoManager.copyMetadata(target, photo));
+                }
+            }
+        };
     }
 
     private void buildGraphics() {
@@ -162,8 +184,6 @@ public class Main implements PropertyChangeListener {
         changePhotoListener.actionPerformed(null);
 
         buttonsPanel.add(Box.createVerticalGlue());
-        replicateButton.addActionListener(new ReplicateMetadataListener());
-        buttonsPanel.add(replicateButton);
 
         uploadButton.addActionListener(new UploadStarter());
         buttonsPanel.add(Box.createVerticalGlue());
@@ -230,17 +250,6 @@ public class Main implements PropertyChangeListener {
             }
         }
 
-    }
-
-    private class ReplicateMetadataListener implements  ActionListener {
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            Optional<EditablePhoto> activePhoto = editablePhotoContainer.getActivePhoto();
-            activePhoto.ifPresent(photo -> editablePhotoContainer.getSelectedPhotos().stream()
-                    .filter(target -> !target.equals(photo))
-                    .forEach(target -> photoManager.copyMetadata(target, photo)));
-        }
     }
 
     public static void main(String[] args) throws Exception {
