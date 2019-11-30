@@ -63,8 +63,11 @@ public abstract class AbstractPhoto implements Photo {
         firePropertyChange(THUMBNAIL_PROPERTY, null, thumbnail);
     }
     
-    public final void setMetaData(PhotoMetaData metaData) {
-        var oldMetaData = this.metaData.getAndSet(metaData);
+    public final void setMetaData(PhotoMetaData newMetaData) {
+        var oldMetaData = this.metaData.get();
+        if (oldMetaData == null || !oldMetaData.equals(newMetaData)) {
+            metaData.set(newMetaData);
+        }
         firePropertyChange(METADATA_PROPERTY, oldMetaData, metaData);
     }
     
