@@ -42,6 +42,20 @@ public class EditablePhotoManagerTest {
     }
 
     @Test
+    public void copiesKeywords() {
+        var keywordCaptor = ArgumentCaptor.forClass(Set.class);
+        var sourceMetaData = new DefaultPhotoMetaDataBuilder().set(KEYWORDS, List.of("landscape", "summer")).build();
+        var targetMetaData = new DefaultPhotoMetaDataBuilder().set(KEYWORDS, List.of()).build();
+        var source = new TestPhoto();
+        source.setMetaData(sourceMetaData);
+        var target = new TestPhoto();
+        target.setMetaData(targetMetaData);
+        doNothing().when(photoApi).updateProperty(eq(target), eq(KEYWORDS), keywordCaptor.capture());
+        photoManager.copyMetadata(target, source);
+        assertEquals(Set.of("landscape", "summer"), keywordCaptor.getValue());
+    }
+
+    @Test
     public void copiesKeywordsWithoutDuplication() {
         var keywordCaptor = ArgumentCaptor.forClass(Set.class);
         var sourceMetaData = new DefaultPhotoMetaDataBuilder().set(KEYWORDS, List.of("summer", "evening")).build();

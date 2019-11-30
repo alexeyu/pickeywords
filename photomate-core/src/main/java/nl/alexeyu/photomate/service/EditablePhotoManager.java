@@ -75,8 +75,8 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
     }
 
     public void copyMetadata(LocalPhoto target, Photo source) {
-        if (!target.keywords().isEmpty()) {
-            var extendedKeywords = new LinkedHashSet<>(target.keywords());
+        if (!source.metaData().keywords().isEmpty()) {
+            var extendedKeywords = new LinkedHashSet<>(target.metaData().keywords());
             extendedKeywords.addAll(source.metaData().keywords());
             photoApi.updateProperty(target, PhotoProperty.KEYWORDS, extendedKeywords);
         }
