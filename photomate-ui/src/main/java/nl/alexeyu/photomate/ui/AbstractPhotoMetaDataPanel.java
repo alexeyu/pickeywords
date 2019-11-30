@@ -6,13 +6,11 @@ import java.awt.BorderLayout;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
-import javax.swing.BoxLayout;
-import javax.swing.DefaultListModel;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
+import javax.swing.*;
 
 import nl.alexeyu.photomate.api.AbstractPhoto;
+import nl.alexeyu.photomate.model.DefaultPhotoMetaData;
+import nl.alexeyu.photomate.model.PhotoMetaData;
 import nl.alexeyu.photomate.model.PhotoProperty;
 import nl.alexeyu.photomate.service.PhotoObserver;
 
@@ -32,9 +30,11 @@ public abstract class AbstractPhotoMetaDataPanel<P extends AbstractPhoto> extend
         var editorPanel = new JPanel();
         editorPanel.setLayout(new BoxLayout(editorPanel, BoxLayout.Y_AXIS));
 
-        captionEditor = new HintedTextField("Caption", PhotoProperty.CAPTION.propertyName(), true);
+        captionEditor = HintedTextField.textArea("Caption", PhotoProperty.CAPTION.propertyName());
+        captionEditor.reactOnFocus();
         editorPanel.add(captionEditor);
-        descriptionEditor = new HintedTextField("Description", PhotoProperty.DESCRIPTION.propertyName(), true);
+        descriptionEditor = HintedTextField.textArea("Description", PhotoProperty.DESCRIPTION.propertyName());
+        descriptionEditor.reactOnFocus();
         editorPanel.add(descriptionEditor);
 
         add(editorPanel, BorderLayout.NORTH);
@@ -57,14 +57,15 @@ public abstract class AbstractPhotoMetaDataPanel<P extends AbstractPhoto> extend
     private void updateComponentsWithPhotoMetaData() {
         var listModel = new DefaultListModel<String>();
         if (this.photo != null) {
-            captionEditor.setText(photo.metaData().caption());
-            descriptionEditor.setText(photo.metaData().description());
-            photo.keywords().forEach(listModel::addElement);
+            PhotoMetaData metaData = new DefaultPhotoMetaData(photo.metaData());
+            SwingUtilities.invokeLater(() -> captionEditor.setText(metaData.caption()));
+            SwingUtilities.invokeLater(() -> descriptionEditor.setText(metaData.description()));
+            metaData.keywords().forEach(listModel::addElement);
         } else {
-            captionEditor.setText("");
-            descriptionEditor.setText("");
+            SwingUtilities.invokeLater(() -> captionEditor.setText(""));
+            SwingUtilities.invokeLater(() -> descriptionEditor.setText(""));
         }
-        keywordList.setModel(listModel);
+        SwingUtilities.invokeLater(() -> keywordList.setModel(listModel));
     }
 
     @Override

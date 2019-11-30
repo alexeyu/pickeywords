@@ -36,7 +36,7 @@ public class EditablePhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<Edita
         keywordList.addKeyListener(new KeywordRemover());
         keywordList.addPropertyChangeListener(KEYWORDS.propertyName(), this);
 
-        keywordToAddField = new HintedTextField("Keyword to add", NEW_KEYWORD_PROPERTY, false);
+        keywordToAddField = HintedTextField.textField("Keyword to add", NEW_KEYWORD_PROPERTY);
         add(keywordToAddField, BorderLayout.SOUTH);
         keywordToAddField.addPropertyChangeListener(this);
     }

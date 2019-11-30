@@ -24,7 +24,7 @@ public class StockPhotoContainer extends PhotoContainer<RemotePhoto> implements 
     public StockPhotoContainer() {
         super(COLUMN_COUNT);
         setBorder(UiConstants.EMPTY_BORDER);
-        keywordsToSearch = new HintedTextField("Search by", KEYWORD_SEARCH, false);
+        keywordsToSearch = HintedTextField.textField("Search by", KEYWORD_SEARCH);
         keywordsToSearch.addPropertyChangeListener(this);
         add(keywordsToSearch, BorderLayout.NORTH);
     }

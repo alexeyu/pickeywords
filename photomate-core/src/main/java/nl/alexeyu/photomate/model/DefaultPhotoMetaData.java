@@ -15,6 +15,12 @@ public class DefaultPhotoMetaData implements PhotoMetaData {
     	this.properties.putAll(properties);
     }
 
+	public DefaultPhotoMetaData(PhotoMetaData metaData) {
+		this.properties.put(PhotoProperty.KEYWORDS, metaData.getProperty(PhotoProperty.KEYWORDS));
+		this.properties.put(PhotoProperty.CAPTION, metaData.getProperty(PhotoProperty.CAPTION));
+		this.properties.put(PhotoProperty.DESCRIPTION, metaData.getProperty(PhotoProperty.DESCRIPTION));
+	}
+
     @Override
     @SuppressWarnings("unchecked")
     public Collection<String> keywords() {

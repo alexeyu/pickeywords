@@ -6,10 +6,7 @@ import static nl.alexeyu.photomate.model.PhotoProperty.DESCRIPTION;
 import java.awt.dnd.DropTarget;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Arrays;
 import java.util.List;
-
-import javax.swing.DefaultListModel;
 
 import nl.alexeyu.photomate.api.AbstractPhoto;
 import nl.alexeyu.photomate.model.PhotoProperty;
@@ -18,23 +15,15 @@ public class ReadonlyPhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<Abstr
 
     public ReadonlyPhotoMetaDataPanel(DropTarget dropTarget) {
         captionEditor.setEditable(false);
-        captionEditor.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (photo != null && e.getClickCount() >= 2) {
-                    firePropertyChange(CAPTION.propertyName(), null, captionEditor.getText());
-                }
-            }
-        });
+        captionEditor.onDoubleClick(event -> {
+            if (photo != null) {
+                firePropertyChange(CAPTION.propertyName(), null, captionEditor.getText());
+            }});
         descriptionEditor.setEditable(false);
-        descriptionEditor.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (photo != null  && e.getClickCount() >= 2) {
-                    firePropertyChange(DESCRIPTION.propertyName(), null, descriptionEditor.getText());
-                }
-            }
-        });
+        descriptionEditor.onDoubleClick(event -> {
+            if (photo != null) {
+                firePropertyChange(DESCRIPTION.propertyName(), null, descriptionEditor.getText());
+            }});
 
         keywordList.setDragEnabled(true);
         keywordList.setDropTarget(dropTarget);
@@ -47,10 +36,6 @@ public class ReadonlyPhotoMetaDataPanel extends AbstractPhotoMetaDataPanel<Abstr
             }
         });
 
-    }
-
-    public List<String> getSelectedKeywords() {
-        return keywordList.getSelectedValuesList();
     }
 
 }
