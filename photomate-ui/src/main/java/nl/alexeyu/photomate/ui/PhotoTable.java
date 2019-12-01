@@ -19,6 +19,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import nl.alexeyu.photomate.api.AbstractPhoto;
+import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.service.PhotoObserver;
 
 final class PhotoTable<P extends AbstractPhoto> extends JTable implements PropertyChangeListener {
@@ -37,7 +38,7 @@ final class PhotoTable<P extends AbstractPhoto> extends JTable implements Proper
 
     private final List<Boolean> selected = new ArrayList<>();
 
-    private Consumer<P> highlightedPhotoConsumer = p -> {};
+    private Consumer<Photo> highlightedPhotoConsumer = p -> {};
 
     public PhotoTable(int columnCount) {
         this.columnCount = columnCount;
@@ -49,7 +50,7 @@ final class PhotoTable<P extends AbstractPhoto> extends JTable implements Proper
         injectIntoParent(parent);
     }
 
-    public void setHighlightedPhotoConsumer(Consumer<P> consumer) {
+    public void setHighlightedPhotoConsumer(Consumer<Photo> consumer) {
         this.highlightedPhotoConsumer = consumer;
     }
 
@@ -115,6 +116,11 @@ final class PhotoTable<P extends AbstractPhoto> extends JTable implements Proper
             }
         }
         return Collections.unmodifiableList(result);
+    }
+
+    public void clearSelectedPhotos() {
+        Collections.fill(selected, false);
+        repaint();
     }
 
     @Override

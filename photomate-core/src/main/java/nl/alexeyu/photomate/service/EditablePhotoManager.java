@@ -6,24 +6,21 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.google.common.base.Strings;
-
 import nl.alexeyu.photomate.api.LocalPhoto;
 import nl.alexeyu.photomate.api.LocalPhotoApi;
+import nl.alexeyu.photomate.api.LocalPhotoUpdater;
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
-import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.model.PhotoProperty;
 import nl.alexeyu.photomate.util.Configuration;
 import nl.alexeyu.photomate.util.MediaFileProcessors;
 
-public class EditablePhotoManager implements PropertyChangeListener, PhotoObserver<EditablePhoto> {
+public class EditablePhotoManager implements PropertyChangeListener, PhotoObserver<EditablePhoto>, LocalPhotoUpdater {
 
     private List<EditablePhoto> photos = new ArrayList<>();
 
@@ -74,18 +71,9 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
         this.currentPhoto = photo;
     }
 
-    public void copyMetadata(LocalPhoto target, Photo source) {
-        if (!source.metaData().keywords().isEmpty()) {
-            var extendedKeywords = new LinkedHashSet<>(target.metaData().keywords());
-            extendedKeywords.addAll(source.metaData().keywords());
-            photoApi.updateProperty(target, PhotoProperty.KEYWORDS, extendedKeywords);
-        }
-        if (!Strings.isNullOrEmpty(source.metaData().caption())) {
-            photoApi.updateProperty(target, PhotoProperty.CAPTION, source.metaData().caption());
-        }
-        if (!Strings.isNullOrEmpty(source.metaData().description())) {
-            photoApi.updateProperty(target, PhotoProperty.DESCRIPTION, source.metaData().description());
-        }
+    @Override
+    public void updateProperty(LocalPhoto photo, PhotoProperty property, Object propertyValue) {
+        photoApi.updateProperty(photo, property, propertyValue);
     }
 
     private class PhotoCopyrightSetter implements PropertyChangeListener {

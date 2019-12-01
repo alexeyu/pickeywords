@@ -13,7 +13,7 @@ import nl.alexeyu.photomate.model.PhotoProperty;
 import nl.alexeyu.photomate.service.metadata.PhotoMetadataProcessor;
 import nl.alexeyu.photomate.thumbnail.ThumbnailsProvider;
 
-public class LocalPhotoApi<P extends LocalPhoto> implements PhotoApi<Path, P> {
+public class LocalPhotoApi<P extends LocalPhoto> implements PhotoApi<Path, P>, LocalPhotoUpdater {
 
     private final PhotoMetadataProcessor metadataProcessor;
 
@@ -34,6 +34,7 @@ public class LocalPhotoApi<P extends LocalPhoto> implements PhotoApi<Path, P> {
         return () -> thumbnailsProvider.apply(photo.getPath());
     }
 
+    @Override
     public void updateProperty(LocalPhoto photo, PhotoProperty property, Object propertyValue) {
         var oldMetaData = photo.metaData();
         var metaData = new DefaultPhotoMetaDataBuilder(oldMetaData).set(property, propertyValue).build();

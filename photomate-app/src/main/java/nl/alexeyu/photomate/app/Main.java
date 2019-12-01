@@ -10,7 +10,7 @@ import java.beans.PropertyChangeListener;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.function.Function;
 
 import javax.inject.Inject;
 import javax.swing.*;
@@ -19,11 +19,12 @@ import com.google.common.eventbus.EventBus;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
-import nl.alexeyu.photomate.api.AbstractPhoto;
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
+import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.service.EditablePhotoManager;
 import nl.alexeyu.photomate.service.PhotoNotReadyException;
 import nl.alexeyu.photomate.service.archive.PhotoArchiver;
+import nl.alexeyu.photomate.service.metadata.PhotoMetadataReplicator;
 import nl.alexeyu.photomate.ui.ArchivePhotoContainer;
 import nl.alexeyu.photomate.ui.DirChooser;
 import nl.alexeyu.photomate.ui.EditablePhotoContainer;
@@ -55,6 +56,8 @@ public class Main implements PropertyChangeListener {
 
     private DirChooser dirChooser;
 
+    private PhotoMetadataReplicator replicator;
+
     @Inject
     private EditablePhotoManager photoManager;
 
@@ -79,6 +82,13 @@ public class Main implements PropertyChangeListener {
     public void start() {
         registerPhotoSources();
         dirChooser = new DirChooser(configuration.getProperty(DEFAULT_FOLDER_PROPERTY).orElse(null));
+        Function<Photo, Boolean> confirmator =  photo -> JOptionPane.showConfirmDialog(frame,
+                "Do you want to replicate this photo's metadata to all selected photos?",
+                photo.metaData().caption(),
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.PLAIN_MESSAGE,
+                photo.thumbnail()) == JOptionPane.YES_OPTION;
+        replicator = new PhotoMetadataReplicator(editablePhotoContainer, confirmator, photoManager);
         initListeners();
         buildGraphics();
         dirChooser.init();
@@ -99,34 +109,14 @@ public class Main implements PropertyChangeListener {
     private void initListeners() {
         editablePhotoContainer.addPhotoObserver(photoMetaDataPanel);
         editablePhotoContainer.addPhotoObserver(photoManager);
-        Consumer photoReplicator = createPhotoReplicator();
-        editablePhotoContainer.setHighlightedPhotoConsumer(photoReplicator);
+        editablePhotoContainer.setHighlightedPhotoConsumer(replicator);
         dirChooser.addPropertyChangeListener(DirChooser.DIR_PROPERTY, this);
         photoMetaDataPanel.addPropertyChangeListener(photoManager);
         sourcePhotoMetaDataPanel.addPropertyChangeListener(photoManager);
         stockPhotoContainer.addPhotoObserver(sourcePhotoMetaDataPanel);
-        stockPhotoContainer.setHighlightedPhotoConsumer(photoReplicator);
+        stockPhotoContainer.setHighlightedPhotoConsumer(replicator);
         archivePhotoContainer.addPhotoObserver(sourcePhotoMetaDataPanel);
-        archivePhotoContainer.setHighlightedPhotoConsumer(photoReplicator);
-    }
-
-    private <P extends AbstractPhoto> Consumer<P> createPhotoReplicator() {
-        return photo -> {
-            List<EditablePhoto> selectedPhotos = editablePhotoContainer.getSelectedPhotos();
-            if (!selectedPhotos.isEmpty()) {
-                var answer = JOptionPane.showConfirmDialog(frame,
-                        "Do you want to replicate this photo's metadata to all selected photos?",
-                        photo.metaData().caption(),
-                        JOptionPane.YES_NO_OPTION,
-                        JOptionPane.PLAIN_MESSAGE,
-                        photo.thumbnail());
-                if (answer == JOptionPane.YES_OPTION) {
-                    selectedPhotos.stream()
-                        .filter(target -> !target.equals(photo))
-                        .forEach(target -> photoManager.copyMetadata(target, photo));
-                }
-            }
-        };
+        archivePhotoContainer.setHighlightedPhotoConsumer(replicator);
     }
 
     private void buildGraphics() {

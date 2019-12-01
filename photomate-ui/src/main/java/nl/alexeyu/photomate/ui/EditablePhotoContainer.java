@@ -12,9 +12,10 @@ import javax.swing.JLabel;
 
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
 import nl.alexeyu.photomate.service.PhotoObserver;
+import nl.alexeyu.photomate.service.SelectedPhotosProvider;
 
 public class EditablePhotoContainer extends PhotoContainer<EditablePhoto>
-        implements PropertyChangeListener, PhotoObserver<EditablePhoto> {
+        implements PropertyChangeListener, PhotoObserver<EditablePhoto>, SelectedPhotosProvider {
 
     private static final int COLUMN_COUNT = 1;
 
@@ -54,4 +55,12 @@ public class EditablePhotoContainer extends PhotoContainer<EditablePhoto>
         initPreview();
     }
 
+    public List<EditablePhoto> getSelectedPhotos() {
+        return photoTable.getSelectedPhotos();
+    }
+
+    @Override
+    public void clearSelectedPhotos() {
+        photoTable.clearSelectedPhotos();
+    }
 }

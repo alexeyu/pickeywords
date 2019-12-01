@@ -1,13 +1,13 @@
 package nl.alexeyu.photomate.ui;
 
-import java.awt.BorderLayout;
-import java.util.List;
+import java.awt.*;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import javax.swing.JPanel;
+import javax.swing.*;
 
 import nl.alexeyu.photomate.api.AbstractPhoto;
+import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.service.PhotoObserver;
 
 public abstract class PhotoContainer<P extends AbstractPhoto> extends JPanel {
@@ -23,7 +23,7 @@ public abstract class PhotoContainer<P extends AbstractPhoto> extends JPanel {
     	return new PhotoTable<>(columnCount, this);
     }
 
-    public void setHighlightedPhotoConsumer(Consumer<P> consumer) {
+    public void setHighlightedPhotoConsumer(Consumer<Photo> consumer) {
         photoTable.setHighlightedPhotoConsumer(consumer);
     }
     
@@ -33,10 +33,6 @@ public abstract class PhotoContainer<P extends AbstractPhoto> extends JPanel {
 
     public Optional<P> getActivePhoto() {
         return photoTable.getActivePhoto();
-    }
-
-    public List<P> getSelectedPhotos() {
-        return photoTable.getSelectedPhotos();
     }
 
 }
