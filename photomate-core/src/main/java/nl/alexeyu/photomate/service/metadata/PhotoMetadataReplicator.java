@@ -37,8 +37,8 @@ public final class PhotoMetadataReplicator implements Consumer<Photo> {
                 selectedPhotos.stream()
                         .filter(target -> !target.equals(photo))
                         .forEach(target -> copyMetadata(target, photo));
+                selectedPhotosProvider.clearSelectedPhotos();
             }
-            selectedPhotosProvider.clearSelectedPhotos();
         }
     }
 
