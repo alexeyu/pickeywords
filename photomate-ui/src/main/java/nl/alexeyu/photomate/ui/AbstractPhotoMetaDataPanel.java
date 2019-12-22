@@ -2,9 +2,11 @@ package nl.alexeyu.photomate.ui;
 
 import static nl.alexeyu.photomate.ui.UiConstants.BORDER_WIDTH;
 
-import java.awt.BorderLayout;
+import java.awt.*;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.Collections;
 
 import javax.swing.*;
 
@@ -21,7 +23,7 @@ public abstract class AbstractPhotoMetaDataPanel<P extends AbstractPhoto> extend
 
     protected HintedTextField descriptionEditor;
 
-    protected JList<String> keywordList = new JList<>(new DefaultListModel<String>());
+    protected JList<String> keywordList = new JList<>(new DefaultListModel<>());
 
     protected P photo;
 
@@ -58,14 +60,21 @@ public abstract class AbstractPhotoMetaDataPanel<P extends AbstractPhoto> extend
         var listModel = new DefaultListModel<String>();
         if (this.photo != null) {
             PhotoMetaData metaData = new DefaultPhotoMetaData(photo.metaData());
-            SwingUtilities.invokeLater(() -> captionEditor.setText(metaData.caption()));
-            SwingUtilities.invokeLater(() -> descriptionEditor.setText(metaData.description()));
-            metaData.keywords().forEach(listModel::addElement);
+            var keywords = new ArrayList<>(metaData.keywords());
+            Collections.sort(keywords);
+            listModel.addAll(keywords);
+            SwingUtilities.invokeLater(() -> {
+                captionEditor.setText(metaData.caption());
+                descriptionEditor.setText(metaData.description());
+                keywordList.setModel(listModel);
+            });
         } else {
-            SwingUtilities.invokeLater(() -> captionEditor.setText(""));
-            SwingUtilities.invokeLater(() -> descriptionEditor.setText(""));
+            SwingUtilities.invokeLater(() -> {
+                captionEditor.setText("");
+                descriptionEditor.setText("");
+                keywordList.setModel(listModel);
+            });
         }
-        SwingUtilities.invokeLater(() -> keywordList.setModel(listModel));
     }
 
     @Override
