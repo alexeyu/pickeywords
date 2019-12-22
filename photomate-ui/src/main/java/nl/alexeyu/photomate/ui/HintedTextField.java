@@ -2,8 +2,6 @@ package nl.alexeyu.photomate.ui;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -62,7 +60,7 @@ public class HintedTextField extends JPanel {
     }
 
     private void signalChangeOnEnter() {
-        KeyStroke enterStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0);
+        var enterStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0);
         textField.getInputMap().put(enterStroke, enterStroke.toString());
         textField.getActionMap().put(enterStroke.toString(), new AbstractAction() {
             @Override
@@ -77,7 +75,7 @@ public class HintedTextField extends JPanel {
     private void enableUndo() {
         textField.getDocument().addUndoableEditListener(undoManager);
 
-        KeyStroke ctrlZStroke = KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.CTRL_MASK);
+        var ctrlZStroke = KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.CTRL_MASK);
         textField.getInputMap().put(ctrlZStroke, ctrlZStroke.toString());
         textField.getActionMap().put(ctrlZStroke.toString(), new AbstractAction() {
             @Override
@@ -89,17 +87,6 @@ public class HintedTextField extends JPanel {
 
         });
 
-    }
-
-    public void reactOnFocus() {
-        textField.addFocusListener(new FocusAdapter() {
-
-            @Override
-            public void focusLost(FocusEvent e) {
-                firePropertyChanged();
-            }
-
-        });
     }
 
     public String getText() {
@@ -120,14 +107,14 @@ public class HintedTextField extends JPanel {
     }
 
     private static JTextArea createTextArea() {
-        JTextArea area = new JTextArea(2, 50);
+        var area = new JTextArea(2, 50);
         area.setLineWrap(true);
         suppressTab(area);
         return area;
     }
 
     private static void suppressTab(JTextArea textArea) {
-        KeyStroke tabStroke = KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0);
+        var tabStroke = KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0);
         textArea.getInputMap().put(tabStroke, tabStroke.toString());
         textArea.getActionMap().put(tabStroke.toString(), new AbstractAction() {
             @Override

@@ -67,8 +67,8 @@ public abstract class AbstractPhoto implements Photo {
         var oldMetaData = this.metaData.get();
         if (oldMetaData == null || !oldMetaData.equals(newMetaData)) {
             metaData.set(newMetaData);
+            firePropertyChange(METADATA_PROPERTY, oldMetaData, metaData);
         }
-        firePropertyChange(METADATA_PROPERTY, oldMetaData, metaData);
     }
     
     public final Collection<String> keywords() {

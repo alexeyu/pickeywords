@@ -12,6 +12,9 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import nl.alexeyu.photomate.api.LocalPhoto;
 import nl.alexeyu.photomate.api.LocalPhotoApi;
 import nl.alexeyu.photomate.api.LocalPhotoUpdater;
@@ -21,6 +24,8 @@ import nl.alexeyu.photomate.util.Configuration;
 import nl.alexeyu.photomate.util.MediaFileProcessors;
 
 public class EditablePhotoManager implements PropertyChangeListener, PhotoObserver<EditablePhoto>, LocalPhotoUpdater {
+
+    private static Logger logger = LogManager.getLogger();
 
     private List<EditablePhoto> photos = new ArrayList<>();
 
@@ -60,7 +65,7 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
     @Override
     public void propertyChange(PropertyChangeEvent e) {
         if (currentPhoto != null && PhotoProperty.has(e.getPropertyName())) {
-            photoApi.updateProperty(currentPhoto, PhotoProperty.of(e.getPropertyName()), e.getNewValue());
+            updateProperty(currentPhoto, PhotoProperty.of(e.getPropertyName()), e.getNewValue());
         }
     }
 
@@ -71,6 +76,7 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
 
     @Override
     public void updateProperty(LocalPhoto photo, PhotoProperty property, Object propertyValue) {
+        logger.debug("Updating property {} of photo {} to value '{}'", property, currentPhoto, propertyValue);
         photoApi.updateProperty(photo, property, propertyValue);
     }
 

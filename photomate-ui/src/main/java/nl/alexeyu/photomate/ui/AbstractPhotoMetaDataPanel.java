@@ -33,10 +33,8 @@ public abstract class AbstractPhotoMetaDataPanel<P extends AbstractPhoto> extend
         editorPanel.setLayout(new BoxLayout(editorPanel, BoxLayout.Y_AXIS));
 
         captionEditor = HintedTextField.textArea("Caption", PhotoProperty.CAPTION.propertyName());
-        captionEditor.reactOnFocus();
         editorPanel.add(captionEditor);
         descriptionEditor = HintedTextField.textArea("Description", PhotoProperty.DESCRIPTION.propertyName());
-        descriptionEditor.reactOnFocus();
         editorPanel.add(descriptionEditor);
 
         add(editorPanel, BorderLayout.NORTH);
@@ -79,7 +77,7 @@ public abstract class AbstractPhotoMetaDataPanel<P extends AbstractPhoto> extend
 
     @Override
     public void propertyChange(PropertyChangeEvent e) {
-        if (AbstractPhoto.METADATA_PROPERTY.equals(e.getPropertyName())) {
+        if (AbstractPhoto.METADATA_PROPERTY.equals(e.getPropertyName()) && e.getSource() == photo) {
             updateComponentsWithPhotoMetaData();
         } else {
             firePropertyChange(e.getPropertyName(), null, e.getNewValue());
