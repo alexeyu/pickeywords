@@ -8,22 +8,22 @@ import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.swing.*;
 
-import com.google.common.eventbus.EventBus;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 import nl.alexeyu.photomate.api.editable.EditablePhoto;
+import nl.alexeyu.photomate.files.FileManager;
 import nl.alexeyu.photomate.model.Photo;
 import nl.alexeyu.photomate.service.EditablePhotoManager;
-import nl.alexeyu.photomate.service.PhotoNotReadyException;
-import nl.alexeyu.photomate.service.archive.PhotoArchiver;
 import nl.alexeyu.photomate.service.metadata.PhotoMetadataReplicator;
 import nl.alexeyu.photomate.ui.ArchivePhotoContainer;
 import nl.alexeyu.photomate.ui.DirChooser;
@@ -32,20 +32,16 @@ import nl.alexeyu.photomate.ui.EditablePhotoMetaDataPanel;
 import nl.alexeyu.photomate.ui.ReadonlyPhotoMetaDataPanel;
 import nl.alexeyu.photomate.ui.StockPhotoContainer;
 import nl.alexeyu.photomate.ui.UiConstants;
-import nl.alexeyu.photomate.ui.UploadPanel;
-import nl.alexeyu.photomate.upload.PhotoUploader;
 import nl.alexeyu.photomate.util.Configuration;
 
 public class Main implements PropertyChangeListener {
 	
     private final JFrame frame = new JFrame("Your Photo Mate");
 
-    private static final String DEFAULT_FOLDER_PROPERTY = "defaultFolder";
-
     private static final String SHUTTERSTOCK_SOURCE = "Shutterstock";
     private static final String LOCAL_SOURCE = "Local";
 
-    private final JButton uploadButton = new JButton();
+    private final JButton uploadButton = new JButton("Upload");
 
     private EditablePhotoMetaDataPanel photoMetaDataPanel = new EditablePhotoMetaDataPanel();
 
@@ -73,15 +69,9 @@ public class Main implements PropertyChangeListener {
     @Inject
     private Configuration configuration;
 
-    @Inject
-    private PhotoUploader photoUploader;
-
-    @Inject
-    private EventBus eventBus;
-
     public void start() {
         registerPhotoSources();
-        dirChooser = new DirChooser(configuration.getProperty(DEFAULT_FOLDER_PROPERTY).orElse(null));
+        dirChooser = new DirChooser(configuration.getDefaultFolder());
         Function<Photo, Boolean> confirmator =  photo -> JOptionPane.showConfirmDialog(frame,
                 "Do you want to replicate this photo's metadata to all selected photos?",
                 photo.metaData().caption(),
@@ -197,7 +187,6 @@ public class Main implements PropertyChangeListener {
         if (Files.exists(dir)) {
             List<EditablePhoto> photos = photoManager.createPhotos(dir);
             editablePhotoContainer.setPhotos(photos);
-            uploadButton.setText("Upload [" + photos.size() + "]");
         }
     }
 
@@ -223,30 +212,17 @@ public class Main implements PropertyChangeListener {
     }
 
     private class UploadStarter implements ActionListener {
-
         @Override
         public void actionPerformed(ActionEvent e) {
-            try {
-                var photos = photoManager.validatePhotos();
-                var uploadPanel = new UploadPanel(photos, configuration.getPhotoStocks());
-                eventBus.register(uploadPanel);
-                frame.getContentPane().removeAll();
-                frame.getContentPane().add(new JScrollPane(uploadPanel));
-                frame.revalidate();
-                frame.repaint();
-                SwingUtilities.invokeLater(() -> photoUploader.uploadPhotos(photos));
-            } catch (PhotoNotReadyException ex) {
-                JOptionPane.showMessageDialog(frame, "Cannot upload photos: " + ex.getPhotos());
-            }
+            List<EditablePhoto> readyPhotos = photoManager.getPhotosReadyToUpload();
+            Path uploadFolder = configuration.getUploadFolder();
+            List<Path> paths = readyPhotos.stream().map(EditablePhoto::getPath).collect(Collectors.toList());
+            FileManager.move(paths, uploadFolder);
         }
-
     }
 
     public static void main(String[] args) throws Exception {
         Injector injector = Guice.createInjector(new AppModule());
-        PhotoArchiver photoArchiver = new PhotoArchiver();
-        injector.injectMembers(photoArchiver);
-        injector.getInstance(EventBus.class).register(photoArchiver);
         injector.getInstance(Main.class).start();
     }
 

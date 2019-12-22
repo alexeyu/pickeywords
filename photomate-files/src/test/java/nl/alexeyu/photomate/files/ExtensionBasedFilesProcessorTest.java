@@ -1,4 +1,4 @@
-package nl.alexeyu.photomate.util;
+package nl.alexeyu.photomate.files;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -13,11 +13,11 @@ import java.util.stream.Collectors;
 
 import org.junit.Test;
 
-public class ExtensionBasedMediaFilesProcessorTest {
+public class ExtensionBasedFilesProcessorTest {
 
     @Test
     public void filtersByMultipleExtesions() {
-        ExtensionBasedMediaFilesProcessor processor = new ExtensionBasedMediaFilesProcessor(".one", ".two");
+        ExtensionBasedFilesProcessor processor = new ExtensionBasedFilesProcessor(".one", ".two");
         assertTrue(processor.test(Paths.get("tmp", "file.one")));
         assertTrue(processor.test(Paths.get("tmp", "file.two")));
         assertFalse(processor.test(Paths.get("tmp")));
@@ -27,7 +27,7 @@ public class ExtensionBasedMediaFilesProcessorTest {
     @Test
     public void getsAllNecessaryFilesFromDir() throws IOException {
         Path dir = prepareFiles();
-        ExtensionBasedMediaFilesProcessor processor = new ExtensionBasedMediaFilesProcessor(".one", ".two");
+        ExtensionBasedFilesProcessor processor = new ExtensionBasedFilesProcessor(".one", ".two");
         List<Path> filteredPaths = processor.apply(dir).collect(Collectors.toList());
         assertEquals(2, filteredPaths.size());
         assertEquals(dir.resolve("file.one"), filteredPaths.get(0));
@@ -36,7 +36,7 @@ public class ExtensionBasedMediaFilesProcessorTest {
 
     @Test(expected = IllegalStateException.class)
     public void throwsISEInCaseOfIOException() throws IOException {
-        ExtensionBasedMediaFilesProcessor processor = new ExtensionBasedMediaFilesProcessor(".one", ".two");
+        ExtensionBasedFilesProcessor processor = new ExtensionBasedFilesProcessor(".one", ".two");
         processor.apply(Paths.get("doesnotexist"));
     }
 

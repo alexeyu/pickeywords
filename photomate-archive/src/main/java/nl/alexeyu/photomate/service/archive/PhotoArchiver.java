@@ -1,21 +1,17 @@
 package nl.alexeyu.photomate.service.archive;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.function.Consumer;
 
 import javax.inject.Inject;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.google.common.eventbus.Subscribe;
 
 import nl.alexeyu.photomate.api.PhotoFileCleaner;
+import nl.alexeyu.photomate.files.FileManager;
 import nl.alexeyu.photomate.thumbnail.FileThumbnailsProvider;
 import nl.alexeyu.photomate.upload.UploadSuccessEvent;
 import nl.alexeyu.photomate.util.Configuration;
@@ -34,23 +30,15 @@ public class PhotoArchiver implements Consumer<Path> {
 
     @Inject
     public void init() {
-        archiveFolder = configuration.getProperty("archiveFolder").map(Paths::get).orElse(createTempDir());
+        archiveFolder = configuration.getArchiveFolder();
         CompletableFuture.runAsync(new CleanupOldPhotos());
-    }
-
-    private Path createTempDir() {
-        try {
-            return Files.createTempDirectory("archive");
-        } catch (IOException ex) {
-            throw new IllegalStateException(ex);
-        }
     }
 
     @Override
     public void accept(Path photoPath) {
         if (MediaFileProcessors.JPEG.test(photoPath)
                 && !archivedPhotos.add(photoPath.toString())) {
-            CompletableFuture.runAsync(new ArchivePhotoTask(photoPath, archiveFolder));
+            CompletableFuture.runAsync(() -> FileManager.copy(List.of(photoPath), archiveFolder));
         }
     }
 
@@ -68,32 +56,6 @@ public class PhotoArchiver implements Consumer<Path> {
                 .sorted((a, b) -> Long.compare(b.toFile().lastModified(), a.toFile().lastModified()))
                 .skip(archiveCapacity)
                 .forEach(photoFileCleaner);
-        }
-
-    }
-
-    private static class ArchivePhotoTask implements Runnable {
-
-        private final Logger logger = LogManager.getLogger();
-
-        private final Path photoPath;
-
-        private final Path archiveFolder;
-
-        public ArchivePhotoTask(Path photoPath, Path archiveFolder) {
-            this.photoPath = photoPath;
-            this.archiveFolder = archiveFolder;
-        }
-
-        @Override
-        public void run() {
-            try {
-                Files.createDirectories(archiveFolder);
-                Path archivePath = archiveFolder.resolve(photoPath.getFileName());
-                Files.copy(photoPath, archivePath);
-            } catch (IOException ex) {
-                logger.error("Error on copying file", ex);
-            }
         }
 
     }

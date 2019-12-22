@@ -8,6 +8,6 @@ photomate.properties
 *.war
 *.ear
 *.iml
-target/*
+target/
 
 /target

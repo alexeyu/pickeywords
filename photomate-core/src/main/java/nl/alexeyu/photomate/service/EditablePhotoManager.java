@@ -51,12 +51,10 @@ public class EditablePhotoManager implements PropertyChangeListener, PhotoObserv
         return photos;
     }
 
-    public List<EditablePhoto> validatePhotos() throws PhotoNotReadyException {
-        var notReadyPhotos = photos.stream().filter(photo -> !photo.isReadyToUpload()).collect(Collectors.toList());
-        if (photos.isEmpty() || !notReadyPhotos.isEmpty()) {
-            throw new PhotoNotReadyException(notReadyPhotos);
-        }
-        return photos;
+    public List<EditablePhoto> getPhotosReadyToUpload() {
+        return photos.stream()
+                .filter(EditablePhoto::isReadyToUpload)
+                .collect(Collectors.toList());
     }
 
     @Override

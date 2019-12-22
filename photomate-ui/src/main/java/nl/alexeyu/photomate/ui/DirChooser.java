@@ -1,6 +1,6 @@
 package nl.alexeyu.photomate.ui;
 
-import java.awt.BorderLayout;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -9,12 +9,8 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.function.Predicate;
 
-import javax.swing.JFileChooser;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
+import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
-
-import com.google.common.base.Strings;
 
 import nl.alexeyu.photomate.util.MediaFileProcessors;
 
@@ -26,9 +22,9 @@ public class DirChooser extends JPanel {
 
     private final JLabel pathLabel = new JLabel("Select directory...");
 
-    private final String defaultFolder;
+    private final Path defaultFolder;
 
-    public DirChooser(String defaultFolder) {
+    public DirChooser(Path defaultFolder) {
         super(new BorderLayout());
         this.defaultFolder = defaultFolder;
         setBorder(UiConstants.EMPTY_BORDER);
@@ -48,9 +44,7 @@ public class DirChooser extends JPanel {
     }
 
     public void init() {
-    	if (defaultFolder != null) {
-    		selectDir(new File(defaultFolder));
-    	}
+        selectDir(defaultFolder.toFile());
     }
 
     public void selectDir(File dir) {
@@ -62,7 +56,7 @@ public class DirChooser extends JPanel {
     private final class PathSelector extends MouseAdapter {
         public void mouseClicked(MouseEvent e) {
             fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-            fileChooser.setCurrentDirectory(new File(Strings.nullToEmpty(defaultFolder)));
+            fileChooser.setCurrentDirectory(defaultFolder.toFile());
             fileChooser.showOpenDialog(getParent());
         }
     }

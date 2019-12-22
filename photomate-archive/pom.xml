@@ -18,6 +18,10 @@
 		</dependency>
 		<dependency>
 			<groupId>nl.alexeyu</groupId>
+			<artifactId>photomate-files</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>nl.alexeyu</groupId>
 			<artifactId>photomate-ftp-upload</artifactId>
 		</dependency>
 		<dependency>

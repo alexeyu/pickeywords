@@ -1,9 +1,11 @@
 package nl.alexeyu.photomate.util;
 
+import nl.alexeyu.photomate.files.ExtensionBasedFilesProcessor;
+
 public interface MediaFileProcessors {
 
-    ExtensionBasedMediaFilesProcessor JPEG = new ExtensionBasedMediaFilesProcessor(".jpg", ".jpeg");
+    ExtensionBasedFilesProcessor JPEG = new ExtensionBasedFilesProcessor(".jpg", ".jpeg");
 
-    ExtensionBasedMediaFilesProcessor MPEG4 = new ExtensionBasedMediaFilesProcessor(".mp4", ".mpeg");
+    ExtensionBasedFilesProcessor MPEG4 = new ExtensionBasedFilesProcessor(".mp4", ".mpeg");
 
 }

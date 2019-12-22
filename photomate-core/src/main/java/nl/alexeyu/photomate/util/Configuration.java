@@ -3,8 +3,10 @@ package nl.alexeyu.photomate.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.regex.Pattern;
@@ -23,6 +25,12 @@ public class Configuration {
     private static final String DEFAULT_CONFIG_FILE = "/photomate.properties";
 
     private static final Pattern PHOTO_STOCK_NAME = Pattern.compile("stock\\.([\\w]+)\\.name");
+
+    private static final String DEFAULT_FOLDER_PROPERTY = "defaultFolder";
+
+    private static final String UPLOAD_FOLDER_PROPERTY = "uploadFolder";
+
+    private static final String ARCHIVE_FOLDER_PROPERTY = "archiveFolder";
 
     private final Properties properties;
 
@@ -84,6 +92,28 @@ public class Configuration {
 
     public Optional<String> getProperty(String property) {
         return Optional.ofNullable(properties.getProperty(property));
+    }
+
+    public Path getDefaultFolder() {
+        return getFolder(DEFAULT_FOLDER_PROPERTY);
+    }
+
+    public Path getUploadFolder() {
+        return getFolder(UPLOAD_FOLDER_PROPERTY);
+    }
+
+    public Path getArchiveFolder() {
+        return getFolder(ARCHIVE_FOLDER_PROPERTY);
+    }
+
+    public Path getFolder(String property) {
+        try {
+            return Optional.ofNullable(properties.getProperty(DEFAULT_FOLDER_PROPERTY))
+                    .map(Path::of)
+                    .orElseThrow(() -> new IllegalArgumentException());
+        } catch (IllegalArgumentException ex) { // Can be also InvalidPathException
+            throw new NoSuchElementException("Cannot find path specified for " + property);
+        }
     }
 
 }

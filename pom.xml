@@ -112,6 +112,11 @@
 			</dependency>
 			<dependency>
 				<groupId>nl.alexeyu</groupId>
+				<artifactId>photomate-files</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>nl.alexeyu</groupId>
 				<artifactId>photomate-ui</artifactId>
 				<version>${project.version}</version>
 			</dependency>
@@ -174,5 +179,7 @@
 		<module>photomate-ui</module>
 		<module>photomate-app</module>
 		<module>photomate-ftp-upload</module>
+        <module>photomate-files</module>
+		<module>photomate-upload-app</module>
 	</modules>
 </project>

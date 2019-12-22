@@ -1,4 +1,4 @@
-package nl.alexeyu.photomate.util;
+package nl.alexeyu.photomate.files;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -8,14 +8,12 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import com.google.common.collect.Sets;
-
-public final class ExtensionBasedMediaFilesProcessor implements Predicate<Path>, Function<Path, Stream<Path>> {
+public final class ExtensionBasedFilesProcessor implements Predicate<Path>, Function<Path, Stream<Path>> {
 
     private final Set<String> extensions;
 
-    public ExtensionBasedMediaFilesProcessor(String... extensions) {
-        this.extensions = Sets.newHashSet(extensions);
+    public ExtensionBasedFilesProcessor(String... extensions) {
+        this.extensions = Set.of(extensions);
     }
 
     @Override
